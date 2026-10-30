@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat Jelly — Kéo thả mèo thạch rung rinh</title>
+<style>
+  *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0f1220;color:#fff;overflow:hidden}
+  #scene{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .pill{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.12);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.25);padding:8px 10px;border-radius:999px;z-index:10;flex-wrap:wrap;justify-content:center;max-width:94vw}
+  .pill button{border:0;border-radius:999px;padding:8px 12px;cursor:pointer;font-weight:700}
+  .pill button.active{background:#fff;color:#111}
+  .pill label{font-size:13px;opacity:.9} .pill input{accent-color:#ff8fb3}
+  header{position:fixed;top:12px;left:12px;z-index:10;background:rgba(0,0,0,.35);padding:10px 12px;border-radius:14px;max-width:340px}
+  header h1{margin:0;font-size:20px} header p{margin:4px 0 0;font-size:13px;opacity:.85}
+  #toast{position:fixed;top:58px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:8px 12px;border-radius:999px;font-size:13px;display:none;z-index:20}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<header>
+  <h1>🐱 Cat Jelly</h1>
+  <p>Kéo thả mèo, chọc để nảy, ném để bay. Mèo thạch trong suốt, rung rinh bằng lò xo thật.</p>
+</header>
+<div id="toast">Meo!</div>
+<div class="pill" id="dock">
+  <button data-cat="mochi" class="active">🍓 Mochi Tròn</button>
+  <button data-cat="pudding">🍮 Pudding Dẹt</button>
+  <button data-cat="soda">🌿 Soda Cao</button>
+  <button id="rain">🌧 Mưa mèo</button>
+  <button id="clear">🧹 Dọn</button>
+  <label>Rung <input id="wobble" type="range" min="0" max="100" value="70"></label>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+const canvas=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x0f1220);
+const camera=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,100);
+camera.position.set(0,6,12); camera.lookAt(0,1,0);
+scene.add(new THREE.AmbientLight(0xffffff,.8));
+const sun=new THREE.DirectionalLight(0xffffff,1.2); sun.position.set(5,10,5); scene.add(sun);
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(30,30),new THREE.MeshStandardMaterial({color:0x1e2440,roughness:.9}));
+ground.rotation.x=-Math.PI/2; scene.add(ground);
+// Jelly town: translucent domes
+for(let i=0;i<7;i++){
+  const dome=new THREE.Mesh(new THREE.SphereGeometry(1.2,24,16,0,Math.PI*2,0,Math.PI/2),
+    new THREE.MeshPhysicalMaterial({color:[0xff8fb3,0xffd166,0x7ee0c3,0x8ecbff][i%4],transparent:true,opacity:.45,roughness:.15,transmission:.6,clearcoat:1}));
+  dome.position.set(-9+i*3,0,-4-(i%2)); scene.add(dome);
+}
+const TYPES={
+  mochi:{color:0xff8fb3,scale:[1.15,1,1.15],name:'Mochi Tròn'},
+  pudding:{color:0xffc46b,scale:[1.35,.65,1.35],name:'Pudding Dẹt'},
+  soda:{color:0x7ee0c3,scale:[.85,1.45,.85],name:'Soda Cao'}
+};
+let selected='mochi', cats=[], dragged=null;
+function makeCat(type,x,z){
+  const t=TYPES[type];
+  const g=new THREE.Group();
+  const mat=new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.85,roughness:.12,transmission:.55,clearcoat:1,clearcoatRoughness:.2});
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),mat); body.scale.set(...t.scale); g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.62,28,20),mat); head.position.set(0,.85,.55); g.add(head);
+  [-.38,.38].forEach(ex=>{
+    const ear=new THREE.Mesh(new THREE.ConeGeometry(.22,.35,16),mat); ear.position.set(ex,1.45,.55); g.add(ear);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.07,12,10),new THREE.MeshStandardMaterial({color:0x111111})); eye.position.set(ex,.95,1.08); g.add(eye);
+  });
+  g.position.set(x,2,z); g.userData={vy:0,wobble:0,base:t.scale,type};
+  scene.add(g); cats.push(g); return g;
+}
+for(let i=0;i<6;i++) makeCat(Object.keys(TYPES)[i%3],-4+i*1.7,-1+(i%2));
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+addEventListener('resize',resize); resize();
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);
+function pick(e){mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera);
+  const hits=ray.intersectObjects(cats,true); if(!hits.length) return null;
+  let o=hits[0].object; while(o.parent&&!cats.includes(o)) o=o.parent; return o;}
+canvas.addEventListener('pointerdown',e=>{const c=pick(e); if(c){dragged=c; c.userData.vy=0; canvas.setPointerCapture(e.pointerId);}});
+canvas.addEventListener('pointermove',e=>{if(!dragged) return; mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera);
+  const p=new THREE.Vector3(); ray.ray.intersectPlane(plane,p); if(p){dragged.position.x=Math.max(-12,Math.min(12,p.x)); dragged.position.z=Math.max(-8,Math.min(8,p.z)); dragged.position.y=2.2; dragged.userData.wobble=1;}});
+canvas.addEventListener('pointerup',e=>{if(dragged){dragged.userData.vy=-1; showToast('Meo!'); dragged=null;}});
+function showToast(t){const el=document.getElementById('toast'); el.textContent=t; el.style.display='block'; setTimeout(()=>el.style.display='none',900)}
+document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selected=b.dataset.cat; document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x===b));});
+document.getElementById('rain').onclick=()=>{for(let i=0;i<6;i++) setTimeout(()=>makeCat(Object.keys(TYPES)[i%3],(Math.random()*10-5),(Math.random()*6-3)),i*120)};
+document.getElementById('clear').onclick=()=>{cats.forEach(c=>scene.remove(c)); cats=[];};
+canvas.addEventListener('dblclick',e=>{const c=pick(e); if(c){c.userData.vy=4; c.userData.wobble=1.5; showToast('Bụp!');}});
+let t=0;
+function animate(){requestAnimationFrame(animate); t+=.016;
+  const wob=document.getElementById('wobble').value/100;
+  cats.forEach(c=>{const u=c.userData;
+    if(c!==dragged){u.vy-=.18; c.position.y+=u.vy*.12; if(c.position.y<1.1){c.position.y=1.1; u.vy*=-.55; u.wobble=1;}}
+    u.wobble*=.94;
+    const s=1+Math.sin(t*14)*.12*u.wobble*(0.4+wob);
+    c.scale.set(u.base[0]*s,u.base[1]*(2-s),u.base[2]*s);
+    c.rotation.y+=.003;
+  });
+  renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
