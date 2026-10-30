@@ -1,7 +1,42 @@
 # 🐱 Cat Jelly
 
+> **Drag, poke and throw jelly cats.**
+> Transparent 3D jelly cats with real spring physics - open it and play right away, no install needed.
+
+**Languages:** English (main) - [Tiếng Việt](#tiếng-việt) - [Español](#español) - [中文](#中文)
+
+**Live demo:** https://dankezo.github.io/cat-jelly/ - **Repo:** https://github.com/dankezo/cat-jelly
+
+## English - Quick start
+
+Open `index.html` in a browser. No `npm install`, no build step.
+
+- **Drag and drop:** hold a cat, drag it around town, drop it and it falls and bounces.
+- **Poke:** double-click a cat to make it bounce.
+- **Cat rain:** press the Cat rain button to drop 6 more cats at once.
+- **Wobble:** use the Wobble slider to make the physics softer or firmer.
+- **Languages:** use the EN / VI / ES / ZH buttons in the top-left card.
+
+## Tiếng Việt
+
 > **Kéo thả mèo thạch. Chọc để nảy. Ném để bay.**
-> Mèo 3D trong suốt, rung rinh bằng vật lý lò xo thật — mở lên là chơi được ngay, không cần cài đặt.
+> Mèo 3D trong suốt, rung rinh bằng vật lý lò xo thật - mở lên là chơi được ngay, không cần cài đặt.
+
+Mở `index.html` bằng trình duyệt là chơi được ngay. Không cần `npm install`, không cần build.
+
+## Español
+
+> **Arrastra, toca y lanza gatos de gelatina.**
+> Gatos 3D transparentes con fisica de resorte real - abre el archivo y juega al instante, sin instalar nada.
+
+Abre `index.html` en un navegador. Sin `npm install`, sin compilacion.
+
+## 中文
+
+> **拖动、戳和扔果冻猫。**
+> 透明 3D 果冻猫, 使用真实弹簧物理 - 打开就能玩, 不需要安装。
+
+在浏览器中打开 `index.html` 即可游玩。不需要 `npm install`, 不需要构建。
 
 <p>
   <a href="https://github.com/dankezo/cat-jelly"><img src="https://img.shields.io/github/stars/dankezo/cat-jelly?style=social" alt="GitHub stars"></a>
@@ -57,18 +92,18 @@ python3 -m http.server 8000
 - [ ] Lưu đội mèo yêu thích vào localStorage
 - [ ] Mobile: pinch-zoom, kéo thả bằng cảm ứng
 
-Góp ý bằng Issue hoặc Pull Request — mọi ý tưởng mèo mới đều được chào đón! 🐾
+Góp ý bằng Issue hoặc Pull Request - mọi ý tưởng mèo mới đều được chào đón! 🐾
 
 ## 🙏 Cảm hứng
 
 Dự án này học hỏi kỹ thuật từ cộng đồng jelly mã nguồn mở, không copy code của họ:
 
-- [Hydraxon91/zummi-gummi](https://github.com/Hydraxon91/zummi-gummi) — translucent jelly-bear sandbox, Three.js + soft-body trên Box3D/WASM
-- [fab34/soft-matter-jelly-lab](https://github.com/fab34/soft-matter-jelly-lab) — Three.js jelly lab với WebGPU và soft-body physics
-- [tachibanayu24/jiggly-delight-logo](https://github.com/tachibanayu24/jiggly-delight-logo) — grab, throw, crush squishy jelly logo, Three.js + WASM soft-body
-- [awu7/jelly-cat](https://github.com/awu7/jelly-cat) — soft body physics simulation, đúng tên jelly-cat
-- [roundyyy/Jelly-Mesh-System](https://github.com/roundyyy/Jelly-Mesh-System) — Unity component thêm jelly physics cho bất kỳ mesh nào
+- [Hydraxon91/zummi-gummi](https://github.com/Hydraxon91/zummi-gummi) - translucent jelly-bear sandbox, Three.js + soft-body trên Box3D/WASM
+- [fab34/soft-matter-jelly-lab](https://github.com/fab34/soft-matter-jelly-lab) - Three.js jelly lab với WebGPU và soft-body physics
+- [tachibanayu24/jiggly-delight-logo](https://github.com/tachibanayu24/jiggly-delight-logo) - grab, throw, crush squishy jelly logo, Three.js + WASM soft-body
+- [awu7/jelly-cat](https://github.com/awu7/jelly-cat) - soft body physics simulation, đúng tên jelly-cat
+- [roundyyy/Jelly-Mesh-System](https://github.com/roundyyy/Jelly-Mesh-System) - Unity component thêm jelly physics cho bất kỳ mesh nào
 
 ## 📄 License
 
-MIT — cứ dùng, sửa, chia sẻ thoải mái, nhớ giữ lại credit là được.
+MIT - cứ dùng, sửa, chia sẻ thoải mái, nhớ giữ lại credit là được.

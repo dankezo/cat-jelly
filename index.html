@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Cat Jelly — Kéo thả mèo thạch rung rinh</title>
+<title>Cat Jelly - Drag and drop wobbly jelly cats</title>
 <style>
   *{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#0f1220;color:#fff;overflow:hidden}
   #scene{position:fixed;inset:0;width:100%;height:100%;display:block}
@@ -20,17 +20,43 @@
 <canvas id="scene"></canvas>
 <header>
   <h1>🐱 Cat Jelly</h1>
-  <p>Kéo thả mèo, chọc để nảy, ném để bay. Mèo thạch trong suốt, rung rinh bằng lò xo thật.</p>
+  <p id="desc">Drag, poke and throw jelly cats. Transparent jelly cats with real spring physics.</p>
+  <div id="langs" style="margin-top:8px;display:flex;gap:6px">
+    <button data-lang="en" class="active">English</button>
+    <button data-lang="vi">Tiếng Việt</button>
+    <button data-lang="es">Español</button>
+    <button data-lang="zh">中文</button>
+  </div>
 </header>
-<div id="toast">Meo!</div>
+<div id="toast">Meow!</div>
 <div class="pill" id="dock">
-  <button data-cat="mochi" class="active">🍓 Mochi Tròn</button>
-  <button data-cat="pudding">🍮 Pudding Dẹt</button>
-  <button data-cat="soda">🌿 Soda Cao</button>
-  <button id="rain">🌧 Mưa mèo</button>
-  <button id="clear">🧹 Dọn</button>
-  <label>Rung <input id="wobble" type="range" min="0" max="100" value="70"></label>
+  <button data-cat="mochi" class="active">🍓 Mochi Round</button>
+  <button data-cat="pudding">🍮 Pudding Flat</button>
+  <button data-cat="soda">🌿 Soda Tall</button>
+  <button id="rain">🌧 Cat rain</button>
+  <button id="clear">🧹 Clear</button>
+  <label><span id="wobble-label">Wobble</span> <input id="wobble" type="range" min="0" max="100" value="70"></label>
 </div>
+<script>
+const I18N={
+  en:{desc:"Drag, poke and throw jelly cats. Transparent jelly cats with real spring physics.",mochi:"🍓 Mochi Round",pudding:"🍮 Pudding Flat",soda:"🌿 Soda Tall",rain:"🌧 Cat rain",clear:"🧹 Clear",wobble:"Wobble",meow:"Meow!",pop:"Pop!"},
+  vi:{desc:"Kéo thả mèo, chọc để nảy, ném để bay. Mèo thạch trong suốt, rung rinh bằng lò xo thật.",mochi:"🍓 Mochi Tròn",pudding:"🍮 Pudding Dẹt",soda:"🌿 Soda Cao",rain:"🌧 Mưa mèo",clear:"🧹 Dọn",wobble:"Rung",meow:"Meo!",pop:"Bụp!"},
+  es:{desc:"Arrastra, toca y lanza gatos de gelatina. Gatos transparentes con fisica de resorte real.",mochi:"🍓 Mochi Redondo",pudding:"🍮 Pudding Plano",soda:"🌿 Soda Alto",rain:"🌧 Lluvia de gatos",clear:"🧹 Limpiar",wobble:"Temblor",meow:"¡Miau!",pop:"¡Pop!"},
+  zh:{desc:"拖动、戳和扔果冻猫。透明果冻猫, 使用真实弹簧物理。",mochi:"🍓 圆圆麻薯",pudding:"🍮 扁扁布丁",soda:"🌿 高高苏打",rain:"🌧 猫咪雨",clear:"🧹 清除",wobble:"晃动",meow:"喵!",pop:"啪!"}
+};
+let LANG="en";
+function setLang(l){LANG=l; const t=I18N[l]; document.documentElement.lang=l;
+  document.getElementById('desc').textContent=t.desc;
+  document.querySelector('[data-cat="mochi"]').textContent=t.mochi;
+  document.querySelector('[data-cat="pudding"]').textContent=t.pudding;
+  document.querySelector('[data-cat="soda"]').textContent=t.soda;
+  document.getElementById('rain').textContent=t.rain;
+  document.getElementById('clear').textContent=t.clear;
+  document.getElementById('wobble-label').textContent=t.wobble;
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+}
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+</script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script>
 const canvas=document.getElementById('scene');
@@ -79,12 +105,12 @@ function pick(e){mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1
 canvas.addEventListener('pointerdown',e=>{const c=pick(e); if(c){dragged=c; c.userData.vy=0; canvas.setPointerCapture(e.pointerId);}});
 canvas.addEventListener('pointermove',e=>{if(!dragged) return; mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera);
   const p=new THREE.Vector3(); ray.ray.intersectPlane(plane,p); if(p){dragged.position.x=Math.max(-12,Math.min(12,p.x)); dragged.position.z=Math.max(-8,Math.min(8,p.z)); dragged.position.y=2.2; dragged.userData.wobble=1;}});
-canvas.addEventListener('pointerup',e=>{if(dragged){dragged.userData.vy=-1; showToast('Meo!'); dragged=null;}});
+canvas.addEventListener('pointerup',e=>{if(dragged){dragged.userData.vy=-1; showToast(I18N[LANG].meow); dragged=null;}});
 function showToast(t){const el=document.getElementById('toast'); el.textContent=t; el.style.display='block'; setTimeout(()=>el.style.display='none',900)}
 document.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{selected=b.dataset.cat; document.querySelectorAll('[data-cat]').forEach(x=>x.classList.toggle('active',x===b));});
 document.getElementById('rain').onclick=()=>{for(let i=0;i<6;i++) setTimeout(()=>makeCat(Object.keys(TYPES)[i%3],(Math.random()*10-5),(Math.random()*6-3)),i*120)};
 document.getElementById('clear').onclick=()=>{cats.forEach(c=>scene.remove(c)); cats=[];};
-canvas.addEventListener('dblclick',e=>{const c=pick(e); if(c){c.userData.vy=4; c.userData.wobble=1.5; showToast('Bụp!');}});
+canvas.addEventListener('dblclick',e=>{const c=pick(e); if(c){c.userData.vy=4; c.userData.wobble=1.5; showToast(I18N[LANG].pop);}});
 let t=0;
 function animate(){requestAnimationFrame(animate); t+=.016;
   const wob=document.getElementById('wobble').value/100;
