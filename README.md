@@ -24,6 +24,12 @@ Open `index.html` in a browser. No `npm install`, no build step.
 
 Mở `index.html` bằng trình duyệt là chơi được ngay. Không cần `npm install`, không cần build.
 
+- **Kéo thả:** giữ mèo, kéo đi khắp thị trấn, thả ra là mèo rơi và nảy.
+- **Chọc:** double-click vào mèo để nó bật lên.
+- **Mưa mèo:** bấm nút Mưa mèo để thả thêm 5 bé cùng lúc.
+- **Rung:** kéo thanh Rung để chỉnh độ rung rinh.
+- **Ngôn ngữ:** bấm nút EN / VI / ES / ZH ở thẻ góc trái.
+
 ## Español
 
 > **Arrastra, toca y lanza gatos de gelatina.**
@@ -31,12 +37,24 @@ Mở `index.html` bằng trình duyệt là chơi được ngay. Không cần `n
 
 Abre `index.html` en un navegador. Sin `npm install`, sin compilacion.
 
+- **Arrastrar:** mantén un gato, arrástralo por el pueblo, suéltalo y rebotará.
+- **Tocar:** doble clic en un gato para hacerlo saltar.
+- **Lluvia de gatos:** pulsa el botón para soltar 5 gatos más a la vez.
+- **Temblor:** usa el control para ajustar la fisica.
+- **Idiomas:** usa los botones EN / VI / ES / ZH en la tarjeta superior izquierda.
+
 ## 中文
 
 > **拖动、戳和扔果冻猫。**
 > 透明 3D 果冻猫, 使用真实弹簧物理 - 打开就能玩, 不需要安装。
 
 在浏览器中打开 `index.html` 即可游玩。不需要 `npm install`, 不需要构建。
+
+- **拖动:** 按住猫咪, 在小镇里拖动, 松手后它会掉落并弹跳。
+- **戳:** 双击猫咪让它跳起来。
+- **猫咪雨:** 点击按钮一次掉落 5 只猫。
+- **晃动:** 用滑块调整晃动程度。
+- **语言:** 点击左上角卡片上的 EN / VI / ES / ZH 按钮。
 
 <p>
   <a href="https://github.com/dankezo/cat-jelly"><img src="https://img.shields.io/github/stars/dankezo/cat-jelly?style=social" alt="GitHub stars"></a>
