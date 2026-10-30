@@ -5,7 +5,11 @@
 
 **Languages:** English (main) - [Tiếng Việt](#tiếng-việt) - [Español](#español) - [中文](#中文)
 
-**Live demo:** https://dankezo.github.io/cat-jelly/ - **Repo:** https://github.com/dankezo/cat-jelly
+**Live demo:** https://dankezo.github.io/cat-jelly/ - **Cat Jelly Press:** https://dankezo.github.io/cat-jelly/press.html - **Repo:** https://github.com/dankezo/cat-jelly
+
+## Cat Jelly Press - inspired by Jelly Press
+
+Inspired by the Tripo Jelly Press prompt (four gummy jellies, hydraulic press, squash, burst, grab pieces), rebuilt for cats and better for play: four jelly cats - Mochi Round, Pudding Flat, Soda Tall, Orange Tabby - sit one at a time on a steel press bed. Hold the red button to lower the press, the cat squashes and spreads, the pressure gauge climbs, and past about half its height it bursts into 7 jelly pieces. After the burst, grab pieces, drag them, throw them, and press them again. No second burst, just endless squashing. Same EN / VI / ES / ZH language switch, same short dashes only, no WebGPU needed - plain Three.js so it runs on more browsers.
 
 ## English - Quick start
 

@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat Jelly Press - Press, burst and play with jelly cats</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#171310;color:#fff;overflow:hidden}
+  #scene{position:fixed;inset:0;width:100%;height:100%;display:block;cursor:grab}
+  .mast{position:fixed;top:14px;left:16px;z-index:10;background:rgba(0,0,0,.5);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.22);padding:12px 14px;border-radius:18px;max-width:min(380px,calc(100vw - 32px))}
+  .mast h1{margin:0;font-size:22px;letter-spacing:.5px}
+  .mast h1 span{background:repeating-linear-gradient(45deg,#ffd166 0 10px,#111 10px 20px);color:#fff;padding:0 6px;border-radius:6px}
+  .mast p{margin:5px 0 8px;font-size:13px;opacity:.9}
+  #langs{display:flex;gap:6px;flex-wrap:wrap}
+  #langs button{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:5px 9px;cursor:pointer;font-size:12px}
+  #langs button.active{background:#fff;color:#111}
+  .topr{position:fixed;top:14px;right:16px;z-index:10;display:flex;gap:8px}
+  .topr button{border:0;border-radius:999px;padding:9px 12px;cursor:pointer;font-weight:700;background:rgba(255,255,255,.16);color:#fff}
+  .deck{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:10;background:rgba(0,0,0,.55);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.22);padding:12px;border-radius:20px;width:min(680px,calc(100vw - 24px));text-align:center}
+  #caption{font-size:15px;font-weight:700;min-height:22px}
+  #verdict{font-size:20px;font-style:italic;color:#ffd166;min-height:26px}
+  .gauge{height:12px;background:rgba(255,255,255,.18);border-radius:999px;overflow:hidden;margin:8px 0}
+  #bar{height:100%;width:0%;background:linear-gradient(90deg,#7ee0c3,#ffd166,#ff5a7a)}
+  .controls{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center}
+  .controls button{border:0;border-radius:999px;padding:11px 16px;cursor:pointer;font-weight:800}
+  #hold{background:#ff3b30;color:#fff;font-size:16px}
+  #raise{background:#fff;color:#111}
+  .chips{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .chips button{border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
+  .chips button.active{background:#fff;color:#111}
+  #toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#fff;color:#111;padding:9px 14px;border-radius:999px;font-weight:700;display:none;z-index:20}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+<div class="mast">
+  <h1>CAT JELLY <span>PRESS</span></h1>
+  <p id="sub">Four jelly cats. One hydraulic press.</p>
+  <div id="langs">
+    <button data-lang="en" class="active">English</button>
+    <button data-lang="vi">Tiếng Việt</button>
+    <button data-lang="es">Español</button>
+    <button data-lang="zh">中文</button>
+  </div>
+</div>
+<div class="topr"><button id="reset">Reset</button><button id="sound">Sound: On</button></div>
+<div id="toast"></div>
+<div class="deck">
+  <div id="caption">Hold the red button to press.</div>
+  <div id="verdict"></div>
+  <div class="gauge"><div id="bar"></div></div>
+  <div id="pressure">0 bar - 100% height</div>
+  <div class="controls">
+    <button id="hold">HOLD TO PRESS</button>
+    <button id="raise">Raise</button>
+    <button id="next">Next cat</button>
+  </div>
+  <div class="chips">
+    <button data-cat="mochi" class="active">1 - Mochi Round</button>
+    <button data-cat="pudding">2 - Pudding Flat</button>
+    <button data-cat="soda">3 - Soda Tall</button>
+    <button data-cat="orange">4 - Orange Tabby</button>
+  </div>
+  <div style="font-size:12px;opacity:.75;margin-top:6px" id="help">Hold Space or ArrowDown to press - ArrowUp to raise - R to reset - 1 to 4 to pick a cat - Drag pieces after the burst</div>
+</div>
+<script>
+const I18N={
+  en:{sub:"Four jelly cats. One hydraulic press.",hold:"Hold the red button to press.",grab:"Grab a piece. Throw it.",caps:["Contact.","It is fine. It is jelly.","Getting wider.","That is a pancake now.","It is making a noise.","Please."],verdicts:{mochi:"Splat.",pudding:"Squashed.",soda:"Well, that is jam.",orange:"Crushed."},reset:"Reset",soundOn:"Sound: On",soundOff:"Sound: Off",holdBtn:"HOLD TO PRESS",raise:"Raise",next:"Next cat",help:"Hold Space or ArrowDown to press - ArrowUp to raise - R to reset - 1 to 4 to pick a cat - Drag pieces after the burst"},
+  vi:{sub:"Bốn mèo thạch. Một máy ép thủy lực.",hold:"Giữ nút đỏ để ép.",grab:"Nắm một mảnh. Ném nó đi.",caps:["Chạm rồi.","Ổn thôi. Đây là thạch mà.","Đang bè ra.","Giờ thành bánh dẹt rồi.","Nó đang kêu.","Thôi mà."],verdicts:{mochi:"Bẹp!",pudding:"Dẹp lép!",soda:"Thôi, thành mứt rồi.",orange:"Nát bét!"},reset:"Đặt lại",soundOn:"Âm thanh: Bật",soundOff:"Âm thanh: Tắt",holdBtn:"GIỮ ĐỂ ÉP",raise:"Nâng lên",next:"Mèo tiếp theo",help:"Giữ Space hoặc mũi tên xuống để ép - Mũi tên lên để nâng - R để đặt lại - 1 đến 4 để chọn mèo - Sau khi vỡ thì kéo các mảnh"},
+  es:{sub:"Cuatro gatos de gelatina. Una prensa hidraulica.",hold:"Mantén el botón rojo para prensar.",grab:"Agarra un trozo. Lánzalo.",caps:["Contacto.","Está bien. Es gelatina.","Se está ensanchando.","Ya es un panqueque.","Está haciendo ruido.","Por favor."],verdicts:{mochi:"¡Plaf!",pudding:"¡Aplastado!",soda:"Bueno, eso es mermelada.",orange:"¡Triturado!"},reset:"Reiniciar",soundOn:"Sonido: On",soundOff:"Sonido: Off",holdBtn:"MANTENER PARA PRENSAR",raise:"Subir",next:"Siguiente gato",help:"Mantén Espacio o flecha abajo para prensar - Flecha arriba para subir - R para reiniciar - 1 a 4 para elegir un gato - Después del estallido arrastra los trozos"},
+  zh:{sub:"四只果冻猫。一台液压机。",hold:"按住红色按钮进行按压。",grab:"抓住一块。扔出去。",caps:["接触了。","没事。这是果冻。","越来越宽了。","现在成了一张饼。","它在出声。","求你了。"],verdicts:{mochi:"啪!",pudding:"压扁了!",soda:"好吧, 成果酱了。",orange:"压碎了!"},reset:"重置",soundOn:"声音: 开",soundOff:"声音: 关",holdBtn:"按住按压",raise:"抬起",next:"下一只猫",help:"按住空格或向下箭头按压 - 向上箭头抬起 - R 重置 - 1 到 4 选择猫 - 爆裂后拖动碎片"}
+};
+let LANG="en", soundOn=true;
+function setLang(l){LANG=l; const t=I18N[l]; document.documentElement.lang=l;
+  document.getElementById('sub').textContent=t.sub;
+  document.getElementById('caption').textContent=burst? t.grab : t.hold;
+  document.getElementById('reset').textContent=t.reset;
+  document.getElementById('sound').textContent=soundOn? t.soundOn : t.soundOff;
+  document.getElementById('hold').textContent=t.holdBtn;
+  document.getElementById('raise').textContent=t.raise;
+  document.getElementById('next').textContent=t.next;
+  document.getElementById('help').textContent=t.help;
+  document.querySelectorAll('#langs button').forEach(b=>b.classList.toggle('active',b.dataset.lang===l));
+}
+document.querySelectorAll('#langs button').forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+function beep(f,d=.08){if(!soundOn) return; try{const ctx=new (window.AudioContext||window.webkitAudioContext)(); const o=ctx.createOscillator(); const g=ctx.createGain(); o.frequency.value=f; g.gain.setValueAtTime(.15,ctx.currentTime); g.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+d); o.connect(g); g.connect(ctx.destination); o.start(); o.stop(ctx.currentTime+d);}catch(e){}}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+if(!window.WebGLRenderingContext){document.body.innerHTML="<p style='padding:20px'>WebGL is not available in this browser, so Cat Jelly Press cannot run here.</p>"; throw new Error("no webgl");}
+const canvas=document.getElementById('scene');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x171310);
+const camera=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,.1,100);
+camera.position.set(0,5.5,11); camera.lookAt(0,1.5,0);
+scene.add(new THREE.AmbientLight(0xffffff,.9));
+const sun=new THREE.DirectionalLight(0xffffff,1.1); sun.position.set(5,10,6); scene.add(sun);
+const bed=new THREE.Mesh(new THREE.BoxGeometry(7,.4,5),new THREE.MeshStandardMaterial({color:0x8a8f98,metalness:.7,roughness:.35}));
+bed.position.y=.2; scene.add(bed);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,40),new THREE.MeshStandardMaterial({color:0xe8dcc8,roughness:.9}));
+floor.rotation.x=-Math.PI/2; floor.position.y=-.01; scene.add(floor);
+// Press frame: two posts and a platen
+const postMat=new THREE.MeshStandardMaterial({color:0x333a44,metalness:.8,roughness:.3});
+[-2.2,2.2].forEach(x=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.18,.18,7,16),postMat); p.position.set(x,3.5,-1); scene.add(p);});
+const beam=new THREE.Mesh(new THREE.BoxGeometry(5.4,.5,.8),postMat); beam.position.set(0,7,-1); scene.add(beam);
+const platen=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,.45,32),new THREE.MeshStandardMaterial({color:0xb02a2a,metalness:.6,roughness:.35}));
+platen.position.set(0,6,-.2); scene.add(platen);
+const ram=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,2,16),postMat); ram.position.set(0,7.2,-.2); scene.add(ram);
+const CATS={
+  mochi:{color:0xff8fb3,scale:[1.1,1,1.1],label:"Mochi Round"},
+  pudding:{color:0xffc46b,scale:[1.3,.62,1.3],label:"Pudding Flat"},
+  soda:{color:0x7ee0c3,scale:[.85,1.4,.85],label:"Soda Tall"},
+  orange:{color:0xff9a3d,scale:[1,1.15,1],label:"Orange Tabby"}
+};
+let current="mochi", cat=null, pieces=[], burst=false, pressing=false, raising=false, pressY=6, squash=0, burstAt=.58+Math.random()*.08, dragged=null;
+function makeCat(type){
+  if(cat) scene.remove(cat);
+  pieces.forEach(p=>scene.remove(p)); pieces=[]; burst=false; squash=0; pressY=6; burstAt=.52+Math.random()*.14;
+  const t=CATS[type]; const g=new THREE.Group();
+  const mat=new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.88,roughness:.12,transmission:.55,clearcoat:1});
+  const body=new THREE.Mesh(new THREE.SphereGeometry(1,32,24),mat); body.scale.set(...t.scale); g.add(body);
+  const head=new THREE.Mesh(new THREE.SphereGeometry(.6,28,20),mat); head.position.set(0,.8,.55); g.add(head);
+  [-.36,.36].forEach(ex=>{const ear=new THREE.Mesh(new THREE.ConeGeometry(.2,.32,16),mat); ear.position.set(ex,1.38,.55); g.add(ear);
+    const eye=new THREE.Mesh(new THREE.SphereGeometry(.07,12,10),new THREE.MeshStandardMaterial({color:0x111111})); eye.position.set(ex,.9,1.05); g.add(eye);});
+  g.position.set(0,1.6,-.2); g.userData={base:t.scale,mat};
+  scene.add(g); cat=g;
+  document.getElementById('caption').textContent=I18N[LANG].hold;
+  document.getElementById('verdict').textContent="";
+}
+function doBurst(){
+  burst=true; const t=CATS[current];
+  const mat=new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.88,roughness:.12,transmission:.55,clearcoat:1});
+  scene.remove(cat); cat=null; beep(120,.3);
+  for(let i=0;i<7;i++){
+    const s=.35+Math.random()*.45;
+    const m=new THREE.Mesh(new THREE.SphereGeometry(s,20,14),mat);
+    m.scale.set(1+Math.random()*.4,.6+Math.random()*.4,1+Math.random()*.4);
+    m.position.set((Math.random()*2-1)*1.2,1.5+Math.random(),-.2+(Math.random()*2-1));
+    m.userData={vy:2+Math.random()*3,vx:(Math.random()*2-1)*2,vz:(Math.random()*2-1)*2,wob:Math.random()*6};
+    scene.add(m); pieces.push(m);
+  }
+  document.getElementById('verdict').textContent=I18N[LANG].verdicts[current];
+  document.getElementById('caption').textContent=I18N[LANG].grab;
+  setTimeout(()=>{document.getElementById('verdict').textContent="";},2500);
+}
+function setCat(type){current=type; document.querySelectorAll('.chips button').forEach(b=>b.classList.toggle('active',b.dataset.cat===type)); makeCat(type);}
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>setCat(b.dataset.cat));
+document.getElementById('next').onclick=()=>{const ks=Object.keys(CATS); setCat(ks[(ks.indexOf(current)+1)%ks.length]);};
+document.getElementById('reset').onclick=()=>setCat(current);
+document.getElementById('sound').onclick=e=>{soundOn=!soundOn; e.target.textContent=soundOn? I18N[LANG].soundOn : I18N[LANG].soundOff;};
+const holdBtn=document.getElementById('hold');
+holdBtn.addEventListener('pointerdown',()=>pressing=true);
+addEventListener('pointerup',()=>pressing=false);
+document.getElementById('raise').addEventListener('pointerdown',()=>raising=true);
+document.getElementById('raise').addEventListener('pointerup',()=>raising=false);
+addEventListener('keydown',e=>{if(e.code==="Space"||e.key==="ArrowDown") pressing=true; if(e.key==="ArrowUp") raising=true; if(e.key==="r"||e.key==="R") setCat(current); if(["1","2","3","4"].includes(e.key)) setCat(Object.keys(CATS)[+e.key-1]);});
+addEventListener('keyup',e=>{if(e.code==="Space"||e.key==="ArrowDown") pressing=false; if(e.key==="ArrowUp") raising=false;});
+function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
+addEventListener('resize',resize); resize();
+const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),-1);
+function pick(e,objs){mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera); const h=ray.intersectObjects(objs,false); return h.length? h[0].object : null;}
+canvas.addEventListener('pointerdown',e=>{if(!burst) return; const p=pick(e,pieces); if(p){dragged=p; canvas.setPointerCapture(e.pointerId); beep(300,.06);}});
+canvas.addEventListener('pointermove',e=>{if(!dragged) return; mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera); const v=new THREE.Vector3(); ray.ray.intersectPlane(plane,v); if(v){dragged.position.x=Math.max(-3,Math.min(3,v.x)); dragged.position.z=Math.max(-2.5,Math.min(2.5,v.z)); dragged.position.y=1.8;}});
+canvas.addEventListener('pointerup',()=>{if(dragged){dragged.userData.vy=1; dragged=null;}});
+makeCat(current);
+let t=0;
+function animate(){requestAnimationFrame(animate); t+=.016;
+  if(pressing && !burst && cat){
+    pressY=Math.max(2.2,pressY-.06); squash=Math.min(1,(6-pressY)/3.8);
+    const idx=Math.min(I18N[LANG].caps.length-1,Math.floor(squash*6));
+    document.getElementById('caption').textContent=I18N[LANG].caps[idx];
+    if(squash>=burstAt) doBurst();
+  }
+  if(pressing && burst){pressY=Math.max(2.2,pressY-.04); pieces.forEach(p=>{p.scale.y=Math.max(.35,p.scale.y*.99);});}
+  if(raising) pressY=Math.min(6,pressY+.08);
+  platen.position.y=pressY; ram.position.y=pressY+1.2;
+  if(cat){
+    const s=1-squash*.55;
+    cat.scale.set(cat.userData.base[0]*(1+squash*.7),cat.userData.base[1]*s,cat.userData.base[2]*(1+squash*.7));
+    cat.position.y=1.6-(squash*.4);
+    const wob=1+Math.sin(t*14)*.06*squash; cat.scale.x*=wob;
+  }
+  pieces.forEach(p=>{if(p!==dragged){p.userData.vy-=.15; p.position.y+=p.userData.vy*.1; p.position.x+=p.userData.vx*.02; p.position.z+=p.userData.vz*.02; if(p.position.y<.5){p.position.y=.5; p.userData.vy*=-.5; p.userData.vx*=.7; p.userData.vz*=.7;} if(Math.abs(p.position.x)>3) p.userData.vx*=-1; if(Math.abs(p.position.z)>2.5) p.userData.vz*=-1;} p.rotation.x+=.02; p.rotation.y+=.02;});
+  const pressure=Math.round(squash*400);
+  document.getElementById('bar').style.width=(pressure/4)+"%";
+  document.getElementById('pressure').textContent=pressure+" bar - "+Math.round((1-squash)*100)+"% height";
+  renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
