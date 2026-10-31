@@ -1,131 +1,69 @@
-# 🐱 Cat Jelly
+# Cat Jelly — Material Laboratory
 
-> **Drag, poke and throw jelly cats.**
-> Transparent 3D jelly cats with real spring physics - open it and play right away, no install needed.
+A static, interactive Three.js press experiment. Pick Mochi, Pudding, Soda or Orange Tabby; lift a local point on the cat, release it, or hold the hydraulic press to explore deformation and fracture.
 
-**Languages:** English (main) - [Tiếng Việt](#tiếng-việt) - [Español](#español) - [中文](#中文)
+Both `/` and `/press.html` run the same shared application. No build step, runtime CDN, npm install or API key is required.
 
-**Live demo:** https://dankezo.github.io/cat-jelly/ - **Cat Jelly Press:** https://dankezo.github.io/cat-jelly/press.html - **Repo:** https://github.com/dankezo/cat-jelly
+```sh
+python3 -m http.server 8765
+```
 
-## Cat Jelly Press - inspired by Jelly Press
+Open the served page in a WebGL-capable browser. Public deployment remains at `https://dankezo.github.io/cat-jelly/`; the V3 feature branch is not a statement that production has been updated.
 
-Inspired by the Tripo Jelly Press prompt (four gummy jellies, hydraulic press, squash, burst, grab pieces), rebuilt for cats and better for play: four jelly cats - Mochi Round, Pudding Flat, Soda Tall, Orange Tabby - sit one at a time on a steel press bed. Hold the red button to lower the press, the cat squashes and spreads, the pressure gauge climbs, and past about half its height it bursts into 7 jelly pieces. After the burst, grab pieces, drag them, throw them, and press them again. No second burst, just endless squashing. Same EN / VI / ES / ZH language switch, same short dashes only, no WebGPU needed - plain Three.js so it runs on more browsers.
+## Controls
 
-## English - Quick start
+- Select one of the four specimens. Jelly is the default material.
+- Drag the cat to grab a simulated particle; lift and release to impart motion. Click it to poke. Fragments can also be dragged and thrown.
+- Hold the red button or Space to lower the plate; release to retract. Raise also retracts it.
+- Drag empty space to orbit; use the wheel to zoom, within safe limits.
+- Reset (R) clears fragments and wet effects and reconstructs the current specimen with the same fracture seed.
+- Laboratory settings offers five gel formulations, four quality levels plus adaptive mode, slow motion, diagnostics, studio/workshop scenes, and photo mode. Escape exits photo mode.
+- EN / VI / ES / ZH switches language. Sound begins only after a user gesture. Reduced-motion preferences disable blinking and decorative machine animation.
+- The existing glass, iron, diamond, brick and toy-brick materials, vacuum economy and fantasy machines remain available. Those rigid-material simulations use the legacy model.
 
-Open `index.html` in a browser. No `npm install`, no build step.
+## What changed in V3
 
-- **Drag and drop:** hold a cat, drag it around town, drop it and it falls and bounces.
-- **Poke:** double-click a cat to make it bounce.
-- **Cat rain:** press the Cat rain button to drop 6 more cats at once.
-- **Wobble:** use the Wobble slider to make the physics softer or firmer.
-- **Languages:** use the EN / VI / ES / ZH buttons in the top-left card.
+The jelly and liquid-shell bodies use a 179-particle, 352-tetrahedron XPBD cage. Distance and signed-volume constraints replace bulk group scaling. Skin, facial details, inclusions and crack ribbons share the same tetrahedral embedding. Circular plate contact and floor contact drive deformation; the gauge is a calibrated game approximation, not a force sensor in real bar.
+
+Jelly fracture partitions the actual deformed surface into seven closed regions with matching interior surfaces. It preserves the exterior triangles and enclosed volume at separation. Fragments inherit sampled cage velocities and use lightweight collision proxies afterward. Liquid rupture emits droplets from the simulated shell, with bounded wet effects and surface-clipped puddles.
+
+The default studio removes the old visual clutter, preserves the workshop as an option, and adds direct specimen selection, a restrained control layout, an industrial label and joint fasteners. Rendering remains vendored Three.js r160 / WebGL; software rendering uses an opaque material fallback.
+
+These are substantial foundation changes, not a finished implementation of every V3 aspiration. Self-collision, intact plasticity, FEM, runtime tearing, soft fragment simulation, full fluid dynamics, recorded replay, WebGPU, advanced post-processing and verified native-device frame-rate targets remain outside this release. Cats may roll over while recovering; elastic recovery does not force them upright.
+
+## Tests
+
+```sh
+python3 qa/validate.py
+node qa/physics.cjs
+node qa/fracture.cjs
+```
+
+Browser tests require Playwright, installed outside the checkout. Pin `playwright@1.62.1`, then install its Chromium browser. Alternatively set `BROWSER_EXECUTABLE=/usr/bin/chromium` when using a system browser. Test the Pages base path by serving the **parent** of this checkout:
+
+```sh
+# From the parent directory containing cat-jelly/
+python3 -m http.server 8766 --bind 127.0.0.1
+# In another terminal, from cat-jelly/; NODE_PATH may select isolated dependencies
+node qa/browser-v3.cjs
+node qa/browser-liquid.cjs
+node qa/browser-input.cjs
+```
+
+`CAT_JELLY_URL` overrides the base URL and `CAT_QA_OUTPUT` selects the evidence directory (default `/tmp/cat-jelly-qa`). The original `qa/browser-smoke.cjs` remains available against port 8765.
+
+See [architecture and technical evaluation](docs/ARCHITECTURE.md), [validation and limitations](docs/QA.md), [research and licenses](docs/RESEARCH.md), and [changes](CHANGELOG.md).
 
 ## Tiếng Việt
 
-> **Kéo thả mèo thạch. Chọc để nảy. Ném để bay.**
-> Mèo 3D trong suốt, rung rinh bằng vật lý lò xo thật - mở lên là chơi được ngay, không cần cài đặt.
-
-Mở `index.html` bằng trình duyệt là chơi được ngay. Không cần `npm install`, không cần build.
-
-- **Kéo thả:** giữ mèo, kéo đi khắp thị trấn, thả ra là mèo rơi và nảy.
-- **Chọc:** double-click vào mèo để nó bật lên.
-- **Mưa mèo:** bấm nút Mưa mèo để thả thêm 5 bé cùng lúc.
-- **Rung:** kéo thanh Rung để chỉnh độ rung rinh.
-- **Ngôn ngữ:** bấm nút EN / VI / ES / ZH ở thẻ góc trái.
+Chọn Mochi, Pudding, Soda hoặc Tabby. Kéo để nắm một điểm trên mèo, nâng và thả; giữ nút đỏ để ép, thả nút để nâng máy. R đặt lại cả mèo và hiệu ứng. Kéo vùng trống để xoay máy ảnh. Không cần cài đặt hay biên dịch; dùng máy chủ tĩnh như lệnh Python ở trên.
 
 ## Español
 
-> **Arrastra, toca y lanza gatos de gelatina.**
-> Gatos 3D transparentes con fisica de resorte real - abre el archivo y juega al instante, sin instalar nada.
-
-Abre `index.html` en un navegador. Sin `npm install`, sin compilacion.
-
-- **Arrastrar:** mantén un gato, arrástralo por el pueblo, suéltalo y rebotará.
-- **Tocar:** doble clic en un gato para hacerlo saltar.
-- **Lluvia de gatos:** pulsa el botón para soltar 5 gatos más a la vez.
-- **Temblor:** usa el control para ajustar la fisica.
-- **Idiomas:** usa los botones EN / VI / ES / ZH en la tarjeta superior izquierda.
+Elige Mochi, Pudding, Soda o Tabby. Arrastra un punto del gato, levántalo y suéltalo; mantén el botón rojo para prensar y suelta para retraer. R reinicia el gato y los efectos. Arrastra el espacio vacío para girar la cámara. Sin compilación; usa el servidor estático indicado arriba.
 
 ## 中文
 
-> **拖动、戳和扔果冻猫。**
-> 透明 3D 果冻猫, 使用真实弹簧物理 - 打开就能玩, 不需要安装。
+选择 Mochi、Pudding、Soda 或 Tabby。拖动猫身上的一个模拟点，提起后松开；按住红色按钮下压，松开后回升。R 重置猫与效果。在空白处拖动可旋转视角。无需安装或构建，使用上面的 Python 静态服务器命令即可。
 
-在浏览器中打开 `index.html` 即可游玩。不需要 `npm install`, 不需要构建。
-
-- **拖动:** 按住猫咪, 在小镇里拖动, 松手后它会掉落并弹跳。
-- **戳:** 双击猫咪让它跳起来。
-- **猫咪雨:** 点击按钮一次掉落 5 只猫。
-- **晃动:** 用滑块调整晃动程度。
-- **语言:** 点击左上角卡片上的 EN / VI / ES / ZH 按钮。
-
-<p>
-  <a href="https://github.com/dankezo/cat-jelly"><img src="https://img.shields.io/github/stars/dankezo/cat-jelly?style=social" alt="GitHub stars"></a>
-  <a href="https://github.com/dankezo/cat-jelly"><img src="https://img.shields.io/github/forks/dankezo/cat-jelly?style=social" alt="GitHub forks"></a>
-  <img src="https://img.shields.io/badge/Three.js-r160-000000?logo=three.js" alt="Three.js">
-  <img src="https://img.shields.io/badge/No%20build%20step-100%25%20vanilla-ff8fb3" alt="No build step">
-  <img src="https://img.shields.io/badge/License-MIT-green" alt="MIT">
-</p>
-
-## ✨ Demo nhanh
-
-Mở `index.html` bằng trình duyệt là chơi được ngay. Không cần `npm install`, không cần build.
-
-| Hành động | Cách chơi |
-|---|---|
-| **Kéo thả** | Giữ chuột vào mèo, kéo đi khắp thị trấn, thả ra là mèo rơi và nảy |
-| **Chọc** | Double-click vào mèo để nó bật lên kèm hiệu ứng rung |
-| **Mưa mèo** | Bấm **🌧 Mưa mèo** để thả thêm 6 bé cùng lúc |
-| **Chỉnh rung** | Kéo thanh **Rung** để tăng/giảm độ rung rinh |
-
-## 🐈 3 dạng mèo
-
-| Mèo | Kiểu dáng | Màu thạch |
-|---|---|---|
-| 🍓 **Mochi Tròn** | Tròn, mũm mĩm | Dâu sữa |
-| 🍮 **Pudding Dẹt** | Dẹt, bẹt ra khi đáp đất | Caramel |
-| 🌿 **Soda Cao** | Cao, thon, rung dài hơn | Bạc hà |
-
-## 🧪 Vật lý jelly, không phải animation giả
-
-- **Spring + squash & stretch:** mèo đáp đất thì dẹt ra, rồi rung bần bật và hồi lại hình dáng gốc.
-- **Drag & throw:** kéo mèo đi, thả ra với vận tốc rơi, nảy lại theo độ đàn hồi.
-- **Trong suốt:** vật liệu `MeshPhysicalMaterial` với `transmission` + `clearcoat`, nhìn xuyên như thạch thật.
-- **Thị trấn thạch:** nhà mái vòm trong suốt, cây jelly, mặt đất tối để mèo nổi bật.
-
-## 🚀 Chạy local
-
-```bash
-# Cách 1: mở file trực tiếp
-open index.html
-
-# Cách 2: serve tĩnh (khuyên dùng để Three.js load ổn định)
-npx serve .
-# hoặc
-python3 -m http.server 8000
-```
-
-## 🗺 Roadmap cộng đồng
-
-- [ ] Thêm mèo mới do cộng đồng gợi ý: mèo đen, mèo trắng, mèo cam
-- [ ] Âm thanh pop khi chọc, tiếng meo khi thả
-- [ ] Chế độ đêm / hoàng hôn cho thị trấn
-- [ ] Lưu đội mèo yêu thích vào localStorage
-- [ ] Mobile: pinch-zoom, kéo thả bằng cảm ứng
-
-Góp ý bằng Issue hoặc Pull Request - mọi ý tưởng mèo mới đều được chào đón! 🐾
-
-## 🙏 Cảm hứng
-
-Dự án này học hỏi kỹ thuật từ cộng đồng jelly mã nguồn mở, không copy code của họ:
-
-- [Hydraxon91/zummi-gummi](https://github.com/Hydraxon91/zummi-gummi) - translucent jelly-bear sandbox, Three.js + soft-body trên Box3D/WASM
-- [fab34/soft-matter-jelly-lab](https://github.com/fab34/soft-matter-jelly-lab) - Three.js jelly lab với WebGPU và soft-body physics
-- [tachibanayu24/jiggly-delight-logo](https://github.com/tachibanayu24/jiggly-delight-logo) - grab, throw, crush squishy jelly logo, Three.js + WASM soft-body
-- [awu7/jelly-cat](https://github.com/awu7/jelly-cat) - soft body physics simulation, đúng tên jelly-cat
-- [roundyyy/Jelly-Mesh-System](https://github.com/roundyyy/Jelly-Mesh-System) - Unity component thêm jelly physics cho bất kỳ mesh nào
-
-## 📄 License
-
-MIT - cứ dùng, sửa, chia sẻ thoải mái, nhớ giữ lại credit là được.
+MIT. The vendored Three.js distribution retains its separate [MIT notice](vendor/THREE-LICENSE.txt). Existing artwork is retained from the original repository.
