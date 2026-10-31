@@ -1452,25 +1452,60 @@ function deformHeroSurfaces(h,squashNow,time){
   if(!h||!h.mesh||!h.mesh.userData.jelly) return;
   if(currentTex!=='jelly'&&currentTex!=='water') return;
   if(isMobilePerf && (Math.floor(time*30)%2)) return;
-  var toWarp=[h.mesh.userData.jelly];
-  if(h.crack) h.crack.traverse(function(o){if(o.isMesh&&o.geometry&&o.geometry.attributes.position) toWarp.push(o);});
-  var amp=Math.min(0.85,Math.max(0,squashNow)), wave=Math.min(0.8,Math.abs(h.wob||0))*0.019;
+  var shell=h.mesh.userData.jelly, body=h.mesh.userData.bodyG;
+  var fp=h.fp||formPhys(currentType);
+  var height=Math.max(0.2,h.form.height);
+  var amp=Math.min(0.85,Math.max(0,squashNow));
+  var wobble=Math.min(0.9,Math.abs(h.wob||0));
+  var wave=reduced?0:wobble*0.019;
+  /* Soda's crown lags under load, Mochi gets a softer offset and Pudding
+     stays almost level. Bend is solved in LOCAL mesh coordinates so the
+     entire upper silhouette really curves rather than simply rotating. */
+  var bend=(fp.bend||0)*(amp*0.25+wobble*0.052);
+  var bx=Math.cos(h.lean||0)*bend, bz=Math.sin(h.lean||0)*bend;
+  function warpPoint(x,y,z){
+    var v=Math.max(0,Math.min(1,y/height));
+    var shoulder=Math.sin(Math.PI*v);
+    var radial=1+amp*0.09*shoulder;
+    var ripple=wave*Math.sin(7*x+6*z+time*10.0)*(0.28+0.72*shoulder);
+    var bendWeight=v*v*(0.7+0.3*v);
+    return [
+      x*radial+(Math.abs(x)>0.03?Math.sign(x)*ripple:ripple*0.25)+bx*bendWeight,
+      y-amp*0.075*v*v+ripple*0.55,
+      z*radial+(Math.abs(z)>0.03?Math.sign(z)*ripple:ripple*0.25)+bz*bendWeight
+    ];
+  }
+  var toWarp=[shell];
+  if(h.crack) h.crack.traverse(function(o){
+    if(o.isMesh&&o.geometry&&o.geometry.attributes.position) toWarp.push(o);
+  });
   toWarp.forEach(function(mesh){
     var geom=mesh.geometry, attr=geom.attributes.position;
     if(!geom.userData.pressBase) geom.userData.pressBase=new Float32Array(attr.array);
-    var base=geom.userData.pressBase,arr=attr.array, height=h.form.height;
+    var base=geom.userData.pressBase,arr=attr.array;
     for(var i=0;i<arr.length;i+=3){
+      /* inline the hot loop: no temporary vectors/arrays per vertex */
       var x=base[i],y=base[i+1],z=base[i+2];
-      var v=Math.min(1,Math.max(0,y/height));
+      var v=Math.max(0,Math.min(1,y/height));
       var shoulder=Math.sin(Math.PI*v);
       var radial=1+amp*0.09*shoulder;
-      var motion=wave*Math.sin(7*x+6*z+time*10.0)*(0.28+0.72*shoulder);
-      arr[i]=x*radial+(Math.abs(x)>0.03?Math.sign(x)*motion:motion*0.25);
-      arr[i+1]=y-amp*0.075*v*v+motion*0.55;
-      arr[i+2]=z*radial+(Math.abs(z)>0.03?Math.sign(z)*motion:motion*0.25);
+      var ripple=wave*Math.sin(7*x+6*z+time*10.0)*(0.28+0.72*shoulder);
+      var offset=v*v*(0.7+0.3*v);
+      arr[i]=x*radial+(Math.abs(x)>0.03?Math.sign(x)*ripple:ripple*0.25)+bx*offset;
+      arr[i+1]=y-amp*0.075*v*v+ripple*0.55;
+      arr[i+2]=z*radial+(Math.abs(z)>0.03?Math.sign(z)*ripple:ripple*0.25)+bz*offset;
     }
     attr.needsUpdate=true;
-    if(mesh===h.mesh.userData.jelly && !isMobilePerf) geom.computeVertexNormals();
+    if(mesh===shell && !isMobilePerf) geom.computeVertexNormals();
+  });
+  /* Face decals and bubble inclusions must follow the SAME warp as the
+     skin. Moving only skin vertices previously left eyes/nose floating. */
+  if(body) body.children.forEach(function(part){
+    if(!part.isMesh||part===shell) return;
+    if(!part.userData.pressRestPosition) part.userData.pressRestPosition=part.position.clone();
+    var p=part.userData.pressRestPosition;
+    var q=warpPoint(p.x,p.y,p.z);
+    part.position.set(q[0],q[1],q[2]);
   });
 }
 

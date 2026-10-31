@@ -1,0 +1,20 @@
+name: Cat Jelly source and rendering invariants
+on:
+  push:
+    branches:
+      - feat/material-physics-vfx-v1
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'press.html'
+      - 'qa/**'
+      - '.github/workflows/qa.yml'
+jobs:
+  static-qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify page parity, materials, fluid geometry and JavaScript syntax
+        run: python3 qa/validate.py
