@@ -20,6 +20,10 @@ var FORMS={
     eyeY:2.76,eyeX:0.27,eyeZ:0.68,noseY:2.55,noseZ:0.80,
     parts:[[0,1.24,0,0.94,1.32,0.90,0.30],[0,2.66,0.05,0.76,0.68,0.72,0.34],[-0.45,3.32,0,0.19,0.37,0.19,0.16],[0.45,3.32,0,0.19,0.37,0.19,0.16],[0,2.50,0.52,0.35,0.27,0.29,0.22],[-0.48,0.20,0.46,0.29,0.20,0.40,0.20],[0.48,0.20,0.46,0.29,0.20,0.40,0.20],[0,0.72,-0.92,0.28,0.48,0.28,0.24]]}
 };
+// Broad cheek silhouette, thick ears and a low, rounded body share one continuous skin.
+FORMS.mochi.parts=[[0,.72,0,1.02,.78,.88,.36],[0,1.55,.04,1.04,.92,.87,.4],[-.69,2.28,.02,.3,.46,.28,.22],[.69,2.28,.02,.3,.46,.28,.22],[-.48,1.36,.55,.5,.4,.43,.28],[.48,1.36,.55,.5,.4,.43,.28],[-.55,.18,.4,.35,.21,.4,.25],[.55,.18,.4,.35,.21,.4,.25],[0,.6,-.78,.3,.4,.3,.25]];
+Object.assign(FORMS.mochi,{color:0xf4a2b8,eyeY:1.55,eyeX:.39,noseY:1.32});
+FORMS.pudding.color=0xf0b96a;FORMS.soda.color=0x75d5bb;
 FORMS.tabby=Object.assign({},FORMS.mochi,{label:'Orange Tabby',color:0xf5a34f,height:3.12,oy:1.25,eyeY:2.0,noseY:1.78,parts:FORMS.mochi.parts.map(function(p){var q=p.slice();q[1]*=1.06;return q;})});
 
 function sdfCat(form,px,py,pz){

@@ -34,8 +34,8 @@ var MAX_CRUMBS=isMobilePerf?170:280, MAX_PIECES=isMobilePerf?190:320;
 var spawnScale=isMobilePerf?0.7:1; /* adaptive governor lowers this too */
 
 var scene=new THREE.Scene();
-scene.background=new THREE.Color(0xdfe8e5);
-scene.fog=new THREE.Fog(0xdfe8e5,26,58);
+scene.background=new THREE.Color(0x18282e);
+scene.fog=new THREE.Fog(0x18282e,26,58);
 
 /* ---------- Camera: low bench-level view ---------- */
 var camera=new THREE.PerspectiveCamera(40,1,0.1,140);
@@ -64,8 +64,8 @@ function buildEnv(){
 if(document.readyState==='complete') setTimeout(buildEnv,50); else window.addEventListener('load',function(){ setTimeout(buildEnv,50); });
 
 /* ---------- Lights: warm studio ---------- */
-scene.add(new THREE.HemisphereLight(0xf3faf6,0x7e9999,0.85));
-var sun=new THREE.DirectionalLight(0xfff5e9,2.4); sun.position.set(7,13,6); sun.castShadow=true;
+scene.add(new THREE.HemisphereLight(0xc5e9ed,0x26303d,0.75));
+var sun=new THREE.DirectionalLight(0xffe6d4,2.0); sun.position.set(7,13,6); sun.castShadow=true;
 sun.shadow.mapSize.set(isMobilePerf?1024:2048,isMobilePerf?1024:2048); sun.shadow.camera.left=-11; sun.shadow.camera.right=11; sun.shadow.camera.top=12; sun.shadow.camera.bottom=-6; sun.shadow.bias=-0.0004; sun.shadow.radius=4;
 scene.add(sun);
 var fill=new THREE.PointLight(0xffc8b5,18,30,1.9); fill.position.set(-8,5,7); scene.add(fill);
@@ -117,7 +117,7 @@ function hoaTileTexture(){
   return tex;
 }
 var floor=new THREE.Mesh(new THREE.CircleGeometry(80,48),new THREE.MeshStandardMaterial({map:hoaTileTexture(),color:0xd9c8a4,roughness:0.95,metalness:0}));
-var workshopFloorMap=floor.material.map;floor.material.map=null;floor.material.color.set(0xd4dfd9);floor.material.roughness=.78;
+var workshopFloorMap=floor.material.map;floor.material.map=null;floor.material.color.set(0x101e26);floor.material.envMapIntensity=.15;floor.material.roughness=.95;floor.material.roughness=.78;
 floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
 var floorRing=new THREE.Mesh(new THREE.TorusGeometry(8.6,0.07,10,72),new THREE.MeshStandardMaterial({color:0xb08d55,roughness:0.6,metalness:0.3}));
 floorRing.material.color.set(0x91aaa2);floorRing.visible=false;floorRing.rotation.x=Math.PI/2; floorRing.position.y=0.02; scene.add(floorRing);
@@ -130,6 +130,9 @@ bed.position.y=BED_Y/2; bed.castShadow=true; bed.receiveShadow=true; scene.add(b
 var bedRim=new THREE.Mesh(new THREE.TorusGeometry(3.55,0.09,12,56),steelDark);
 bedRim.rotation.x=Math.PI/2; bedRim.position.y=BED_Y; scene.add(bedRim);
 
+// A soft contact shadow also grounds the specimen on software WebGL.
+var shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=128;var shadowCtx=shadowCanvas.getContext('2d'),shadowGradient=shadowCtx.createRadialGradient(64,64,4,64,64,64);shadowGradient.addColorStop(0,'rgba(0,0,0,.55)');shadowGradient.addColorStop(1,'rgba(0,0,0,0)');shadowCtx.fillStyle=shadowGradient;shadowCtx.fillRect(0,0,128,128);
+var contactShadow=new THREE.Mesh(new THREE.PlaneGeometry(4,3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));contactShadow.rotation.x=-Math.PI/2;contactShadow.position.set(0,BED_Y+.007,-.1);scene.add(contactShadow);
 /* ---------- Trash bin: where the vacuum sends every crumb ---------- */
 var BIN_POS=new THREE.Vector3(4.5,1.05,2.5);
 (function(){
@@ -852,7 +855,7 @@ var machineBroken=false, brokenT=0, strainT=0, pressShake=0, pressShakeT=0, plat
    - angel: white-and-gold frame, cyan-violet aura, +750 bar,
      x1.50 speed - the strongest press money can buy here. */
 var MACHINES=[
-  {id:'studio',cost:0,bonus:0,speed:.7,frame:0x304146,steel:0xb6c5c9,dark:0x48585d,aura:0xffffff,auraI:0,swatch:'#98b8b2'},
+  {id:'studio',cost:0,bonus:0,speed:.7,frame:0x26343f,steel:0x8198a2,dark:0x3b515c,aura:0xffffff,auraI:0,swatch:'#98b8b2'},
   {id:'dragon', cost:0,    bonus:250, speed:1.15, frame:0x2c2527, steel:0x9a6a3a, dark:0x2a0f06, aura:0xff5a1e, auraI:34, swatch:'#ff5a1e'},
   {id:'hell',   cost:450,  bonus:450, speed:1.30, frame:0x14101f, steel:0x5f4a78, dark:0x120a1e, aura:0x9b30ff, auraI:32, swatch:'#9b30ff'},
   {id:'angel',  cost:1100, bonus:750, speed:1.50, frame:0xe9e0cc, steel:0xd9b45c, dark:0xa8853c, aura:0x4dc3ff, auraI:36, swatch:'#4dc3ff'}
@@ -1130,28 +1133,25 @@ function buildCatMesh(type){
   var jelly=new THREE.Mesh(currentTex==='diamond'? facetedCatGeometry(type) : ((currentTex==='jelly'||currentTex==='water')?catGeometry(type).clone():catGeometry(type)),mat);
   jelly.castShadow=true; jelly.receiveShadow=true; bodyG.add(jelly);
   [-1,1].forEach(function(side){
-    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.095,14,12),eyeMat);
-    eye.scale.set(1,1.15,0.55); eye.position.set(side*f.eyeX,f.eyeY,faceDepth(f,side*f.eyeX,f.eyeY)+.025);eye.userData.eye=true; bodyG.add(eye);
+    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.135,18,14),eyeMat);
+    eye.scale.set(1,1.06,0.42); eye.position.set(side*f.eyeX,f.eyeY,faceDepth(f,side*f.eyeX,f.eyeY)+.025);eye.userData.eye=true; bodyG.add(eye);
     var glint=new THREE.Mesh(new THREE.SphereGeometry(0.03,8,8),glintMat);
-    glint.userData.glint=true;glint.position.set(side*f.eyeX+0.026,f.eyeY+0.04,faceDepth(f,side*f.eyeX,f.eyeY)+.075); bodyG.add(glint);
+    glint.userData.glint=true;glint.position.set(side*f.eyeX+0.026,f.eyeY+0.04,faceDepth(f,side*f.eyeX,f.eyeY)+.095); bodyG.add(glint);
   });
   var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,10),noseMat);
   nose.scale.set(1.35,0.8,0.6); nose.position.set(0,f.noseY,faceDepth(f,0,f.noseY)+.02); bodyG.add(nose);
   var mouthPoints=[];
-  for(var mi=0;mi<=16;mi++){var mx=(mi/16-.5)*.26,my=f.noseY-.12+.08*Math.abs(Math.sin(mi/16*Math.PI*2));mouthPoints.push(new THREE.Vector3(mx,my,faceDepth(f,mx,my)+.025));}
+  for(var mi=0;mi<=16;mi++){var mx=(mi/16-.5)*.26,my=f.noseY-.15+.09*Math.pow(mx/.13,2);mouthPoints.push(new THREE.Vector3(mx,my,faceDepth(f,mx,my)+.025));}
   bodyG.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(mouthPoints),16,.014,5,false),eyeMat));
   if(currentTex==='jelly'||currentTex==='water'){
     for(var i=0;i<9;i++){
       var b=new THREE.Mesh(new THREE.SphereGeometry(0.05+Math.random()*0.07,8,8),bubbleMat);
-      b.position.set((Math.random()-0.5)*1.1,0.5+Math.random()*2.2,(Math.random()-0.5)*1.0); bodyG.add(b);
+      var attempts=0;do{b.position.set((Math.random()-.5)*1.2,.35+Math.random()*(f.height-.7),(Math.random()-.5)*1.0);}while(sdfCat(f,b.position.x,b.position.y,b.position.z)>-.18&&++attempts<40);if(attempts<40)bodyG.add(b);else b.geometry.dispose();
     }
   }
-  if(type==='mochi'){
-    for(var j=0;j<7;j++){
-      var s=new THREE.Mesh(new THREE.SphereGeometry(0.045,8,8),noseMat);
-      s.position.set((Math.random()-0.5)*1.3,1.9+Math.random()*0.5,(Math.random()-0.5)*0.9+0.35); bodyG.add(s);
-    }
-  }
+  [-1,1].forEach(function(side){
+    var cheek=new THREE.Mesh(new THREE.SphereGeometry(.14,14,10),noseMat);cheek.scale.set(1.5,.5,.16);var x=side*(f.eyeX+.15),y=f.eyeY-.2;cheek.position.set(x,y,faceDepth(f,x,y)+.025);bodyG.add(cheek);
+  });
   g.userData.inner=inner; g.userData.mat=mat; g.userData.jelly=jelly; g.userData.bodyG=bodyG;
   return g;
 }
@@ -1188,7 +1188,7 @@ function deformHeroSurfaces(h,squashNow,time){
     for(var i=0;i<attr.count;i++){
       point.fromArray(b.out,i*3);var sc=h.form.scale*catSize,wx=point.x*sc+h.mesh.position.x,wz=point.z*sc+h.mesh.position.z;var low=Math.hypot(wx,wz)<3.55?0:-BED_Y/sc,high=Math.hypot(wx,wz+.1)<PLATEN_R?(platenBottom()-BED_Y)/sc:Infinity;point.y=Math.max(low,Math.min(high,point.y));point.applyMatrix4(b.inverse);attr.setXYZ(i,point.x,point.y,point.z);
     }
-    if(b.mesh.userData.eye&&!reduced){var phase=time%4.8,blink=phase>4.62?Math.max(.08,Math.abs(phase-4.71)/.09):1;var cy=0;for(var ei=0;ei<attr.count;ei++)cy+=attr.getY(ei);cy/=attr.count;for(var ei=0;ei<attr.count;ei++)attr.setY(ei,cy+(attr.getY(ei)-cy)*blink);}
+    if(b.mesh.userData.eye&&!reduced){var phase=time%4.8,blink=phase>4.62?Math.max(.08,Math.abs(phase-4.71)/.09):1;blink*=Math.max(.25,1-squashNow*1.2);var cy=0;for(var ei=0;ei<attr.count;ei++)cy+=attr.getY(ei);cy/=attr.count;for(var ei=0;ei<attr.count;ei++)attr.setY(ei,cy+(attr.getY(ei)-cy)*blink);}
     if(b.mesh.userData.glint&&!reduced)b.mesh.visible=time%4.8<4.64||time%4.8>4.78;
     attr.needsUpdate=true;b.mesh.geometry.computeVertexNormals();b.mesh.geometry.computeBoundingSphere();
   });
@@ -2333,9 +2333,9 @@ function buildSplitChild(p,childR,childBase,ang,i){
     var f=FORMS[type];
     [-1,1].forEach(function(side){
       var eye=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),eyeMat);
-      eye.scale.set(1,1.15,0.55); eye.position.set(side*f.eyeX,f.eyeY,faceDepth(f,side*f.eyeX,f.eyeY)+.025);eye.userData.eye=true; bg.add(eye);
+      eye.scale.set(1,1.06,0.42); eye.position.set(side*f.eyeX,f.eyeY,faceDepth(f,side*f.eyeX,f.eyeY)+.025);eye.userData.eye=true; bg.add(eye);
       var glint=new THREE.Mesh(new THREE.SphereGeometry(0.03,7,7),glintMat);
-      glint.userData.glint=true;glint.position.set(side*f.eyeX+0.026,f.eyeY+0.04,faceDepth(f,side*f.eyeX,f.eyeY)+.075); bg.add(glint);
+      glint.userData.glint=true;glint.position.set(side*f.eyeX+0.026,f.eyeY+0.04,faceDepth(f,side*f.eyeX,f.eyeY)+.095); bg.add(glint);
     });
     var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,8),noseMat);
     nose.scale.set(1.35,0.8,0.6); nose.position.set(0,f.noseY,faceDepth(f,0,f.noseY)+.02); bg.add(nose);
@@ -2405,7 +2405,7 @@ function spawnCoherentFragments(h){
     var sourceNormals=shell.geometry.attributes.normal,fragmentNormals=geo.attributes.normal;group.sourceIndices.forEach(function(index,i){fragmentNormals.setXYZ(i,sourceNormals.getX(index),sourceNormals.getY(index),sourceNormals.getZ(index));});
     geo.computeBoundingSphere();
     var mat=jellyMat(h.form.color,undefined,currentTex);mat.map=null;mat.color.set(h.form.color);mat.userData.uJiggle.value=0;mat.needsUpdate=true;
-    var innerMat=mat.clone();innerMat.roughness=.38;innerMat.transmission=(mat.transmission||0)*.7;
+    var innerMat=mat.clone();innerMat.roughness=.38;innerMat.emissive.set(h.form.color);innerMat.emissiveIntensity=.3;innerMat.transmission=(mat.transmission||0)*.7;
     geo.clearGroups();geo.addGroup(0,group.outer*3,0);geo.addGroup(group.outer*3,arr.length/3-group.outer*3,1);
     var mesh=new THREE.Mesh(geo,[mat,innerMat]);mesh.scale.setScalar(h.form.scale*catSize);mesh.castShadow=true;mesh.receiveShadow=true;
     mesh.position.copy(centroid).applyMatrix4(body.matrixWorld);scene.add(mesh);
@@ -2417,11 +2417,11 @@ function spawnCoherentFragments(h){
     lastFracture.fragmentVolume+=group.volume;
   });window.dispatchEvent(new CustomEvent('catjelly:fracture',{detail:Object.assign({},lastFracture)}));
 }
-var lastFracture=null;
+var lastFracture=null;var fracturePulse=new THREE.PointLight(0xffb9a3,0,7,2);fracturePulse.position.set(0,BED_Y+1,1);scene.add(fracturePulse);
 function updateCoherentPieces(dt){
   var box=new THREE.Box3(),expired=[];
   pieces.forEach(function(p){
-    if(!p.coherent||p.held)return;
+    if(!p.coherent||p.held)return;p.interior.emissiveIntensity*=Math.exp(-3*dt);
     if(p.fading){p.fadeT+=dt;var alpha=Math.max(0,1-p.fadeT/CRUMB_FADE_SEC);p.mat.opacity=alpha;p.interior.opacity=alpha;if(alpha<=0){expired.push(p);return;}}
     p.vy-=9.81*dt;p.mesh.position.x+=p.vx*dt;p.mesh.position.y+=p.vy*dt;p.mesh.position.z+=p.vz*dt;
     p.mesh.rotation.x+=p.vrx*dt;p.mesh.rotation.z+=p.vrz*dt;
@@ -2460,12 +2460,13 @@ function clearAllEffects(){
   puddles.forEach(function(p){scene.remove(p.mesh);});puddles=[];
   hearts.forEach(function(h){scene.remove(h);h.geometry.dispose();h.material.dispose();});hearts=[];
   vacuuming=false;vacPending=null;crumbFadeActive=false;popCycle=0;lastFracture=null;
-  machineBroken=false;brokenT=0;platenRecoil=false;pressShake=0;raising=false;platenVelY=0;$('verdict').classList.remove('show');
+  machineBroken=false;brokenT=0;platenRecoil=false;pressShake=0;raising=false;platenVelY=0;fracturePulse.intensity=0;$('verdict').classList.remove('show');
   $('brokenBanner').classList.remove('show');document.querySelector('.deck').classList.remove('broken');
 }
 
 /* ---------- The pop: hero becomes grabbable jelly pieces ---------- */
 function burst(){
+  if(!reduced){fracturePulse.color.set(hero.form.color);fracturePulse.intensity=14;fracturePulse.position.set(hero.mesh.position.x,BED_Y+1,hero.mesh.position.z+1);}
   var form=hero.form, barNow=Math.round(pressure), heightPct=Math.max(8,Math.round(100*(1-squash)));
   popTotal++; $('popCount').textContent=popTotal;
   popCycle++;
@@ -3348,7 +3349,11 @@ function animate(){
     pressure+=(targetPressure2-pressure)*Math.min(1,dt*8);
     setHum(pressingNow&&anyUnder,pressure);
   }
+  fracturePulse.intensity*=Math.exp(-8*dt);
   setGauge(Math.max(0,pressure));
+  bedRim.material.emissive.set(0x67d9bb);bedRim.material.emissiveIntensity=Math.min(.65,pressure/600);
+  contactShadow.visible=!!hero;if(hero){contactShadow.position.x=hero.mesh.position.x;contactShadow.position.z=hero.mesh.position.z;contactShadow.material.opacity=hero.soft?Math.max(.1,1-hero.soft.metrics().minY*.4):1;contactShadow.scale.setScalar(1+squash*.35);}
+
 
   /* pieces physics: gravity, floor, walls, mutual push, wobble */
   updateCoherentPieces(dt);
@@ -3550,10 +3555,10 @@ function animate(){
 }
 
 var LAB_TEXT={
- en:{specimen:'SPECIMEN',settings:'Laboratory settings',preset:'Gel formulation',natural:'Character default',quality:'Quality',adaptive:'Adaptive',scene:'Scene',studio:'Studio',workshop:'Workshop',slow:'Slow motion',diagnostics:'Diagnostics',photo:'Photo mode · Esc to exit',INTACT:'Ready',DEFORMING:'In contact',STRESSED:'Under stress',FRAGMENTED:'Fragments'},
- vi:{specimen:'MẪU THỬ',settings:'Thiết lập phòng thí nghiệm',preset:'Công thức thạch',natural:'Theo nhân vật',quality:'Chất lượng',adaptive:'Tự động',scene:'Bối cảnh',studio:'Phòng chụp',workshop:'Xưởng',slow:'Chuyển động chậm',diagnostics:'Thông số',photo:'Chụp ảnh · Esc để thoát',INTACT:'Sẵn sàng',DEFORMING:'Đang tiếp xúc',STRESSED:'Chịu lực',FRAGMENTED:'Mảnh vỡ'},
- es:{specimen:'ESPÉCIMEN',settings:'Ajustes del laboratorio',preset:'Fórmula de gel',natural:'Según personaje',quality:'Calidad',adaptive:'Adaptativa',scene:'Escena',studio:'Estudio',workshop:'Taller',slow:'Cámara lenta',diagnostics:'Diagnóstico',photo:'Modo foto · Esc para salir',INTACT:'Listo',DEFORMING:'En contacto',STRESSED:'Bajo presión',FRAGMENTED:'Fragmentos'},
- zh:{specimen:'试验样本',settings:'实验室设置',preset:'果冻配方',natural:'角色默认',quality:'画质',adaptive:'自适应',scene:'场景',studio:'摄影棚',workshop:'工坊',slow:'慢动作',diagnostics:'诊断数据',photo:'拍照模式 · Esc 退出',INTACT:'就绪',DEFORMING:'接触中',STRESSED:'受压',FRAGMENTED:'碎片'}
+ en:{materials:'Materials & physics',specimen:'SPECIMEN',settings:'Laboratory settings',preset:'Gel formulation',natural:'Character default',quality:'Quality',adaptive:'Adaptive',scene:'Scene',studio:'Studio',workshop:'Workshop',slow:'Slow motion',diagnostics:'Diagnostics',photo:'Photo mode · Esc to exit',INTACT:'Ready',DEFORMING:'In contact',STRESSED:'Under stress',FRAGMENTED:'Fragments'},
+ vi:{materials:'Vật liệu & vật lý',specimen:'MẪU THỬ',settings:'Thiết lập phòng thí nghiệm',preset:'Công thức thạch',natural:'Theo nhân vật',quality:'Chất lượng',adaptive:'Tự động',scene:'Bối cảnh',studio:'Phòng chụp',workshop:'Xưởng',slow:'Chuyển động chậm',diagnostics:'Thông số',photo:'Chụp ảnh · Esc để thoát',INTACT:'Sẵn sàng',DEFORMING:'Đang tiếp xúc',STRESSED:'Chịu lực',FRAGMENTED:'Mảnh vỡ'},
+ es:{materials:'Materiales y física',specimen:'ESPÉCIMEN',settings:'Ajustes del laboratorio',preset:'Fórmula de gel',natural:'Según personaje',quality:'Calidad',adaptive:'Adaptativa',scene:'Escena',studio:'Estudio',workshop:'Taller',slow:'Cámara lenta',diagnostics:'Diagnóstico',photo:'Modo foto · Esc para salir',INTACT:'Listo',DEFORMING:'En contacto',STRESSED:'Bajo presión',FRAGMENTED:'Fragmentos'},
+ zh:{materials:'材质与物理',specimen:'试验样本',settings:'实验室设置',preset:'果冻配方',natural:'角色默认',quality:'画质',adaptive:'自适应',scene:'场景',studio:'摄影棚',workshop:'工坊',slow:'慢动作',diagnostics:'诊断数据',photo:'拍照模式 · Esc 退出',INTACT:'就绪',DEFORMING:'接触中',STRESSED:'受压',FRAGMENTED:'碎片'}
 };
 function applyLabLang(){if(!LAB_TEXT)return;var text=LAB_TEXT[lang]||LAB_TEXT.en;document.querySelectorAll('[data-lab]').forEach(function(el){el.textContent=text[el.dataset.lab];});}
 var measuredFPS=0,frameSample=0,frameElapsed=0;
@@ -3567,7 +3572,7 @@ document.querySelectorAll('[data-cat]').forEach(function(button){button.addEvent
 $('gelPreset').addEventListener('change',function(){selectedPreset=this.value;endHold();setHero(currentType,selectedPreset==='liquid'?'water':'jelly');platenY=PLATEN_TOP;});
 $('showDiagnostics').addEventListener('change',function(){$('diagnostics').hidden=!this.checked;});
 $('photoMode').addEventListener('click',function(){document.body.classList.add('photo');});
-$('studioScene').addEventListener('change',function(){var studio=this.value==='studio';floor.material.map=studio?null:workshopFloorMap;floor.material.color.set(studio?0xd4dfd9:0xd9c8a4);floor.material.needsUpdate=true;floorRing.visible=!studio;backdrop.visible=!studio;selectMachine(studio?'studio':'dragon');});
+$('studioScene').addEventListener('change',function(){var studio=this.value==='studio';floor.material.map=studio?null:workshopFloorMap;floor.material.color.set(studio?0x101e26:0xd9c8a4);floor.material.needsUpdate=true;floorRing.visible=!studio;backdrop.visible=!studio;selectMachine(studio?'studio':'dragon');});
 $('quality').addEventListener('change',function(){
   var levels={low:.75,balanced:1,high:1.5,ultra:2},ratio=levels[this.value]||basePixelRatio;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,ratio));

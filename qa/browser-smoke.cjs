@@ -13,6 +13,7 @@ const { chromium } = require('playwright');
       const ready=await page.evaluate(()=>({webgl:!!document.querySelector('canvas')?.getContext('webgl2')||!!document.querySelector('canvas')?.getContext('webgl'),fallback:getComputedStyle(document.getElementById('fallback')).display,scroll:document.documentElement.scrollWidth-innerWidth}));
       if(!ready.webgl||ready.fallback!=='none')throw new Error('WebGL boot failed: '+JSON.stringify(ready));
       if(ready.scroll>4)throw new Error('Horizontal overflow: '+JSON.stringify(ready));
+      await page.locator('.material-drawer summary').click();
       await page.locator('[data-tex="water"]').click();
       await page.locator('#genBtn').click();
       await page.locator('#holdBtn').dispatchEvent('pointerdown',{pointerId:7,pointerType:'touch',bubbles:true});

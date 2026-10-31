@@ -5,6 +5,7 @@ const out=process.env.CAT_QA_OUTPUT||'/tmp/cat-jelly-qa';fs.mkdirSync(out,{recur
 (async()=>{const browser=await chromium.launch({headless:true,executablePath:process.env.BROWSER_EXECUTABLE||undefined,args:['--enable-webgl','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});try{
  const page=await browser.newPage({viewport:{width:1000,height:760},deviceScaleFactor:.5});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text())});
  await page.goto(process.env.CAT_JELLY_URL||'http://127.0.0.1:8766/cat-jelly/press.html');await page.waitForFunction(()=>window.catJelly);
+ await page.locator('.material-drawer summary').click();
  for(const kind of ['glass','iron','diamond','brick','lego','water']){await page.locator('[data-tex='+kind+']').click();assert.equal(await page.evaluate(()=>catJelly.snapshot().material),kind);await page.waitForTimeout(100);}
  await page.locator('#holdBtn').dispatchEvent('pointerdown',{pointerId:2,pointerType:'touch',bubbles:true});
  await page.waitForFunction(()=>catJelly.snapshot().mode==='play',null,{timeout:150000});await page.evaluate(()=>window.dispatchEvent(new Event('blur')));

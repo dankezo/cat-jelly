@@ -65,3 +65,9 @@ Rollback: revert the V3 implementation commit(s) through a normal follow-up comm
 The feature branch was successfully pushed to `origin/feat/next-gen-v3`, including implementation `f889833` and validation/documentation `6610d41`. The working tree was clean after those commits. A draft PR attempt using the existing CLI and exact saved description failed with `Post https://api.github.com/graphql: Forbidden`. The Pages settings API also returned `Forbidden`, and a read-only request to the production URL returned HTTP 403. Git push access therefore does not imply API or deployment-verification access.
 
 Remote CI results, a PR number, Pages deployment and live V3 content are unconfirmed. Production was not modified. The prepared PR description is in `docs/PULL_REQUEST.md`; Git's push response supplied this creation route: https://github.com/dankezo/cat-jelly/pull/new/feat/next-gen-v3 .
+
+### Midnight visual revision
+
+Following visual feedback, the bright studio was replaced with charcoal/teal, the control panel was reduced to a bottom dock with a collapsible materials drawer, and Mochi/Tabby anatomy and facial proportions were revised. Internal bubble placement now rejects points outside the SDF. Contact shadows, pressure-linked rim lighting, a brief fracture light pulse and fresh-cut illumination were added.
+
+Static validation, all numerical cage tests, all fragment topology tests, desktop/mobile browser acceptance, liquid rupture/cleanup and focused keyboard/capture checks passed again. Screenshots and `browser-results.json` were refreshed from this run. The small additional compression-eye expression uses the existing blink deformation path; no new performance target is claimed.

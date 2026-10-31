@@ -14,3 +14,11 @@
 - Fixed reset/effect cleanup, shared water-material disposal, canceled grabs, dust-material cleanup and real-delta FPS measurement.
 
 This milestone does not deliver FEM, arbitrary tearing/cutting, soft fragment physics, full fluids, WebGPU, recorded replay or verified native-device performance targets. See `docs/QA.md` for executed checks and release status.
+
+## Visual revision after V3 feedback
+
+- Rebuilt Mochi's continuous cheek/ear silhouette and face proportions; Tabby inherits the revised anatomy.
+- Removed floating decorative toppings and constrained internal bubbles to the actual source volume.
+- Replaced the bright studio with a charcoal/teal environment and a software-compatible contact shadow.
+- Replaced the large right-side control panel with a compact bottom dock and an expandable material/physics drawer.
+- Added contact-linked rim illumination, a short fracture light pulse, illuminated fresh cut faces, and compression-linked eye narrowing.
