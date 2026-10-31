@@ -2829,6 +2829,10 @@ function startHold(e){ if(e) e.preventDefault(); if(machineBroken) return; ensur
 function endHold(){ holding=false; holdBtn.classList.remove('held'); setHum(false,0); }
 holdBtn.addEventListener('pointerdown',startHold);
 window.addEventListener('pointerup',endHold);
+/* Never leave the motor engaged after a canceled touch, lost focus or tab switch. */
+window.addEventListener('pointercancel',endHold);
+window.addEventListener('blur',endHold);
+document.addEventListener('visibilitychange',function(){ if(document.hidden) endHold(); });
 holdBtn.addEventListener('pointerleave',function(){ if(holding) endHold(); });
 $('raiseBtn').addEventListener('click',function(){ ensureAudio(); raising=true; setTimeout(function(){ raising=false; },700); });
 document.querySelectorAll('.tex-btn').forEach(function(b){
