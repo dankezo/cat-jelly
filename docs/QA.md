@@ -59,3 +59,9 @@ The existing repository had QA only, scoped to an old feature branch; no Pages d
 After native-device release gates pass, merge the reviewed feature branch through the repository's existing workflow and confirm its Pages build succeeds. Verify both production routes and `src/soft-body.js`, including matching content/revision, rather than treating an HTTP 200 as proof of the new release.
 
 Rollback: revert the V3 implementation commit(s) through a normal follow-up commit and redeploy the previous Pages artifact. The unchanged baseline is `05f2bdc8d0261b24489f89976347e275ea841055`. Do not reset or force-push main. No server data or dependency migration is required.
+
+### Confirmed publication status
+
+The feature branch was successfully pushed to `origin/feat/next-gen-v3`, including implementation `f889833` and validation/documentation `6610d41`. The working tree was clean after those commits. A draft PR attempt using the existing CLI and exact saved description failed with `Post https://api.github.com/graphql: Forbidden`. The Pages settings API also returned `Forbidden`, and a read-only request to the production URL returned HTTP 403. Git push access therefore does not imply API or deployment-verification access.
+
+Remote CI results, a PR number, Pages deployment and live V3 content are unconfirmed. Production was not modified. The prepared PR description is in `docs/PULL_REQUEST.md`; Git's push response supplied this creation route: https://github.com/dankezo/cat-jelly/pull/new/feat/next-gen-v3 .

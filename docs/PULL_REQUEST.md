@@ -1,0 +1,7 @@
+Replace intact jelly squash scaling with a fixed-step 179-particle / 352-tetrahedron XPBD cage, bind the surface and face to the same deformation, and partition jelly fracture into seven closed regions of the actual deformed source. Add a shared static studio interface, four selectable cats, five formulations, safe local grabbing, quality controls, diagnostics, and complete reset of the exercised effects.
+
+Both public routes remain static and relative-path safe. Existing rigid materials and workshop machines remain available. No runtime dependency or renderer version upgrade is introduced.
+
+Validation: source/syntax checks, four-preset and four-production-cage numerical tests, closed-fragment topology/volume tests, desktop/mobile Chromium acceptance under /cat-jelly/, liquid rupture/reset, keyboard/capture checks, and eight seeded reset cycles with stable geometry/texture counts. Actual screenshots and results are in docs/. Rapier 0.21.0 was separately exercised in a small WASM soft-body POC.
+
+This is a V3 foundation milestone. Native GPU/mobile FPS targets, full tearing, soft fragments, exact fragment contacts, full fluid dynamics, WebGPU and recorded replay remain incomplete. Software WebGL measured roughly 1.0 FPS baseline versus 1.9 FPS upgraded in a short matched sample; this is not a native hardware benchmark. Do not deploy before native-device release gates pass. See docs/QA.md for evidence, limits and rollback.
