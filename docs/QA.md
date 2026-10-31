@@ -71,3 +71,9 @@ Remote CI results, a PR number, Pages deployment and live V3 content are unconfi
 Following visual feedback, the bright studio was replaced with charcoal/teal, the control panel was reduced to a bottom dock with a collapsible materials drawer, and Mochi/Tabby anatomy and facial proportions were revised. Internal bubble placement now rejects points outside the SDF. Contact shadows, pressure-linked rim lighting, a brief fracture light pulse and fresh-cut illumination were added.
 
 Static validation, all numerical cage tests, all fragment topology tests, desktop/mobile browser acceptance, liquid rupture/cleanup and focused keyboard/capture checks passed again. Screenshots and `browser-results.json` were refreshed from this run. The small additional compression-eye expression uses the existing blink deformation path; no new performance target is claimed.
+
+### Material-specific fracture and dynamic feedback
+
+The darker-lighting revision passed static checks, the numerical physics suite, all four shapes at partition counts 7/9/11/19, and desktop/mobile browser acceptance. A dedicated Chromium run pressed brick, glass and diamond to failure with sufficient machine capacity: all three produced the expected 11/19/9 closed source fragments with equal source/fragment volume and no console errors. `qa/browser-materials.cjs` preserves this regression. The 64-instance glint pool passed bounds, finite trajectories, floor contact, expiry and reset tests in `qa/dynamics.cjs`.
+
+Optical glints represent highlights, not new solid debris mass. Material cracks differ in width, branching and path; the closed partition topology remains a practical approximation rather than material-science fracture. Hardware optical performance remains unverified. The expanded desktop material drawer now moves to the side to keep the specimen visible.

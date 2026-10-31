@@ -23,6 +23,7 @@ jobs:
       - run: python3 qa/validate.py
       - run: node qa/physics.cjs
       - run: node qa/fracture.cjs
+      - run: node qa/dynamics.cjs
   browser:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -50,6 +51,7 @@ jobs:
           node cat-jelly/qa/browser-v3.cjs
           node cat-jelly/qa/browser-liquid.cjs
           node cat-jelly/qa/browser-input.cjs
+          node cat-jelly/qa/browser-materials.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

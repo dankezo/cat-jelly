@@ -19,13 +19,13 @@ Open the served page in a WebGL-capable browser. Public deployment remains at `h
 - Reset (R) clears fragments and wet effects and reconstructs the current specimen with the same fracture seed.
 - Laboratory settings offers five gel formulations, four quality levels plus adaptive mode, slow motion, diagnostics, studio/workshop scenes, and photo mode. Escape exits photo mode.
 - EN / VI / ES / ZH switches language. Sound begins only after a user gesture. Reduced-motion preferences disable blinking and decorative machine animation.
-- The existing glass, iron, diamond, brick and toy-brick materials, vacuum economy and fantasy machines remain available. Those rigid-material simulations use the legacy model.
+- The existing glass, iron, diamond, brick and toy-brick materials, vacuum economy and fantasy machines remain available. Hard-body contact still uses the legacy scalar dent model; glass, brick and diamond now use source-surface fracture partitions.
 
 ## What changed in V3
 
 The jelly and liquid-shell bodies use a 179-particle, 352-tetrahedron XPBD cage. Distance and signed-volume constraints replace bulk group scaling. Skin, facial details, inclusions and crack ribbons share the same tetrahedral embedding. Circular plate contact and floor contact drive deformation; the gauge is a calibrated game approximation, not a force sensor in real bar.
 
-Jelly fracture partitions the actual deformed surface into seven closed regions with matching interior surfaces. It preserves the exterior triangles and enclosed volume at separation. Fragments inherit sampled cage velocities and use lightweight collision proxies afterward. Liquid rupture emits droplets from the simulated shell, with bounded wet effects and surface-clipped puddles.
+Jelly fracture partitions the actual deformed surface into seven closed regions with matching interior surfaces. It preserves the exterior triangles and enclosed volume at separation. Fragments inherit sampled cage velocities and use lightweight collision proxies afterward. Glass, brick and diamond use 19, 11 and 9 source regions with distinct crack patterns, roughness and separation behavior. Diamond uses geometric facets instead of pixel art. Liquid rupture emits droplets from the simulated shell, with bounded wet effects and surface-clipped puddles.
 
 The default studio removes the old visual clutter, preserves the workshop as an option, and adds direct specimen selection, a restrained control layout, an industrial label and joint fasteners. Rendering remains vendored Three.js r160 / WebGL; software rendering uses an opaque material fallback.
 

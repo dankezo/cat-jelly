@@ -20,7 +20,7 @@ try{renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,powerPreferen
 renderer.setPixelRatio(basePixelRatio);
 renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 if('outputColorSpace' in renderer && THREE.SRGBColorSpace!==undefined) renderer.outputColorSpace=THREE.SRGBColorSpace;
-renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.02;
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=.78;
 var isSoftwareGL=false;
 try{
   var _gl=renderer.getContext(); var _dbg=_gl.getExtension('WEBGL_debug_renderer_info');
@@ -34,8 +34,8 @@ var MAX_CRUMBS=isMobilePerf?170:280, MAX_PIECES=isMobilePerf?190:320;
 var spawnScale=isMobilePerf?0.7:1; /* adaptive governor lowers this too */
 
 var scene=new THREE.Scene();
-scene.background=new THREE.Color(0x18282e);
-scene.fog=new THREE.Fog(0x18282e,26,58);
+scene.background=new THREE.Color(0x080f16);
+scene.fog=new THREE.Fog(0x080f16,26,58);
 
 /* ---------- Camera: low bench-level view ---------- */
 var camera=new THREE.PerspectiveCamera(40,1,0.1,140);
@@ -55,21 +55,21 @@ function buildEnv(){
     var pmrem=new THREE.PMREMGenerator(renderer);
     var es=new THREE.Scene();
     var dome=new THREE.Mesh(new THREE.SphereGeometry(50,16,16),new THREE.MeshBasicMaterial({side:THREE.BackSide}));
-    dome.material.color.setRGB(0.95,0.86,0.72); es.add(dome);
+    dome.material.color.setRGB(.18,.23,.28); es.add(dome);
     function box(r,g,b,x,y,z,w,h){ var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial()); m.material.color.setRGB(r,g,b); m.position.set(x,y,z); m.lookAt(0,0,0); es.add(m); }
-    box(6,6,6,-8,15,6,17,10); box(3.2,1.1,1.4,14,6,-4,12,8); box(0.9,3,2.6,4,5,15,12,8); box(3.6,2.6,1.0,-4,-12,-8,14,8);
+    box(2.8,3.1,3.2,-8,15,6,17,10); box(3.2,1.1,1.4,14,6,-4,12,8); box(0.9,3,2.6,4,5,15,12,8); box(3.6,2.6,1.0,-4,-12,-8,14,8);
     scene.environment=pmrem.fromScene(es,0.06).texture; pmrem.dispose();es.traverse(function(o){if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose();});
   }catch(e){}
 }
 if(document.readyState==='complete') setTimeout(buildEnv,50); else window.addEventListener('load',function(){ setTimeout(buildEnv,50); });
 
 /* ---------- Lights: warm studio ---------- */
-scene.add(new THREE.HemisphereLight(0xc5e9ed,0x26303d,0.75));
-var sun=new THREE.DirectionalLight(0xffe6d4,2.0); sun.position.set(7,13,6); sun.castShadow=true;
+scene.add(new THREE.HemisphereLight(0xc5e9ed,0x111922,0.4));
+var sun=new THREE.DirectionalLight(0xffe6d4,1.4); sun.position.set(7,13,6); sun.castShadow=true;
 sun.shadow.mapSize.set(isMobilePerf?1024:2048,isMobilePerf?1024:2048); sun.shadow.camera.left=-11; sun.shadow.camera.right=11; sun.shadow.camera.top=12; sun.shadow.camera.bottom=-6; sun.shadow.bias=-0.0004; sun.shadow.radius=4;
 scene.add(sun);
-var fill=new THREE.PointLight(0xffc8b5,18,30,1.9); fill.position.set(-8,5,7); scene.add(fill);
-var rim=new THREE.PointLight(0x9bd9e0,26,30,1.9); rim.position.set(8,4,-7); scene.add(rim);
+var fill=new THREE.PointLight(0xffc8b5,12,30,1.9); fill.position.set(-8,5,7); scene.add(fill);
+var rim=new THREE.PointLight(0x9bd9e0,20,30,1.9); rim.position.set(8,4,-7); scene.add(rim);
 
 /* ---------- Warm studio backdrop ---------- */
 var backdrop=new THREE.Mesh(new THREE.SphereGeometry(70,24,16),new THREE.ShaderMaterial({
@@ -117,7 +117,7 @@ function hoaTileTexture(){
   return tex;
 }
 var floor=new THREE.Mesh(new THREE.CircleGeometry(80,48),new THREE.MeshStandardMaterial({map:hoaTileTexture(),color:0xd9c8a4,roughness:0.95,metalness:0}));
-var workshopFloorMap=floor.material.map;floor.material.map=null;floor.material.color.set(0x101e26);floor.material.envMapIntensity=.15;floor.material.roughness=.95;floor.material.roughness=.78;
+var workshopFloorMap=floor.material.map;floor.material.map=null;floor.material.color.set(0x101e26);floor.material.envMapIntensity=.15;floor.material.roughness=1;
 floor.rotation.x=-Math.PI/2; floor.receiveShadow=true; scene.add(floor);
 var floorRing=new THREE.Mesh(new THREE.TorusGeometry(8.6,0.07,10,72),new THREE.MeshStandardMaterial({color:0xb08d55,roughness:0.6,metalness:0.3}));
 floorRing.material.color.set(0x91aaa2);floorRing.visible=false;floorRing.rotation.x=Math.PI/2; floorRing.position.y=0.02; scene.add(floorRing);
@@ -128,6 +128,7 @@ var inkMetal=new THREE.MeshStandardMaterial({color:0x23262c,roughness:0.5,metaln
 var bed=new THREE.Mesh(new THREE.CylinderGeometry(3.55,3.8,BED_Y,44),steel);
 bed.position.y=BED_Y/2; bed.castShadow=true; bed.receiveShadow=true; scene.add(bed);
 var bedRim=new THREE.Mesh(new THREE.TorusGeometry(3.55,0.09,12,56),steelDark);
+bed.material=steel.clone();bed.material.color.set(0x344650);bed.material.roughness=.72;bed.material.metalness=.45;bed.material.envMapIntensity=.35;
 bedRim.rotation.x=Math.PI/2; bedRim.position.y=BED_Y; scene.add(bedRim);
 
 // A soft contact shadow also grounds the specimen on software WebGL.
@@ -682,26 +683,11 @@ var FORM_PHYS={
 FORM_PHYS.tabby=Object.assign({},FORM_PHYS.mochi,{stiff:90,damp:5.5,bounce:0.25});
 function formPhys(type){ return FORM_PHYS[type]||FORM_PHYS.mochi; }
 var geoCache={};
-/* MINECRAFT CUT: a diamond cat is not the smooth SDF cat with cyan
-   paint - its vertices are snapped to a coarse 0.13 grid and the mesh
-   is made non-indexed with flat normals, so the whole body reads as
-   one big blocky-cut gem, exactly like a Minecraft diamond. Glass
-   keeps the smooth geometry: the two materials differ in the MESH,
-   not just the material. */
+/* Flat normals on a coarse continuous SDF surface create actual gem facets. */
 var facetCache={};
 function facetedCatGeometry(type){
-  if(facetCache[type]) return facetCache[type];
-  var g=catGeometry(type).clone();
-  var pos=g.attributes.position, i;
-  for(i=0;i<pos.count;i++){
-    pos.setXYZ(i,
-      Math.round(pos.getX(i)/0.13)*0.13,
-      Math.round(pos.getY(i)/0.13)*0.13,
-      Math.round(pos.getZ(i)/0.13)*0.13);
-  }
-  g=g.toNonIndexed();
-  g.computeVertexNormals(); /* flat facet normals on the snapped grid */
-  facetCache[type]=g; return g;
+ if(facetCache[type])return facetCache[type];
+ var indexed=catGeometry(type,true),g=indexed.toNonIndexed();indexed.dispose();g.computeVertexNormals();facetCache[type]=g;return g;
 }
 function catGeometry(type,coarse){
   if(!coarse&&geoCache[type])return geoCache[type];
@@ -786,7 +772,7 @@ var currentTex='jelly';
 var MAT_PROFILES={
   glass:  {transmission:0.94,roughness:0.02,metalness:0.0,ior:1.52,thickness:0.5, clearcoat:1.0,clearcoatRoughness:0.02,env:1.5, spec:1.2, opacity:0.30,flat:false,tint:0xf7fcfd,tintAmt:0.93,atten:2.8,bump:0.0,repeat:1.5},
   iron:   {transmission:0.0, roughness:0.38,metalness:1.0,ior:1.50,thickness:0.0, clearcoat:0.25,clearcoatRoughness:0.4, env:1.35,spec:0.9, opacity:1.0, flat:false,tint:0x8a8f96,tintAmt:0.62,atten:1.0,bump:0.012,repeat:1.5},
-  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.05,env:2.6, spec:1.7, opacity:0.97,flat:true, tint:0x46ecd2,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.65,emiss:0.16},
+  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.05,env:2.6, spec:1.7, opacity:0.97,flat:true, tint:0xb7b9ff,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.18,emiss:0.055},
   jelly:  {transmission:0.5, roughness:0.13,metalness:0.0,ior:1.38,thickness:1.15,clearcoat:1.0,clearcoatRoughness:0.08,env:0.75,spec:1.0, opacity:0.92,flat:false,tint:0xffffff,tintAmt:0.0, atten:0.85,bump:0.0,repeat:1.5},
   brick:  {transmission:0.0, roughness:0.92,metalness:0.0,ior:1.45,thickness:0.0, clearcoat:0.0,clearcoatRoughness:0.9, env:0.25,spec:0.35,opacity:1.0, flat:false,tint:0xb5502f,tintAmt:0.78,atten:1.0,bump:0.05,repeat:2.0},
   water:  {transmission:0.94,roughness:0.02,metalness:0.0,ior:1.33,thickness:0.8, clearcoat:1.0,clearcoatRoughness:0.02,env:1.45,spec:1.2, opacity:0.45,flat:false,tint:0x59b7e8,tintAmt:0.55,atten:1.8,bump:0.0,repeat:1.5},
@@ -976,7 +962,7 @@ function displayColor(kind,color){
      DIAMOND is Minecraft diamond: a fixed bright cyan gem colour -
      the cat's colour NEVER tints it, so it can never be mistaken
      for pale glass again. */
-  if(kind==='diamond') return new THREE.Color(0x46ecd2);
+  if(kind==='diamond') return new THREE.Color(0xb7b9ff);
   if(kind==='glass'){ var gc=new THREE.Color(color); gc.lerp(new THREE.Color(0xf7fcfd),0.93); return gc; }
   var c=new THREE.Color(color);
   if(kind==='brick'){ c.lerp(new THREE.Color(0xb5502f),0.78); return c; }
@@ -995,16 +981,7 @@ function patternTexture(kind,color){
   cx.fillStyle='#'+base.getHexString(); cx.fillRect(0,0,256,256);
   var i,x,y;
   if(kind==='glass'){
-    /* faint diagonal reflection streaks and two hairline cracks */
-    cx.save(); cx.translate(128,128); cx.rotate(-0.5); cx.translate(-128,-128);
-    cx.fillStyle='rgba(255,255,255,0.13)';
-    for(x=-256;x<512;x+=92) cx.fillRect(x,-160,26,576);
-    cx.fillStyle='rgba(255,255,255,0.07)';
-    for(x=-210;x<512;x+=92) cx.fillRect(x,-160,10,576);
-    cx.restore();
-    cx.strokeStyle='rgba(255,255,255,0.55)'; cx.lineWidth=1.2;
-    cx.beginPath(); cx.moveTo(30,190); cx.lineTo(88,150); cx.lineTo(120,168); cx.lineTo(168,128); cx.stroke();
-    cx.beginPath(); cx.moveTo(88,150); cx.lineTo(96,196); cx.stroke();
+    // Unbroken glass has no painted cracks. Stress ribbons provide damage.
   } else if(kind==='iron'){
     /* brushed metal: many fine horizontal grain lines, scratches, speckle */
     for(i=0;i<210;i++){
@@ -1018,48 +995,13 @@ function patternTexture(kind,color){
     cx.fillStyle='rgba(20,22,26,0.35)';
     for(i=0;i<130;i++) cx.fillRect(Math.random()*256,Math.random()*256,1.6,1.6);
   } else if(kind==='diamond'){
-    /* MINECRAFT DIAMOND: a blocky pixel-facet mosaic in the game's own
-       cyan palette - light catches the top-left of the gem, facets step
-       down through bright cyan to deep teal edges, with white pixel
-       highlights and a few pastel rainbow sparkles. No pale glass
-       pastels, no random triangle web. */
-    var mcPal=['#a8fff2','#7ffce9','#5ff5dd','#46ecd2','#33dfc4','#25c9b0','#1cb8a6'];
-    var cell=32, bx, by, shade;
-    for(by=0;by<8;by++) for(bx=0;bx<8;bx++){
-      var hh=Math.sin(bx*12.9898+by*78.233)*43758.5453; hh=hh-Math.floor(hh);
-      shade=mcPal[Math.min(6,Math.max(0,Math.floor(hh*5)+((bx+by)<4?-1:0)+((bx+by)>10?1:0)))];
-      cx.fillStyle=shade; cx.fillRect(bx*cell,by*cell,cell,cell);
-      cx.fillStyle='rgba(10,90,80,0.35)'; cx.fillRect(bx*cell,by*cell+cell-3,cell,3); cx.fillRect(bx*cell+cell-3,by*cell,3,cell);
-      cx.fillStyle='rgba(255,255,255,0.30)'; cx.fillRect(bx*cell,by*cell,cell,3); cx.fillRect(bx*cell,by*cell,3,cell);
-    }
-    /* white pixel glints, top-left weighted like the game sprite */
-    cx.fillStyle='rgba(255,255,255,0.95)';
-    [[18,14],[52,40],[120,26],[30,120],[210,60],[86,86]].forEach(function(gp){ cx.fillRect(gp[0],gp[1],9,9); cx.fillRect(gp[0]+3,gp[1]-4,3,17); cx.fillRect(gp[0]-4,gp[1]+3,17,3); });
-    /* faint rainbow sparkle crosses - pink, gold, violet */
-    [['rgba(255,170,230,0.55)',196,150],['rgba(255,230,150,0.5)',60,200],['rgba(190,170,255,0.5)',150,110]].forEach(function(sp){
-      var sx2=sp[1], sy2=sp[2], ss=11;
-      cx.strokeStyle=sp[0]; cx.lineWidth=3;
-      cx.beginPath(); cx.moveTo(sx2-ss,sy2); cx.lineTo(sx2+ss,sy2); cx.moveTo(sx2,sy2-ss); cx.lineTo(sx2,sy2+ss); cx.stroke();
-    });
+    // Facets come from geometry and lighting, never a painted pixel grid.
   } else if(kind==='jelly'){
     // Optical colour comes from attenuation, not painted-on bubble rings.
   } else if(kind==='brick'){
-    /* real brickwork: mortar ground, offset courses, varied brick shades */
-    cx.fillStyle='#d9d0bf'; cx.fillRect(0,0,256,256);
-    var bh=42, bw=84, row, bx2;
-    for(row=0;row<7;row++){
-      var off=(row%2)? -bw/2 : 0;
-      for(bx2=off;bx2<256;bx2+=bw){
-        var shade=0.86+Math.random()*0.3;
-        var bc=base.clone(); bc.multiplyScalar(shade);
-        cx.fillStyle='#'+bc.getHexString();
-        cx.fillRect(bx2+3,row*bh+3,bw-6,bh-6);
-        cx.fillStyle='rgba(255,235,210,0.18)'; cx.fillRect(bx2+3,row*bh+3,bw-6,5);
-        cx.fillStyle='rgba(40,10,0,0.20)'; cx.fillRect(bx2+3,row*bh+bh-9,bw-6,3);
-      }
-    }
-    cx.fillStyle='rgba(60,25,10,0.25)';
-    for(i=0;i<380;i++) cx.fillRect(Math.random()*256,Math.random()*256,1.8,1.8);
+    // Fired clay pores: no wallpaper-like mortar grid on the mascot.
+    var clayRng=mulberry32(3187);
+    for(i=0;i<4000;i++){var shade=clayRng()>.5?'255,216,176':'47,17,12';cx.fillStyle='rgba('+shade+','+(.03+clayRng()*.14)+')';cx.fillRect(clayRng()*256,clayRng()*256,1+clayRng()*2,1+clayRng()*2);}
   } else if(kind==='water'){
     // Clear elastic shell; internal inclusions are 3D geometry.
   } else if(kind==='lego'){
@@ -1105,7 +1047,7 @@ function jellyMat(color,op,texKind){
   if(p.irid){ /* diamond only: a light rainbow shimmer over the cyan facets */
     params.iridescence=p.irid; params.iridescenceIOR=1.8; params.iridescenceThicknessRange=[120,420];
   }
-  if(kind==='diamond'){ params.emissive=new THREE.Color(0x1de9c3); params.emissiveIntensity=p.emiss||0.16; }
+  if(kind==='diamond'){ params.emissive=new THREE.Color(0x6c66bc); params.emissiveIntensity=.055; }
   if(p.bump>0){ params.bumpMap=tex; params.bumpScale=p.bump; }
   var m=new THREE.MeshPhysicalMaterial(params);
   m.userData.uTime={value:Math.random()*20}; m.userData.uJiggle={value:0.25}; m.userData.uPhase={value:Math.random()*6.28};
@@ -1213,7 +1155,7 @@ function disposeHero(h){
    dark seams. Jelly does not crack - it gets pale tear sheens. A water
    ball never cracks at all: it leaks and spills instead (see the
    puddle system below). */
-var CRACK_COLORS={glass:0xf4feff,diamond:0x2ff5e0,iron:0x101216,brick:0x2e1408,lego:0x241505,jelly:0xffffff,water:0xffffff};
+var CRACK_COLORS={glass:0xf4feff,diamond:0xf1dfff,iron:0x101216,brick:0x2e1408,lego:0x241505,jelly:0xffffff,water:0xffffff};
 /* Surface points come from the SAME signed-distance field that built
    the cat mesh, so a crack point is on the real surface by
    construction - not on an invented plane in front of the cat. A ray
@@ -1291,7 +1233,8 @@ function buildCrackGroup(kind,form,type,seed){
   var soft=(kind==='jelly');
   var formBranchF=(type==='pudding')?0.8:((type==='soda')?1.25:1.0);
   var branchCount=Math.max(4,Math.round((soft?6:(kind==='iron'?11:(kind==='lego'?10:(kind==='brick'?13:15))))*formBranchF));
-  var width0=soft?0.016:0.021;
+  if(kind==='glass')branchCount=22;if(kind==='brick')branchCount=8;if(kind==='diamond')branchCount=6;
+  var width0=kind==='glass'?.009:kind==='brick'?.04:kind==='diamond'?.012:soft?.016:.021;
   function addBranch(polar0,az0,steps,stepSize,delay,wMul){
     var pts=[], polar=polar0, az=az0, s, dir;
     for(s=0;s<=steps;s++){
@@ -1300,7 +1243,7 @@ function buildCrackGroup(kind,form,type,seed){
       /* the fracture creeps DOWN the surface from the platen contact
          zone at the crown, wandering sideways as real cracks do */
       polar+=stepSize*(0.75+rng()*0.5);
-      az+=(rng()-0.5)*0.30;
+      az+=kind==='diamond'?0:kind==='brick'?(s%2===0?.25:-.25):(rng()-.5)*(kind==='glass'?.55:.3);
       if(polar>2.6) break;
     }
     if(pts.length<2) return null;
@@ -1331,7 +1274,7 @@ function buildCrackGroup(kind,form,type,seed){
     /* sub-branches split off mid-way, thinner and later, like real
        branching fractures - they start from an on-surface point of
        the parent branch, so they stay glued to the surface too */
-    if(pts && !soft && rng()<0.75){
+    if(pts && !soft && rng()<(kind==='diamond'?.25:kind==='brick'?.35:.85)){
       var startIdx=2+Math.floor(rng()*Math.max(1,pts.length-3));
       var sp=pts[startIdx];
       var dx=sp.x, dy=sp.y-form.oy, dz=sp.z;
@@ -1370,7 +1313,7 @@ function buildCrackGroup(kind,form,type,seed){
     dirTo(-0.85,form.height*0.55,0.55),
     dirTo( 0.85,form.height*0.55,0.55)
   ];
-  for(var zi=0;zi<zoneDirs.length;zi++) addZoneBranch(zoneDirs[zi],0.10+zi*0.04);
+  for(var zi=0;zi<(kind==='diamond'?3:kind==='brick'?4:zoneDirs.length);zi++) addZoneBranch(zoneDirs[zi],0.10+zi*0.04);
   /* ---- Voronoi fracture cells for THIS cat, from the same seed ----
      Cells are seeded ON the surface starting at the platen contact
      rim on the crown (the first third sit in the contact ring) and
@@ -2389,10 +2332,10 @@ function splitPiece(p){
 }
 
 function spawnCoherentFragments(h){
-  while(pieces.length>MAX_PIECES-7)disposePiece(pieces.shift());
+  while(pieces.length>MAX_PIECES-19)disposePiece(pieces.shift());
   var shell=h.mesh.userData.jelly,body=h.mesh.userData.bodyG;
-  var center=Array.from(h.soft.positions.slice(-3));
-  var groups=partitionCat(Array.from(shell.geometry.attributes.position.array),Array.from(shell.geometry.index.array),center,7);
+  var center=h.soft?Array.from(h.soft.positions.slice(-3)):[0,h.form.oy,0];
+  var groups=partitionCat(Array.from(shell.geometry.attributes.position.array),shell.geometry.index?Array.from(shell.geometry.index.array):Array.from({length:shell.geometry.attributes.position.count},function(_,i){return i;}),center,({glass:19,brick:11,diamond:9}[currentTex]||7));
   var massTotal=groups.reduce(function(sum,g){return sum+g.volume;},0);
   lastFracture={sourceVolume:massTotal,fragmentVolume:0,count:groups.length};
   body.updateWorldMatrix(true,false);
@@ -2401,22 +2344,25 @@ function spawnCoherentFragments(h){
     for(var i=0;i<arr.length;i+=3)centroid.add(new THREE.Vector3(arr[i],arr[i+1],arr[i+2]));
     centroid.multiplyScalar(3/arr.length);
     for(var i=0;i<arr.length;i+=3){arr[i]-=centroid.x;arr[i+1]-=centroid.y;arr[i+2]-=centroid.z;}
-    geo.setAttribute('position',new THREE.BufferAttribute(arr,3));geo.computeVertexNormals();
+    geo.setAttribute('position',new THREE.BufferAttribute(arr,3));var uv=new Float32Array(arr.length/3*2),originalUV=shell.geometry.attributes.uv;for(var ui=0;ui<arr.length/3;ui++){if(ui<group.sourceIndices.length&&originalUV){uv[ui*2]=originalUV.getX(group.sourceIndices[ui]);uv[ui*2+1]=originalUV.getY(group.sourceIndices[ui]);}else{uv[ui*2]=arr[ui*3];uv[ui*2+1]=arr[ui*3+2];}}geo.setAttribute('uv',new THREE.BufferAttribute(uv,2));geo.computeVertexNormals();
     var sourceNormals=shell.geometry.attributes.normal,fragmentNormals=geo.attributes.normal;group.sourceIndices.forEach(function(index,i){fragmentNormals.setXYZ(i,sourceNormals.getX(index),sourceNormals.getY(index),sourceNormals.getZ(index));});
     geo.computeBoundingSphere();
-    var mat=jellyMat(h.form.color,undefined,currentTex);mat.map=null;mat.color.set(h.form.color);mat.userData.uJiggle.value=0;mat.needsUpdate=true;
-    var innerMat=mat.clone();innerMat.roughness=.38;innerMat.emissive.set(h.form.color);innerMat.emissiveIntensity=.3;innerMat.transmission=(mat.transmission||0)*.7;
+    var mat=jellyMat(h.form.color,undefined,currentTex);if(currentTex!=='brick')mat.map=null;mat.color.copy(displayColor(currentTex,h.form.color));mat.userData.uJiggle.value=0;mat.needsUpdate=true;
+    var innerMat=mat.clone();innerMat.map=null;innerMat.bumpMap=null;innerMat.roughness=currentTex==='glass'?.06:currentTex==='diamond'?.1:currentTex==='brick'?.98:.38;innerMat.emissive.set(h.form.color);innerMat.emissiveIntensity=(currentTex==='brick'||currentTex==='glass')?0:.16;innerMat.transmission=(mat.transmission||0)*.7;
     geo.clearGroups();geo.addGroup(0,group.outer*3,0);geo.addGroup(group.outer*3,arr.length/3-group.outer*3,1);
-    var mesh=new THREE.Mesh(geo,[mat,innerMat]);mesh.scale.setScalar(h.form.scale*catSize);mesh.castShadow=true;mesh.receiveShadow=true;
+    var mesh=new THREE.Mesh(geo,[mat,innerMat]);mesh.scale.copy(body.getWorldScale(new THREE.Vector3()));mesh.quaternion.copy(body.getWorldQuaternion(new THREE.Quaternion()));mesh.castShadow=true;mesh.receiveShadow=true;
     mesh.position.copy(centroid).applyMatrix4(body.matrixWorld);scene.add(mesh);
-    var localIndex=h.soft.nearest([centroid.x,centroid.y,centroid.z]),sv=h.soft.velocities;
-    var outward=new THREE.Vector3(centroid.x-center[0],0,centroid.z-center[2]).normalize();
+    var localIndex=h.soft?h.soft.nearest([centroid.x,centroid.y,centroid.z]):0,sv=h.soft?h.soft.velocities:new Float64Array([h.vx||0,0,h.vz||0]);
+    var relative=new THREE.Vector3(centroid.x-center[0],centroid.y-center[1],centroid.z-center[2]);
+    var outward=new THREE.Vector3(relative.x,0,relative.z).normalize(),release=Math.min(1.8,.35+(h.soft?h.soft.strain:.5))/Math.sqrt(h.soft?h.soft.preset.density:MAT_DENS[currentTex]);
+    var angular=new THREE.Vector3().crossVectors(relative,new THREE.Vector3(sv[localIndex*3],sv[localIndex*3+1],sv[localIndex*3+2])).multiplyScalar(1/Math.max(.2,relative.lengthSq()));
     pieces.push({coherent:true,mesh:mesh,mat:mat,interior:innerMat,volume:group.volume,mass:group.volume/massTotal,
-      collisionR:Math.cbrt(group.volume*3/(4*Math.PI))*h.form.scale*catSize*.65,vx:sv[localIndex*3]*h.form.scale*catSize+outward.x*.7,vy:Math.min(2,sv[localIndex*3+1]*h.form.scale*catSize)+.3,vz:sv[localIndex*3+2]*h.form.scale*catSize+outward.z*.7,
-      vrx:outward.z*.8,vrz:-outward.x*.8,r:geo.boundingSphere.radius*h.form.scale*catSize,held:false,restY:BED_Y,texKind:currentTex,wob:0,wobV:0});
+      collisionR:Math.cbrt(group.volume*3/(4*Math.PI))*h.form.scale*catSize*.65,vx:sv[localIndex*3]*h.form.scale*catSize+outward.x*release,vy:Math.min(2,sv[localIndex*3+1]*h.form.scale*catSize)+(currentTex==='brick'?.06:.3),vz:sv[localIndex*3+2]*h.form.scale*catSize+outward.z*release,
+      vrx:Math.max(-4,Math.min(4,angular.x+outward.z*release)),vrz:Math.max(-4,Math.min(4,angular.z-outward.x*release)),r:geo.boundingSphere.radius*h.form.scale*catSize,held:false,restY:BED_Y,texKind:currentTex,wob:0,wobV:0});
     lastFracture.fragmentVolume+=group.volume;
   });window.dispatchEvent(new CustomEvent('catjelly:fracture',{detail:Object.assign({},lastFracture)}));
 }
+var dynamics=new CatDynamics(THREE,scene);
 var lastFracture=null;var fracturePulse=new THREE.PointLight(0xffb9a3,0,7,2);fracturePulse.position.set(0,BED_Y+1,1);scene.add(fracturePulse);
 function updateCoherentPieces(dt){
   var box=new THREE.Box3(),expired=[];
@@ -2455,6 +2401,7 @@ function disposePiece(p){
   else {p.mat.dispose();}
 }
 function clearAllEffects(){
+  dynamics.clear();
   clearPieces();
   [dusts,waterStreams,waterfalls,ripples,vacFx].forEach(function(list){list.forEach(function(e){if(e.piece){disposePiece(e.piece);return;}scene.remove(e.mesh||e.grp);if(e.mat&&e.mat!==waterDropMatShared)e.mat.dispose();});list.length=0;});
   puddles.forEach(function(p){scene.remove(p.mesh);});puddles=[];
@@ -2484,8 +2431,9 @@ function burst(){
   var voroCells=(hero.voro&&hero.voro.length)?hero.voro:((hero.crack&&hero.crack.userData.voroCells)?hero.crack.userData.voroCells:[]);
   var burstFp=hero.fp||formPhys(currentType);
   var burstRng=mulberry32((hero.seed||987654)^0x77cd);
-  var coherent=!!hero.soft&&kind==='jelly';
-  if(coherent)spawnCoherentFragments(hero);
+  var coherent=kind==='jelly'||kind==='glass'||kind==='brick'||kind==='diamond';
+  if(coherent)spawnCoherentFragments(hero);if(kind==='brick')spawnDust(20,cx,BED_Y+.5,cz,kind,color,1.2);
+  if(!reduced)dynamics.emit({x:cx,y:Math.min(platenBottom()-.1,BED_Y+1),z:cz},Math.min(3,1+(hero.soft?hero.soft.strain:.5)),color,'fracture');
   disposeHero(hero);
   /* The burst itself is material-specific - shape, weight and debris:
      - water:   no solid pieces at all, only a splash of droplets
@@ -3085,8 +3033,17 @@ function animate(){
       hero.soft.preset.density=CatSoftBody.presets[selectedPreset==='auto'?currentType:selectedPreset].density*density;
       var ceilingAt=function(x,z){return Math.hypot(x*bodyScale+hero.mesh.position.x,z*bodyScale+hero.mesh.position.z+.1)<PLATEN_R?ceiling:Infinity;};
       var floorAt=function(x,z){return Math.hypot(x*bodyScale+hero.mesh.position.x,z*bodyScale+hero.mesh.position.z)<3.55?0:-BED_Y/bodyScale;};
+      var prior=hero.soft.metrics(),impactSpeed=0;
+      for(var vi=1;vi<hero.soft.velocities.length;vi+=3)impactSpeed=Math.max(impactSpeed,-hero.soft.velocities[vi]*bodyScale);
       hero.soft.advance(dt,ceilingAt,9.81/bodyScale,floorAt);
       hero.physicsMs=performance.now()-tick;softMetrics=hero.soft.metrics();
+      if(!reduced&&prior.minY>.025&&softMetrics.minY<=.005&&impactSpeed>1.3){
+        var point=new THREE.Vector3(0,BED_Y+.06,-.1),arr=hero.soft.positions,low=1e9;
+        for(var pi=0;pi<arr.length;pi+=3)if(arr[pi+1]<low){low=arr[pi+1];point.x=arr[pi]*bodyScale;point.z=arr[pi+2]*bodyScale-.1;}
+        dynamics.emit(point,Math.min(2.5,impactSpeed*.3),form.color,'impact');
+      }
+      if(!reduced&&softMetrics.contact>0&&!(hero.previousContact>0)){dynamics.emit({x:hero.mesh.position.x,y:platenBottom()-.04,z:hero.mesh.position.z+.6},.6,form.color,'contact');}
+      hero.previousContact=softMetrics.contact;
       var previousCompression=hero.simCompression;
       hero.simCompression=Math.max(0,1-softMetrics.height/hero.soft.restHeight);
       squash=hero.simCompression;squashV=(squash-previousCompression)/Math.max(dt,1e-6);disp=squash;
@@ -3349,6 +3306,7 @@ function animate(){
     pressure+=(targetPressure2-pressure)*Math.min(1,dt*8);
     setHum(pressingNow&&anyUnder,pressure);
   }
+  dynamics.update(dt);
   fracturePulse.intensity*=Math.exp(-8*dt);
   setGauge(Math.max(0,pressure));
   bedRim.material.emissive.set(0x67d9bb);bedRim.material.emissiveIntensity=Math.min(.65,pressure/600);
@@ -3579,7 +3537,7 @@ $('quality').addEventListener('change',function(){
   renderer.shadowMap.enabled=!isSoftwareGL&&this.value!=='low';sun.castShadow=renderer.shadowMap.enabled;
   spawnScale=this.value==='low'?.4:this.value==='ultra'?1:.7;qLevel=0;
 });
-window.catJelly={snapshot:function(){return {type:currentType,material:currentTex,mode:mode,pressure:pressure,platen:platenBottom(),holding:holding,pressState:machineBroken?'FAILURE':holding?(hero&&hero.soft&&hero.soft.contact>0?'COMPRESSING':'DESCENDING'):(platenY<PLATEN_TOP-.02?'RETRACTING':'IDLE'),lifecycle:hero?hero.lifecycle:'FRAGMENTED',grabbed:!!(hero&&hero.soft&&hero.soft.grab),physics:hero&&hero.soft?hero.soft.metrics():null,physicsMs:hero?hero.physicsMs:0,fps:measuredFPS,quality:$('quality').value,pieces:pieces.length,droplets:droplets.length,puddles:puddles.length,streams:waterStreams.length,waterfalls:waterfalls.length,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,fracture:lastFracture,backend:'WebGL '+THREE.REVISION};}};
+window.catJelly={snapshot:function(){return {type:currentType,material:currentTex,mode:mode,pressure:pressure,platen:platenBottom(),holding:holding,pressState:machineBroken?'FAILURE':holding?(hero&&hero.soft&&hero.soft.contact>0?'COMPRESSING':'DESCENDING'):(platenY<PLATEN_TOP-.02?'RETRACTING':'IDLE'),lifecycle:hero?hero.lifecycle:'FRAGMENTED',grabbed:!!(hero&&hero.soft&&hero.soft.grab),physics:hero&&hero.soft?hero.soft.metrics():null,physicsMs:hero?hero.physicsMs:0,fps:measuredFPS,quality:$('quality').value,pieces:pieces.length,glints:dynamics.active,droplets:droplets.length,puddles:puddles.length,streams:waterStreams.length,waterfalls:waterfalls.length,geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,fracture:lastFracture,backend:'WebGL '+THREE.REVISION};}};
 /* ---------- Boot ---------- */
 lang=detectLang();
 syncLangButtons();
