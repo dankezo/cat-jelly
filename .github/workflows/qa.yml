@@ -1,0 +1,45 @@
+name: Cat Jelly source and browser QA
+on:
+  push:
+    branches:
+      - feat/material-physics-vfx-v1
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'press.html'
+      - 'qa/**'
+      - '.github/workflows/qa.yml'
+jobs:
+  static-qa:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify source invariants and JavaScript
+        run: python3 qa/validate.py
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser runner
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Test desktop and mobile WebGL UX
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 &
+          node qa/browser-smoke.cjs
+      - name: Save desktop and mobile screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cat-jelly-browser-screenshots
+          path: smoke-*.png
+          if-no-files-found: ignore
