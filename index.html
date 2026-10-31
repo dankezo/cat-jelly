@@ -55,7 +55,7 @@
   <div id="verdict"></div>
   <div class="gauge-row">
     <div class="dial" id="dial"><span id="dial-text">0 bar</span></div>
-    <div><div id="pressure">0 bar - 100% height</div><div style="font-size:12px;color:#666" id="help">Hold Space or ArrowDown to press - ArrowUp to raise - R to reset - 1 to 4 to pick a cat - Drag pieces after the burst</div></div>
+    <div><div id="pressure">0 bar - 100% height</div><div style="font-size:12px;color:#666" id="help">Camera locked - Drag the cat on the bed - Hold Space to press - Drag pieces and crumbs after the burst</div></div>
   </div>
   <div class="controls">
     <button id="hold">HOLD TO PRESS</button>
@@ -71,10 +71,10 @@
 </div>
 <script>
 const I18N={
-  en:{sub:"Four jelly cats. One hydraulic press.",hold:"Hold the red button to press.",grab:"Grab a piece. Throw it.",caps:["Contact.","It is fine. It is jelly.","Getting wider.","That is a pancake now.","It is making a noise.","Please."],verdicts:{mochi:"Splat.",pudding:"Squashed.",soda:"Well, that is jam.",orange:"Crushed."},reset:"Reset",soundOn:"Sound: On",soundOff:"Sound: Off",holdBtn:"HOLD TO PRESS",raise:"Raise",next:"Next cat",help:"Hold Space or ArrowDown to press - ArrowUp to raise - R to reset - 1 to 4 to pick a cat - Drag pieces after the burst"},
-  vi:{sub:"Bốn mèo thạch. Một máy ép thủy lực.",hold:"Giữ nút đỏ để ép.",grab:"Nắm một mảnh. Ném nó đi.",caps:["Chạm rồi.","Ổn thôi. Đây là thạch mà.","Đang bè ra.","Giờ thành bánh dẹt rồi.","Nó đang kêu.","Thôi mà."],verdicts:{mochi:"Bẹp!",pudding:"Dẹp lép!",soda:"Thôi, thành mứt rồi.",orange:"Nát bét!"},reset:"Đặt lại",soundOn:"Âm thanh: Bật",soundOff:"Âm thanh: Tắt",holdBtn:"GIỮ ĐỂ ÉP",raise:"Nâng lên",next:"Mèo tiếp theo",help:"Giữ Space hoặc mũi tên xuống để ép - Mũi tên lên để nâng - R để đặt lại - 1 đến 4 để chọn mèo - Sau khi vỡ thì kéo các mảnh"},
-  es:{sub:"Cuatro gatos de gelatina. Una prensa hidraulica.",hold:"Mantén el botón rojo para prensar.",grab:"Agarra un trozo. Lánzalo.",caps:["Contacto.","Está bien. Es gelatina.","Se está ensanchando.","Ya es un panqueque.","Está haciendo ruido.","Por favor."],verdicts:{mochi:"¡Plaf!",pudding:"¡Aplastado!",soda:"Bueno, eso es mermelada.",orange:"¡Triturado!"},reset:"Reiniciar",soundOn:"Sonido: On",soundOff:"Sonido: Off",holdBtn:"MANTENER PARA PRENSAR",raise:"Subir",next:"Siguiente gato",help:"Mantén Espacio o flecha abajo para prensar - Flecha arriba para subir - R para reiniciar - 1 a 4 para elegir un gato - Después del estallido arrastra los trozos"},
-  zh:{sub:"四只果冻猫。一台液压机。",hold:"按住红色按钮进行按压。",grab:"抓住一块。扔出去。",caps:["接触了。","没事。这是果冻。","越来越宽了。","现在成了一张饼。","它在出声。","求你了。"],verdicts:{mochi:"啪!",pudding:"压扁了!",soda:"好吧, 成果酱了。",orange:"压碎了!"},reset:"重置",soundOn:"声音: 开",soundOff:"声音: 关",holdBtn:"按住按压",raise:"抬起",next:"下一只猫",help:"按住空格或向下箭头按压 - 向上箭头抬起 - R 重置 - 1 到 4 选择猫 - 爆裂后拖动碎片"}
+  en:{sub:"Four jelly cats. One hydraulic press.",hold:"Hold the red button to press.",grab:"Grab a piece. Throw it.",caps:["Contact.","It is fine. It is jelly.","Getting wider.","That is a pancake now.","It is making a noise.","Please."],verdicts:{mochi:"Splat.",pudding:"Squashed.",soda:"Well, that is jam.",orange:"Crushed."},reset:"Reset",soundOn:"Sound: On",soundOff:"Sound: Off",holdBtn:"HOLD TO PRESS",raise:"Raise",next:"Next cat",help:"Camera locked - Drag the cat on the bed - Hold Space to press - Drag pieces and crumbs after the burst"},
+  vi:{sub:"Bốn mèo thạch. Một máy ép thủy lực.",hold:"Giữ nút đỏ để ép.",grab:"Nắm một mảnh. Ném nó đi.",caps:["Chạm rồi.","Ổn thôi. Đây là thạch mà.","Đang bè ra.","Giờ thành bánh dẹt rồi.","Nó đang kêu.","Thôi mà."],verdicts:{mochi:"Bẹp!",pudding:"Dẹp lép!",soda:"Thôi, thành mứt rồi.",orange:"Nát bét!"},reset:"Đặt lại",soundOn:"Âm thanh: Bật",soundOff:"Âm thanh: Tắt",holdBtn:"GIỮ ĐỂ ÉP",raise:"Nâng lên",next:"Mèo tiếp theo",help:"Camera khóa - Kéo mèo trên bàn - Giữ Space để ép - Sau khi vỡ thì kéo mảnh và vụn"},
+  es:{sub:"Cuatro gatos de gelatina. Una prensa hidraulica.",hold:"Mantén el botón rojo para prensar.",grab:"Agarra un trozo. Lánzalo.",caps:["Contacto.","Está bien. Es gelatina.","Se está ensanchando.","Ya es un panqueque.","Está haciendo ruido.","Por favor."],verdicts:{mochi:"¡Plaf!",pudding:"¡Aplastado!",soda:"Bueno, eso es mermelada.",orange:"¡Triturado!"},reset:"Reiniciar",soundOn:"Sonido: On",soundOff:"Sonido: Off",holdBtn:"MANTENER PARA PRENSAR",raise:"Subir",next:"Siguiente gato",help:"Camara fija - Arrastra el gato - Mantén Espacio para prensar - Después del estallido arrastra los trozos"},
+  zh:{sub:"四只果冻猫。一台液压机。",hold:"按住红色按钮进行按压。",grab:"抓住一块。扔出去。",caps:["接触了。","没事。这是果冻。","越来越宽了。","现在成了一张饼。","它在出声。","求你了。"],verdicts:{mochi:"啪!",pudding:"压扁了!",soda:"好吧, 成果酱了。",orange:"压碎了!"},reset:"重置",soundOn:"声音: 开",soundOff:"声音: 关",holdBtn:"按住按压",raise:"抬起",next:"下一只猫",help:"镜头锁定 - 拖动猫 - 按住空格按压 - 爆裂后拖动碎片和碎屑"}
 };
 let LANG="en", soundOn=true, burst=false;
 function setLang(l){LANG=l; const t=I18N[l]; document.documentElement.lang=l;
@@ -113,21 +113,54 @@ const platen=new THREE.Mesh(new THREE.CylinderGeometry(1.35,1.35,.45,32),new THR
 platen.position.set(0,5,-.2); platen.castShadow=true; scene.add(platen);
 const ram=new THREE.Mesh(new THREE.CylinderGeometry(.35,.35,2,16),postMat); ram.position.set(0,6.2,-.2); scene.add(ram);
 const CATS={
-  mochi:{color:0xff8fb3,scale:[1.1,1,1.1]},
-  pudding:{color:0xffc46b,scale:[1.3,.62,1.3]},
-  soda:{color:0x7ee0c3,scale:[.85,1.4,.85]},
-  orange:{color:0xff9a3d,scale:[1,1.15,1]}
+  mochi:{color:0xff8fb3,hex:'#ff8fb3',tex:'glossy',scale:[1.1,1,1.1]},
+  pudding:{color:0xffc46b,hex:'#ffc46b',tex:'dotted',scale:[1.3,.62,1.3]},
+  soda:{color:0x7ee0c3,hex:'#7ee0c3',tex:'bubbly',scale:[.85,1.4,.85]},
+  orange:{color:0xff9a3d,hex:'#ff9a3d',tex:'striped',scale:[1,1.15,1]}
 };
-let current="mochi", cat=null, pieces=[], pressing=false, raising=false, pressY=5, pressTarget=5, squash=0, squashVel=0, wob=0, wobVel=0, burstAt=.58, dragged=null, dragVel={x:0,z:0}, lastDrag=null;
+function makeJellyTexture(kind, base){
+  const c=document.createElement('canvas'); c.width=c.height=256;
+  const x=c.getContext('2d'); x.fillStyle=base; x.fillRect(0,0,256,256);
+  if(kind==='striped'){ x.fillStyle='rgba(120,60,0,.35)'; for(let i=-256;i<512;i+=32){ x.beginPath(); x.moveTo(i,0); x.lineTo(i+32,256); x.lineTo(i+48,256); x.lineTo(i+16,0); x.fill(); } }
+  if(kind==='dotted'){ x.fillStyle='rgba(255,255,255,.55)'; for(let i=0;i<40;i++){ x.beginPath(); x.arc(Math.random()*256,Math.random()*256,6+Math.random()*10,0,7); x.fill(); } }
+  if(kind==='bubbly'){ x.strokeStyle='rgba(255,255,255,.8)'; x.lineWidth=3; for(let i=0;i<24;i++){ x.beginPath(); x.arc(Math.random()*256,Math.random()*256,8+Math.random()*18,0,7); x.stroke(); } }
+  if(kind==='glitter'){ for(let i=0;i<120;i++){ x.fillStyle=Math.random()<.5?'rgba(255,255,255,.95)':'rgba(255,220,120,.95)'; x.fillRect(Math.random()*256,Math.random()*256,3,3); } }
+  const t=new THREE.CanvasTexture(c); t.wrapS=t.wrapT=THREE.RepeatWrapping; return t;
+}
+let current="mochi", cat=null, pieces=[], crumbs=[], pressing=false, raising=false, pressY=5, pressTarget=5, squash=0, squashVel=0, wob=0, wobVel=0, burstAt=.58, dragged=null, dragVel={x:0,z:0}, lastDrag=null, draggedCat=false, catVel={x:0,z:0}, lastCat=null;
 function makeCat(type){
   if(cat) scene.remove(cat);
-  pieces.forEach(p=>scene.remove(p)); pieces=[]; burst=false; squash=0; squashVel=0; wob=0; wobVel=0; pressY=5; pressTarget=5; burstAt=.54+Math.random()*.12;
+  pieces.forEach(p=>scene.remove(p)); pieces=[];
+  crumbs.forEach(p=>scene.remove(p)); crumbs=[];
+  burst=false; squash=0; squashVel=0; wob=0; wobVel=0; pressY=5; pressTarget=5; burstAt=.54+Math.random()*.12; draggedCat=false;
   const t=CATS[type]; const g=new THREE.Group();
-  const mat=new THREE.MeshPhysicalMaterial({color:t.color,transparent:true,opacity:.9,roughness:.1,transmission:.55,clearcoat:1,clearcoatRoughness:.15});
-  const body=new THREE.Mesh(new THREE.SphereGeometry(1,48,32),mat); body.scale.set(...t.scale); body.castShadow=true; g.add(body);
-  const head=new THREE.Mesh(new THREE.SphereGeometry(.6,40,28),mat); head.position.set(0,.8,.55); head.castShadow=true; g.add(head);
-  [-.36,.36].forEach(ex=>{const ear=new THREE.Mesh(new THREE.ConeGeometry(.2,.32,20),mat); ear.position.set(ex,1.38,.55); g.add(ear);
-    const eye=new THREE.Mesh(new THREE.SphereGeometry(.07,16,12),new THREE.MeshStandardMaterial({color:0x111111})); eye.position.set(ex,.9,1.05); g.add(eye);});
+  const tex=makeJellyTexture(t.tex,t.hex);
+  const mat=new THREE.MeshPhysicalMaterial({map:tex,color:0xffffff,transparent:true,opacity:.92,roughness:.12,transmission:.45,clearcoat:1,clearcoatRoughness:.15});
+  const cream=new THREE.MeshPhysicalMaterial({color:0xfff5e6,transparent:true,opacity:.95,roughness:.3,clearcoat:.6});
+  const dark=new THREE.MeshStandardMaterial({color:0x111111,roughness:.4});
+  const pink=new THREE.MeshStandardMaterial({color:0xff6b9d,roughness:.4});
+  function add(mesh,x,y,z){ mesh.position.set(x,y,z); mesh.castShadow=true; g.add(mesh); return mesh; }
+  const body=add(new THREE.Mesh(new THREE.SphereGeometry(1,48,32),mat),0,.1,0); body.scale.set(...t.scale);
+  const belly=add(new THREE.Mesh(new THREE.SphereGeometry(.72,32,24),cream),0,-.05,.55); belly.scale.set(.8,.85,.45);
+  const head=add(new THREE.Mesh(new THREE.SphereGeometry(.62,40,28),mat),0,.95,.55);
+  [-.36,.36].forEach(ex=>{
+    const ear=add(new THREE.Mesh(new THREE.ConeGeometry(.22,.36,20),mat),ex,1.48,.55);
+    const inner=add(new THREE.Mesh(new THREE.ConeGeometry(.12,.22,16),pink),ex,1.44,.62);
+    const eye=add(new THREE.Mesh(new THREE.SphereGeometry(.085,16,12),dark),ex,.98,1.08);
+    const hi=add(new THREE.Mesh(new THREE.SphereGeometry(.028,10,8),new THREE.MeshBasicMaterial({color:0xffffff})),ex-.02,1.02,1.15);
+    [-.5,0,.5].forEach((dy,wi)=>{
+      const w=add(new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,.55,6),dark),ex*1.9,.85+dy*.12,1.1);
+      w.rotation.z=Math.PI/2 + (ex>0?-1:1)*.25; w.rotation.y=ex>0?-.4:.4;
+    });
+  });
+  const muzzle=add(new THREE.Mesh(new THREE.SphereGeometry(.32,28,20),cream),0,.82,1.12); muzzle.scale.set(1,.62,.5);
+  const nose=add(new THREE.Mesh(new THREE.ConeGeometry(.09,.12,12),pink),0,.92,1.38); nose.rotation.x=Math.PI;
+  const mouth=add(new THREE.Mesh(new THREE.TorusGeometry(.11,.015,8,20,Math.PI),dark),0,.78,1.36); mouth.rotation.z=Math.PI;
+  [[-.55,.55],[-.55,-.55],[.55,.55],[.55,-.55]].forEach(([lx,lz])=>{
+    const leg=add(new THREE.Mesh(new THREE.CylinderGeometry(.17,.2,.45,16),mat),lx,-.78,lz);
+    add(new THREE.Mesh(new THREE.SphereGeometry(.2,20,14),mat),lx,-1.0,lz);
+  });
+  const tail=add(new THREE.Mesh(new THREE.TorusGeometry(.45,.16,14,28,4.2),mat),-.9,.25,-.6); tail.rotation.set(.4,.6,1.2);
   g.position.set(0,1.6,-.2); g.userData={base:t.scale};
   scene.add(g); cat=g;
   document.getElementById('caption').textContent=I18N[LANG].hold;
@@ -144,6 +177,15 @@ function doBurst(){
     m.position.set((Math.random()*2-1)*1.2,1.5+Math.random(),-.2+(Math.random()*2-1));
     m.userData={vy:2+Math.random()*3,vx:(Math.random()*2-1)*2,vz:(Math.random()*2-1)*2,wob:0,wobVel:0};
     scene.add(m); pieces.push(m);
+  }
+  const crumbTex=['glossy','striped','dotted','bubbly','glitter'].map(k=>makeJellyTexture(k,t.hex));
+  for(let i=0;i<42;i++){
+    const cm=new THREE.MeshPhysicalMaterial({map:crumbTex[i%5],color:0xffffff,transparent:true,opacity:.92,roughness:.15,transmission:.4,clearcoat:1});
+    const m=new THREE.Mesh(new THREE.SphereGeometry(.08+Math.random()*.1,18,14),cm); m.castShadow=true;
+    m.scale.set(1+Math.random()*.5,.5+Math.random()*.5,1+Math.random()*.5);
+    m.position.set(cat?cat.position.x:0,1.4+Math.random()*.5,cat?cat.position.z:-.2);
+    m.userData={vy:3+Math.random()*4,vx:(Math.random()*2-1)*4,vz:(Math.random()*2-1)*4,wob:0,wobVel:0,ground:.45};
+    scene.add(m); crumbs.push(m);
   }
   document.getElementById('verdict').textContent=I18N[LANG].verdicts[current];
   document.getElementById('caption').textContent=I18N[LANG].grab;
@@ -163,16 +205,28 @@ addEventListener('keydown',e=>{if(e.code==="Space"||e.key==="ArrowDown") pressin
 addEventListener('keyup',e=>{if(e.code==="Space"||e.key==="ArrowDown") pressing=false; if(e.key==="ArrowUp") raising=false;});
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
 addEventListener('resize',resize); resize();
+canvas.addEventListener('wheel',e=>e.preventDefault(),{passive:false});
+canvas.addEventListener('gesturestart',e=>e.preventDefault());
 const ray=new THREE.Raycaster(), mouse=new THREE.Vector2(), plane=new THREE.Plane(new THREE.Vector3(0,1,0),-1);
 function pick(e,objs){mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);ray.setFromCamera(mouse,camera); const h=ray.intersectObjects(objs,false); return h.length? h[0].object : null;}
-canvas.addEventListener('pointerdown',e=>{if(!burst) return; const p=pick(e,pieces); if(p){dragged=p; lastDrag={x:p.position.x,z:p.position.z,t:performance.now()}; canvas.setPointerCapture(e.pointerId); beep(300,.06);}});
-canvas.addEventListener('pointermove',e=>{if(!dragged) return; mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera); const v=new THREE.Vector3(); ray.ray.intersectPlane(plane,v); if(v){const now=performance.now(); const dt=Math.max(1,now-lastDrag.t)/1000; dragVel={x:(v.x-lastDrag.x)/dt,z:(v.z-lastDrag.z)/dt}; lastDrag={x:v.x,z:v.z,t:now}; dragged.position.x=Math.max(-3,Math.min(3,v.x)); dragged.position.z=Math.max(-2.5,Math.min(2.5,v.z)); dragged.position.y=1.8;}});
-canvas.addEventListener('pointerup',()=>{if(dragged){dragged.userData.vx=dragVel.x*.15; dragged.userData.vz=dragVel.z*.15; dragged.userData.vy=1; dragged=null;}});
+const planeCat=new THREE.Plane(new THREE.Vector3(0,1,0),-1.6);
+canvas.addEventListener('pointerdown',e=>{
+  if(!burst && cat){
+    mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera);
+    if(ray.intersectObjects(cat.children,true).length){ draggedCat=true; lastCat={x:cat.position.x,z:cat.position.z,t:performance.now()}; canvas.setPointerCapture(e.pointerId); beep(400,.06); return; }
+  }
+  if(!burst) return; const p=pick(e,pieces.concat(crumbs)); if(p){dragged=p; lastDrag={x:p.position.x,z:p.position.z,t:performance.now()}; canvas.setPointerCapture(e.pointerId); beep(300,.06);}
+});
+canvas.addEventListener('pointermove',e=>{
+  if(draggedCat && cat){ mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera); const v=new THREE.Vector3(); ray.ray.intersectPlane(planeCat,v); if(v){ const now=performance.now(); const dt=Math.max(1,now-lastCat.t)/1000; catVel={x:(v.x-lastCat.x)/dt,z:(v.z-lastCat.z)/dt}; lastCat={x:v.x,z:v.z,t:now}; cat.position.x=Math.max(-2.8,Math.min(2.8,v.x)); cat.position.z=Math.max(-1.8,Math.min(1.8,v.z)); } return; }
+  if(!dragged) return; mouse.set(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1); ray.setFromCamera(mouse,camera); const v=new THREE.Vector3(); ray.ray.intersectPlane(plane,v); if(v){const now=performance.now(); const dt=Math.max(1,now-lastDrag.t)/1000; dragVel={x:(v.x-lastDrag.x)/dt,z:(v.z-lastDrag.z)/dt}; lastDrag={x:v.x,z:v.z,t:now}; dragged.position.x=Math.max(-3,Math.min(3,v.x)); dragged.position.z=Math.max(-2.5,Math.min(2.5,v.z)); dragged.position.y=1.8;}});
+canvas.addEventListener('pointerup',()=>{if(draggedCat){ draggedCat=false; wobVel+=Math.min(2,Math.abs(catVel.x)*.1); } if(dragged){dragged.userData.vx=dragVel.x*.15; dragged.userData.vz=dragVel.z*.15; dragged.userData.vy=1; dragged=null;}});
 makeCat(current);
 let last=performance.now();
 function animate(now){
   requestAnimationFrame(animate);
   const dt=Math.min(.033,(now-last)/1000); last=now;
+  camera.position.set(0,4.6,12.5); camera.lookAt(0,2,0);
   if(pressing) pressTarget=burst? 2.2 : 2.2;
   if(raising) pressTarget=5;
   if(!pressing && !raising && !burst) pressTarget=5;
@@ -189,8 +243,16 @@ function animate(now){
     const sxz=1/Math.sqrt(Math.max(.3,1-squash*.55));
     cat.scale.set(cat.userData.base[0]*sxz*(1+wob*.05),sy,cat.userData.base[2]*sxz*(1-wob*.05));
     cat.position.y=1.6-(squash*.4);
+    if(draggedCat){ cat.rotation.z=-Math.max(-.3,Math.min(.3,catVel.x*.03)); cat.rotation.x=Math.max(-.25,Math.min(.25,catVel.z*.03)); }
+    else { cat.rotation.z*=.9; cat.rotation.x*=.9; }
   }
-  if(burst && pressing){pieces.forEach(p=>{p.scale.y=Math.max(.35,p.scale.y*(1-dt*.5));});}
+  if(burst && pressing){pieces.forEach(p=>{p.scale.y=Math.max(.35,p.scale.y*(1-dt*.5));}); crumbs.forEach(p=>{p.scale.y=Math.max(.3,p.scale.y*(1-dt*.5));});}
+  crumbs.forEach(p=>{const u=p.userData;
+    if(p!==dragged){ u.vy-=.35; p.position.y+=u.vy*.12; p.position.x+=u.vx*.03; p.position.z+=u.vz*.03;
+      const onBed=Math.abs(p.position.x)<3.5 && Math.abs(p.position.z)<2.5; const ground=onBed?.5:.1;
+      if(p.position.y<ground){ p.position.y=ground; u.vy=Math.abs(u.vy)>.8?-u.vy*.45:0; u.vx*=.8; u.vz*=.8; }
+      if(Math.abs(p.position.x)>3.4) u.vx*=-1; if(Math.abs(p.position.z)>2.4) u.vz*=-1; }
+    p.rotation.x+=dt*2; p.rotation.y+=dt*2; });
   pieces.forEach(p=>{const u=p.userData;
     if(p!==dragged){u.vy-=.15; p.position.y+=u.vy*.12; p.position.x+=u.vx*.02; p.position.z+=u.vz*.02; if(p.position.y<.5){p.position.y=.5; u.vy*=-.5; u.vx*=.7; u.vz*=.7;} if(Math.abs(p.position.x)>3) u.vx*=-1; if(Math.abs(p.position.z)>2.5) u.vz*=-1;}
     u.wobVel += (-u.wob*80 - u.wobVel*6)*dt; u.wob += u.wobVel*dt;
