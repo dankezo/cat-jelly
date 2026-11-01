@@ -1,124 +1,16 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<meta name="color-scheme" content="light"/>
-<link rel="icon" href="data:,"/>
-<title>Cat Jelly — Material Laboratory</title>
-<script src="./vendor/three.min.js"></script>
-<link rel="stylesheet" href="./src/style.css"/>
-</head>
-<body>
-<div id="wrap">
-  <canvas tabindex="0" id="scene" aria-label="3D hydraulic press with a translucent jelly cat on the bed"></canvas>
-
-  <header class="mast">
-    <div class="eyebrow">INTERACTIVE MATERIAL STUDY / 03</div><h1>Cat Jelly<span class="edition">®</span></h1>
-    <p id="subtitle">Jelly cat pressing research</p>
-    <div class="countline"><span id="countLbl">Cats popped</span>: <b id="popCount">0</b></div>
-  </header>
-
-  <div class="utils">
-    <div class="langs" role="group" aria-label="Language">
-      <button class="lang-btn active" data-lang="en">EN</button><button class="lang-btn" data-lang="vi">VI</button><button class="lang-btn" data-lang="es">ES</button><button class="lang-btn" data-lang="zh">ZH</button>
-    </div>
-    <button class="u-btn" id="bagBtn" aria-label="Open the backpack"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M9.5 13h5v4.5h-5z"/></svg><span class="u-txt" id="bagLbl">Bag · $0</span></button>
-    <button class="u-btn on" id="soundBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.2 6a9 9 0 0 1 0 12"/></svg><span class="u-txt" id="soundLbl">Sound</span></button>
-    <button class="u-btn" id="resetBtn" aria-label="Reset"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg><span class="u-txt" id="resetLbl">Reset</span></button>
-  </div>
-
-  <div class="bag" id="bagPanel" hidden>
-    <div class="bag-head"><span id="bagTitle">Backpack</span><button class="bag-x" id="bagClose" aria-label="Close the backpack">&times;</button></div>
-    <div class="bag-money"><span id="bagMoneyLbl">Money</span><b id="bagMoney">$0</b></div>
-    <div class="bag-sub" id="bagVac"></div>
-    <div id="bagList"></div>
-  </div>
-
-  <div class="verdict" id="verdict" aria-live="polite"><div class="word" id="verdictWord">Pawp.</div><br/><span class="stat" id="verdictStat"></span></div>
-  <div id="boomFlash"></div>
-  <div id="brokenBanner" role="alert"></div>
-  <div class="toast" id="toast"></div>
-  <div id="fallback">The 3D library could not load. Check your connection and reload - the cats are waiting.</div>
-
-  <aside class="side-note" id="sideNote" aria-live="polite">
-    <div class="caption" id="caption">Ready when you are.</div>
-    <div class="subcaption" id="subcaption">Hold the red button. The cat has made its peace.</div>
-  </aside>
-
-  <section class="lab-panel" aria-label="Character and viewing controls">
-    <div class="eyebrow" data-lab="specimen">SPECIMEN</div>
-    <div class="characters" role="group" aria-label="Character">
-      <button data-cat="mochi" aria-pressed="true"><i style="--swatch:#e9a5b9"></i>Mochi <small>01</small></button>
-      <button data-cat="pudding" aria-pressed="false"><i style="--swatch:#e9ba75"></i>Pudding <small>02</small></button>
-      <button data-cat="soda" aria-pressed="false"><i style="--swatch:#89cbbb"></i>Soda <small>03</small></button>
-      <button data-cat="tabby" aria-pressed="false"><i style="--swatch:#dca376"></i>Tabby <small>04</small></button>
-    </div>
-    <details id="labSettings"><summary data-lab="settings">Laboratory settings</summary>
-      <label><span data-lab="preset">Gel formulation</span><select id="gelPreset"><option value="auto" data-lab="natural">Character default</option><option value="mochi">Soft Mochi</option><option value="pudding">Pudding</option><option value="soda">Gummy Gel</option><option value="tabby">Crystal Candy</option><option value="liquid">Liquid-Filled</option></select></label>
-      <label><span data-lab="quality">Quality</span><select id="quality"><option value="auto" data-lab="adaptive">Adaptive</option><option value="low">Low</option><option value="balanced">Balanced</option><option value="high">High</option><option value="ultra">Ultra</option></select></label>
-      <label><span data-lab="scene">Scene</span><select id="studioScene"><option value="studio" data-lab="studio">Studio</option><option value="workshop" data-lab="workshop">Workshop</option></select></label>
-      <label class="check"><input id="slowMotion" type="checkbox"/><span data-lab="slow">Slow motion</span></label>
-      <label class="check"><input id="showDiagnostics" type="checkbox"/><span data-lab="diagnostics">Diagnostics</span></label>
-      <button id="photoMode" class="u-btn" data-lab="photo">Photo mode · Esc to exit</button>
-    </details>
-    <div class="lab-status"><span class="status-dot"></span><span id="simStatus" aria-live="polite">Ready</span></div>
-  </section>
-  <output id="diagnostics" hidden></output>
-  <section class="deck" aria-label="Press controls">
-    <div class="deck-top">
-      <div class="dial-wrap">
-        <svg viewBox="0 0 120 120" role="meter" aria-label="Pressure" aria-valuemin="0" aria-valuemax="600" aria-valuenow="0" id="dialSvg">
-          <circle class="dial-bg" cx="60" cy="60" r="51"/>
-          <circle class="dial-red" cx="60" cy="60" r="51" id="dialRed"/>
-          <circle class="dial-val" cx="60" cy="60" r="51" id="dialVal"/>
-        </svg>
-        <button class="hold-btn" id="holdBtn" aria-label="Hold to press">HOLD</button>
-      </div>
-      <div class="readout">
-        <div class="num"><span id="barNum">0</span> <small>bar</small></div>
-        <div class="lbl" id="barLbl">Pressure</div>
-      </div>
-      <button class="raise-btn" id="raiseBtn">Raise</button>
-    </div>
-    <div class="gen-row"><button class="gen-btn" id="genBtn">Gen cat</button><button class="vac-btn" id="vacBtn">Vacuum</button></div>
-    <details class="material-drawer"><summary data-lab="materials">Materials & physics</summary>
-    <div class="tex-row" role="group" aria-label="Jelly surface texture">
-      <span class="tex-lbl" id="texLbl">Surface</span>
-      <button class="tex-btn" data-tex="glass">Glass</button>
-      <button class="tex-btn" data-tex="iron">Iron</button>
-      <button class="tex-btn" data-tex="diamond">Diamond</button>
-      <button class="tex-btn active" data-tex="jelly">Jelly</button>
-      <button class="tex-btn" data-tex="brick">Brick</button>
-      <button class="tex-btn" data-tex="water">Water ball</button>
-      <button class="tex-btn" data-tex="lego">Toy Brick</button>
-      <span class="tex-lbl" id="sizeLbl" style="margin-left:10px">Size</span>
-      <button class="tex-btn size-btn" data-size="0.8">S</button>
-      <button class="tex-btn size-btn active" data-size="1">M</button>
-      <button class="tex-btn size-btn" data-size="1.25">L</button>
-      <button class="tex-btn size-btn" data-size="1.5">XL</button>
-      <input class="size-range" type="range" id="sizeRange" min="70" max="150" step="5" value="100" aria-label="Cat size"/>
-      <span class="size-val" id="sizeVal">100%</span>
-    </div>
-    <div class="tex-row" role="group" aria-label="Machine pressure and material density">
-      <span class="mach-group" id="machGroup">
-        <span class="tex-lbl" id="machLbl">Machine</span>
-        <input class="mach-range" type="range" id="machRange" min="100" max="600" step="25" value="400" aria-label="Machine max pressure"/>
-        <span class="size-val" id="machVal">400 bar</span>
-      </span>
-      <span class="dens-group">
-        <span class="tex-lbl" id="densLbl" style="margin-left:10px">Density</span>
-        <input class="dens-range" type="range" id="densRange" min="50" max="200" step="10" value="100" aria-label="Material density"/>
-        <span class="size-val" id="densVal">100%</span>
-      </span>
-    </div>
-    </details>
-  </section>
-</div>
-<script src="./src/soft-body.js"></script>
-<script src="./src/fracture.js"></script>
-<script src="./src/mascot.js"></script>
-<script src="./src/dynamics.js"></script>
-<script src="./src/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cat Jelly Press - a hydraulic press toy for jelly cats</title>
+    <script type="module" crossorigin src="./assets/index-p7u7Fi36.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/three-PlU05VCD.js">
+    <link rel="modulepreload" crossorigin href="./assets/r3f-XIe2AhwK.js">
+    <link rel="modulepreload" crossorigin href="./assets/rapier-B-SOShEz.js">
+    <link rel="stylesheet" crossorigin href="./assets/index-Dgos_7Mq.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
