@@ -174,7 +174,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .dial-bg{fill:none;stroke:#e8d9bd;stroke-width:10}
 .dial-red{fill:none;stroke:#f3b1ae;stroke-width:10}
 .dial-val{fill:none;stroke:var(--red);stroke-width:10;stroke-linecap:round;transition:stroke-dashoffset .08s linear}
-.hold-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle at 34% 28%,#ff7a6e,var(--red) 58%,var(--red-dk));color:#fff;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:14px;letter-spacing:.05em;cursor:pointer;box-shadow:0 4px 0 var(--line);touch-action:none;user-select:none;-webkit-user-select:none}
+.hold-btn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;border:3px solid var(--line);background:radial-gradient(circle at 34% 28%,#ff7a6e,var(--red) 58%,var(--red-dk));color:#fff;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:12.5px;letter-spacing:.02em;cursor:pointer;box-shadow:0 4px 0 var(--line);touch-action:none;user-select:none;-webkit-user-select:none;padding:0}
 .hold-btn:active,.hold-btn.held{transform:translate(-50%,-46%);box-shadow:0 2px 0 var(--line)}
 .readout{flex:none;text-align:right;min-width:72px}
 .readout .num{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:27px;line-height:.9;font-variant-numeric:tabular-nums}
@@ -224,31 +224,79 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .ctl-range{max-width:none}
 }
 @media(max-width:680px){
-  /* masthead gets a capped width and the utilities stack in a column on the
-     right, so the two never overlap on narrow screens */
-  .mast{top:10px;left:12px;max-width:calc(100vw - 190px)}
-  .mast h1{font-size:27px}
-  .utils{top:10px;right:10px;flex-direction:column;align-items:flex-end;gap:6px}
+  /* Phone layout, professional pass - four zones, nothing overlaps:
+     - TOP ZONE: masthead on the left with a hard width cap; the
+       utilities on the right form ONE compact block of two rows
+       (language pill, then a single row of icon buttons) - never a
+       vertical rail running down the side of the stage;
+     - STATUS STRIP: the ready caption is a slim full-width bar
+       directly under the top zone, one truncated line per line of
+       text, instead of a tall card floating over the press;
+     - STAGE: the press and the cat live in the clear band between
+       the status strip and the machine dock; the portrait camera
+       framing in resize() is composed for exactly that band;
+     - DOCK + SHEET: the machine bar is one compact horizontal dock
+       floating just above the control sheet; the sheet is capped
+       at 40dvh, scrolls internally, grip handle on top, and its
+       primary row (dial + HOLD + pressure) is compact enough to
+       stay fully visible without scrolling;
+     - toast / broken banner float just above the dock; backpack,
+       compare and photo open as sheets over the deck, not as
+       panels dropped into the middle of the stage. */
+  .mast{top:max(8px,env(safe-area-inset-top));left:10px;max-width:calc(100vw - 186px)}
+  .mast h1{font-size:21px;line-height:.95}
+  .mast p{font-size:10.5px;padding:2px 7px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mast .countline{font-size:10px;padding:2px 7px;margin-top:5px}
+  .utils{top:max(8px,env(safe-area-inset-top));right:10px;width:172px;flex-direction:row;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:6px}
+  .langs{flex:none}
+  .lang-btn{padding:6px 8px;font-size:11px}
+  .u-btn{width:37px;height:37px;padding:0;justify-content:center;border-radius:12px}
   .u-btn .u-txt{display:none}
-  .u-btn{padding:7px 9px}
-  .deck{left:50%;right:auto;top:auto;transform:translateX(-50%);width:calc(100vw - 16px);max-height:none;overflow:visible;padding:5px 8px 5px;border-radius:13px;bottom:max(5px,env(safe-area-inset-bottom))}
-  .gen-row{margin-top:5px}
-  .gen-btn{padding:6px 11px}
-  .bag{top:172px;right:10px}
+  .u-btn svg{width:16px;height:16px}
+  .side-note{left:10px;right:10px;top:calc(max(8px,env(safe-area-inset-top)) + 102px);bottom:auto;transform:none;max-width:none;padding:6px 10px 7px;border-radius:10px}
+  .caption{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .subcaption{font-size:10.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3;margin-top:1px}
+  .deck{left:8px;right:8px;width:auto;top:auto;bottom:max(8px,env(safe-area-inset-bottom));transform:none;max-height:40vh;max-height:40dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:5px 10px 10px;border-radius:16px;box-shadow:0 -4px 18px rgba(33,26,19,.22),4px 4px 0 rgba(33,26,19,.9)}
+  .deck::before{content:"";display:block;width:44px;height:4px;border-radius:99px;background:#d9c69a;margin:0 auto 6px}
   .deck-top{gap:6px}
-  .side-note{left:56px;top:136px;bottom:auto;transform:none;max-width:148px;padding:7px 9px 8px;border-radius:11px}
-  .mach-bar{left:6px;padding:6px 5px;gap:5px}
-  .mb-btn{width:44px;font-size:8.5px;padding:5px 1px 4px}
-  .photo-panel{top:172px;right:10px}
-  .caption{font-size:14px;white-space:normal}
-  .subcaption{font-size:10.5px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
-  .dial-wrap{width:58px;height:58px}
-  .dial-wrap svg{width:58px;height:58px}
-  .hold-btn{width:42px;height:42px;font-size:11.5px;letter-spacing:.02em}
-  .readout{min-width:62px}
-  .readout .num{font-size:24px}
+  .dial-wrap{width:54px;height:54px}
+  .dial-wrap svg{width:54px;height:54px}
+  .hold-btn{width:40px;height:40px;font-size:11px;letter-spacing:0}
+  .readout{min-width:60px}
+  .readout .num{font-size:23px}
+  .gen-row{margin-top:5px}
+  .gen-btn{padding:7px 11px;font-size:13px}
+  .vac-btn{padding:7px 10px;font-size:12px}
+  .hp-card{margin-top:5px;padding:5px 8px 6px}
+  .hp-pct{font-size:18px}
+  .hp-track{height:11px;margin-top:3px}
+  .ctl-block{margin-top:5px}
+  .surf-grid{gap:4px;margin-top:3px}
+  .surf-grid .tex-btn{padding:5px 1px;font-size:10.5px}
+  .ctl-rows{margin-top:5px;gap:1px}
+  .ctl-row{min-height:21px}
+  .ctl-lbl{width:58px;font-size:10px}
+  .phys-hud{margin-top:6px;padding:5px 8px 6px}
+  .phys-head b{font-size:15px}
+  .mach-bar{flex-direction:row;left:8px;right:auto;top:auto;bottom:calc(40vh + 18px);bottom:calc(40dvh + 18px);transform:none;align-items:stretch;padding:5px 6px;gap:5px;border-radius:13px;max-width:calc(100vw - 16px)}
+  .mach-bar .mb-lbl{display:none}
+  .mb-btn{width:50px;font-size:8.5px;padding:5px 1px 4px;gap:2px}
+  .mb-btn .mb-dot{width:12px;height:12px}
+  .mb-btn .mb-sub{max-width:48px;font-size:7.5px}
+  .toast{top:auto;bottom:calc(40vh + 80px);bottom:calc(40dvh + 80px);white-space:normal;text-align:center;line-height:1.3}
+  #brokenBanner{top:auto;bottom:calc(40vh + 80px);bottom:calc(40dvh + 80px)}
+  .bag,.cmp-panel,.photo-panel{left:8px;right:8px;width:auto;top:auto;bottom:max(8px,env(safe-area-inset-bottom));max-height:64vh;max-height:64dvh}
   .keys-hint{display:none}
-  .verdict{top:30%}
+  .verdict{top:31%}
+}
+@media(max-width:380px){
+  .mast{max-width:calc(100vw - 178px)}
+  .mast h1{font-size:19px}
+  .utils{width:164px}
+  .u-btn{width:35px;height:35px}
+  .lang-btn{padding:6px 7px}
+  .mb-btn{width:46px}
+  .mb-btn .mb-sub{max-width:44px}
 }
 @media(max-height:620px){
   /* short viewports (landscape phones): keep the deck to a single slim band */
@@ -257,6 +305,14 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .dial-wrap{width:58px;height:58px}
   .dial-wrap svg{width:58px;height:58px}
   .hold-btn{width:42px;height:42px;font-size:13px}
+}
+@media(max-width:680px) and (max-height:620px){
+  /* tiny short phones: the generic short-viewport block above would pin
+     the caption to the very bottom, on top of the sheet - keep the
+     status strip under the top zone and the machine dock above the
+     sheet instead */
+  .side-note{top:calc(max(8px,env(safe-area-inset-top)) + 102px);bottom:auto}
+  .mach-bar{bottom:calc(40vh + 18px);bottom:calc(40dvh + 18px)}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}.needs-change{animation:none;background:rgba(255,210,31,.40);border-color:var(--red)}}
 </style>
@@ -425,15 +481,65 @@ scene.fog=new THREE.Fog(0xe6d09c,26,58);
 var camera=new THREE.PerspectiveCamera(40,1,0.1,140);
 var camTheta=0.55, camPhi=1.08, camDist=14.5, camDistGoal=16.8, camTarget=new THREE.Vector3(0,2.1,0);
 var camHome={theta:0.55,phi:1.08,dist:16.8};
+/* Responsive framing, recomputed in resize(): on portrait screens a
+   fixed 40deg FOV crops the press sideways, so portrait framing BOTH
+   widens the vertical FOV (57deg on narrow phones, 52deg on wider
+   portrait screens) AND pulls the distance back a little (capped at
+   1.5x, so the press stays in front of the fog instead of washing
+   out the way the old 1.9x pull-back did). On phone-width screens
+   the control sheet covers the lower 40% of the viewport and a
+   status strip sits under the masthead, so the view is additionally
+   shifted by a fraction of the frame height (a parallel dolly along
+   the camera's own up axis - the viewing angle itself never
+   changes, and user orbit / pinch zoom keep working exactly as
+   before, just composed so the cat sits in the clear band between
+   the status strip and the machine dock). */
+var frameDistMul=1, frameShiftFrac=0, frameFov=40;
 function applyCam(){
+  var d=camDist*frameDistMul;
   camera.position.set(
-    camTarget.x+camDist*Math.sin(camPhi)*Math.sin(camTheta),
-    camTarget.y+camDist*Math.cos(camPhi),
-    camTarget.z+camDist*Math.sin(camPhi)*Math.cos(camTheta));
+    camTarget.x+d*Math.sin(camPhi)*Math.sin(camTheta),
+    camTarget.y+d*Math.cos(camPhi),
+    camTarget.z+d*Math.sin(camPhi)*Math.cos(camTheta));
   camera.lookAt(camTarget);
+  if(frameShiftFrac>0) camera.translateY(-frameShiftFrac*2*d*Math.tan(camera.fov*Math.PI/360));
 }
 
-/* ---------- Environment for glossy gel reflections ---------- */
+/* ---------- Environment for glossy gel reflections ----------
+   The env map is still generated after load (a synchronous PMREM
+   pass during the blocking boot script measurably delayed first
+   paint on slow / software-GL devices), but it no longer POPS in:
+   the old code attached it in one step ~50ms after load, so every
+   glossy surface jumped brighter at once - and flat diamond facets,
+   which take one env value across a whole face, blew straight out
+   to white. Now, when the env attaches, every material already in
+   the scene has its envMapIntensity parked at 0 and the animate
+   loop ramps it back to its own base value over ~0.9s with a
+   smoothstep (see envFade below), so reflections fade in gently
+   instead of stepping. The one program recompile still happens
+   once, at attach time, exactly as before - the fade adds no
+   per-frame cost once it completes.
+   The brightest HDR card is halved (6 -> 3): it was the peak that
+   clipped diamond facets to white. The dome, the other three cards
+   and all scene lights are untouched, so the other materials keep
+   their brightness - only the white-out peak is gone. Diamond's own
+   env/specular/iridescence are additionally lowered in MAT_PROFILES
+   (diamond only); its cyan tint, flat Minecraft facets and cyan
+   cleavage cracks are unchanged. */
+var envFade={t:1,mats:[]};
+function startEnvFade(){
+  envFade.t=0; envFade.mats.length=0;
+  scene.traverse(function(o){
+    if(!o.material) return;
+    var ms=Array.isArray(o.material)?o.material:[o.material];
+    for(var i=0;i<ms.length;i++){
+      var m=ms[i];
+      if(m && ('envMapIntensity' in m) && m.userData._envBase===undefined){
+        m.userData._envBase=m.envMapIntensity; m.envMapIntensity=0; envFade.mats.push(m);
+      }
+    }
+  });
+}
 function buildEnv(){
   try{
     var pmrem=new THREE.PMREMGenerator(renderer);
@@ -441,8 +547,9 @@ function buildEnv(){
     var dome=new THREE.Mesh(new THREE.SphereGeometry(50,16,16),new THREE.MeshBasicMaterial({side:THREE.BackSide}));
     dome.material.color.setRGB(0.95,0.86,0.72); es.add(dome);
     function box(r,g,b,x,y,z,w,h){ var m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial()); m.material.color.setRGB(r,g,b); m.position.set(x,y,z); m.lookAt(0,0,0); es.add(m); }
-    box(6,6,6,-8,15,6,17,10); box(3.2,1.1,1.4,14,6,-4,12,8); box(0.9,3,2.6,4,5,15,12,8); box(3.6,2.6,1.0,-4,-12,-8,14,8);
+    box(3.0,3.0,3.0,-8,15,6,17,10); box(3.2,1.1,1.4,14,6,-4,12,8); box(0.9,3,2.6,4,5,15,12,8); box(3.6,2.6,1.0,-4,-12,-8,14,8);
     scene.environment=pmrem.fromScene(es,0.06).texture; pmrem.dispose();
+    startEnvFade();
   }catch(e){}
 }
 if(document.readyState==='complete') setTimeout(buildEnv,50); else window.addEventListener('load',function(){ setTimeout(buildEnv,50); });
@@ -1567,7 +1674,7 @@ var currentTex='jelly';
 var MAT_PROFILES={
   glass:  {transmission:0.94,roughness:0.02,metalness:0.0,ior:1.52,thickness:0.5, clearcoat:1.0,clearcoatRoughness:0.02,env:1.5, spec:1.2, opacity:0.30,flat:false,tint:0xf7fcfd,tintAmt:0.93,atten:2.8,bump:0.0,repeat:1.5},
   iron:   {transmission:0.0, roughness:0.38,metalness:1.0,ior:1.50,thickness:0.0, clearcoat:0.25,clearcoatRoughness:0.4, env:1.35,spec:0.9, opacity:1.0, flat:false,tint:0x8a8f96,tintAmt:0.62,atten:1.0,bump:0.012,repeat:1.5},
-  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.05,env:2.6, spec:1.7, opacity:0.97,flat:true, tint:0x46ecd2,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.65,emiss:0.16},
+  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.15,env:1.1, spec:1.0, opacity:0.97,flat:true, tint:0x46ecd2,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.30,emiss:0.16},
   jelly:  {transmission:0.5, roughness:0.13,metalness:0.0,ior:1.38,thickness:1.15,clearcoat:1.0,clearcoatRoughness:0.08,env:0.75,spec:1.0, opacity:0.92,flat:false,tint:0xffffff,tintAmt:0.0, atten:0.85,bump:0.0,repeat:1.5},
   brick:  {transmission:0.0, roughness:0.92,metalness:0.0,ior:1.45,thickness:0.0, clearcoat:0.0,clearcoatRoughness:0.9, env:0.25,spec:0.35,opacity:1.0, flat:false,tint:0xb5502f,tintAmt:0.78,atten:1.0,bump:0.05,repeat:2.0},
   water:  {transmission:0.90,roughness:0.06,metalness:0.0,ior:1.36,thickness:0.9, clearcoat:1.0,clearcoatRoughness:0.05,env:1.45,spec:1.2, opacity:0.55,flat:false,tint:0x2fd35f,tintAmt:0.62,atten:1.6,bump:0.0,repeat:1.5},
@@ -4400,7 +4507,23 @@ function setGauge(bar){
 /* ---------- Resize ---------- */
 function resize(){
   renderer.setSize(window.innerWidth,window.innerHeight,false);
-  camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix();
+  camera.aspect=window.innerWidth/window.innerHeight;
+  if(camera.aspect>=1){
+    /* landscape / desktop: the original framing, untouched */
+    frameFov=40; frameDistMul=1; frameShiftFrac=0;
+  } else {
+    /* portrait: widen the FOV and pull back only as far as the press
+       width needs (checked: at 390x844 this gives a ~25-unit working
+       distance and ~12.6 units of visible width at the bed - the
+       8.9-wide beam fits with room to spare, and the press stays in
+       front of the 26-unit fog start instead of dissolving into it);
+       phone-width: shift the frame so the cat is composed into the
+       clear band above the 40dvh control sheet */
+    frameFov=camera.aspect<0.5?57:52;
+    frameDistMul=Math.min(1.5,Math.max(1.12,0.72/camera.aspect));
+    frameShiftFrac=window.innerWidth<=680?0.16:0;
+  }
+  camera.fov=frameFov; camera.updateProjectionMatrix();
 }
 window.addEventListener('resize',resize); resize();
 
@@ -4445,6 +4568,15 @@ function animate(){
      a single zero-dt frame used to push squash to NaN, and NaN scale
      made the hero cat vanish silently for the whole session. */
   var dt=Math.min(Math.max(clock.getDelta(),1/240),0.05), time=clock.elapsedTime;
+  /* env fade-in: while the post-load env map ramps in (see buildEnv),
+     ease every parked material's envMapIntensity back to its own base
+     value over ~0.9s; once done this costs nothing per frame */
+  if(envFade.t<1 && envFade.mats.length){
+    envFade.t=Math.min(1,envFade.t+dt/0.9);
+    var envEf=envFade.t*envFade.t*(3-2*envFade.t);
+    for(var envFi=0;envFi<envFade.mats.length;envFi++){ var envFm=envFade.mats[envFi]; envFm.envMapIntensity=envFm.userData._envBase*envEf; }
+    if(envFade.t>=1) envFade.mats.length=0;
+  }
   /* the camera is the USER'S now: dragging empty space (outside
      any cat or loose piece) orbits it, the wheel and a two-finger
      pinch zoom it, and a double-click reframes it home. Theta and
