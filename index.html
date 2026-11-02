@@ -57,7 +57,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
    way to get a new cat - it randomizes cat, surface, size and
    density), Vacuum, and short sliders - no cat picker chips, no
    expand/collapse toggle, no stat lines, no extra action buttons. ---------- */
-.deck{position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:5;width:242px;max-height:calc(100vh - 24px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px}
+.deck{position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:5;width:268px;max-height:calc(100vh - 24px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px;scrollbar-width:thin}
 .deck-top{display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap}
 /* ---------- Side note: the ready caption lives HERE now, mid-page on the
    far left, below where the cat sits on the bed - it no longer takes any
@@ -74,14 +74,58 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 /* ---------- Physics HUD: the live physics readout - material, crack
    type, hardness, bounce, mass, required pressure and live damage,
    all read from the same tables the solver actually uses ---------- */
-.phys-hud{margin-top:7px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:6px 9px 7px}
+.phys-hud{margin-top:8px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:6px 8px 7px}
 .phys-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.phys-head b{font-family:"Barlow Condensed",sans-serif;font-size:17px;line-height:1;text-transform:uppercase;letter-spacing:.02em}
-.phys-cmp{flex:none;background:var(--ink);color:var(--paper);border:2px solid var(--line);font-weight:800;font-size:11px;padding:4px 9px;border-radius:999px;cursor:pointer;line-height:1}
-.phys-row{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:#75592e;margin-top:2px;line-height:1.25}
+.phys-head b{font-family:"Barlow Condensed",sans-serif;font-size:16px;line-height:1;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phys-cmp{flex:none;background:var(--ink);color:var(--paper);border:2px solid var(--line);font-weight:800;font-size:10.5px;padding:3px 8px;border-radius:999px;cursor:pointer;line-height:1}
+.phys-row{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#75592e;margin-top:3px;line-height:1.25}
 .phys-row b{margin-left:auto;color:var(--ink);font-weight:800;font-variant-numeric:tabular-nums;text-align:right}
-.phys-bar{flex:1 1 auto;height:8px;background:#e8dcc2;border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.phys-bar{flex:1 1 auto;height:7px;background:#e8dcc2;border:2px solid var(--line);border-radius:99px;overflow:hidden}
 .phys-bar i{display:block;height:100%;background:var(--red);width:10%}
+/* compact 3-up stat strip: bounce / mass / needs on ONE row, not three */
+.phys-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:5px}
+.phys-stat{background:var(--paper2);border-radius:7px;padding:3px 2px 4px;text-align:center;min-width:0}
+.phys-stat span{display:block;font-size:8.8px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#8a6d3f;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phys-stat b{display:block;font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;white-space:nowrap}
+/* ---------- Cat HP: the deck card + a segmented ring at each cat's feet ----------
+   HP is the encouragement meter: it is driven by the solver's own
+   per-cat fatigue (pDmg) and crack strain (pCrack), so a diamond cat
+   visibly loses health press by press instead of looking untouched
+   until it suddenly pops. There is NO bar over the head any more:
+   every cat on the bed gets its OWN HP ring lying flat on the bed
+   around its feet (a 3D ring in the scene, see the HP RING section
+   in the script) - 16 stacked segments coloured by the HP portion
+   they stand for (red low, orange, yellow, green high), so a full
+   cat shows the whole rainbow ring and the green end burns away
+   first as it is pressed. The deck card mirrors the active cat big,
+   and below it shows detail rows for the TOP 3 cats by HP only -
+   re-ranked live, never pinned: a cat whose HP falls drops out of
+   the top 3 and the next-healthiest cat takes its row, so the card
+   NEVER grows taller as cats are added (plus one compact "+N more"
+   line) and the Gen cat button stays put for rapid repeat tapping.
+   ---------- */
+.hp-card{margin-top:7px;border:2px solid var(--line);border-radius:10px;background:#fff;padding:6px 8px 7px}
+.hp-head{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+.hp-title{flex:1 1 auto;min-width:0;font-size:10.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:#8a6d3f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-title b{color:var(--ink);letter-spacing:0;text-transform:none;font-size:12.5px}
+.hp-pct{font-family:"Barlow Condensed",sans-serif;font-size:21px;line-height:1;font-variant-numeric:tabular-nums}
+.hp-track{margin-top:4px;height:13px;background:#e8dcc2;border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.hp-track i{display:block;height:100%;width:100%;background:#2fa84f;transition:width .18s ease-out,background-color .25s}
+.hp-track.warn i{background:#eda417}
+.hp-track.crit i{background:var(--red)}
+.hp-list{margin-top:5px;border-top:2px dashed #d9c69a;padding-top:5px;display:flex;flex-direction:column;gap:4px}
+.hp-list[hidden]{display:none}
+.hp-li{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800}
+.hp-li .hp-li-name{flex:none;max-width:86px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-li .hp-li-track{flex:1 1 auto;height:8px;background:#e8dcc2;border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.hp-li .hp-li-track i{display:block;height:100%;background:#2fa84f;transition:width .18s ease-out,background-color .25s}
+.hp-li .hp-li-track.warn i{background:#eda417}
+.hp-li .hp-li-track.crit i{background:var(--red)}
+.hp-li .hp-li-pct{flex:none;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.hp-more{font-size:10.5px;font-weight:800;color:#8a6d3f;letter-spacing:.04em;padding:1px 0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* (the old floating HP bars over the cats' heads are gone - HP now
+   lives in the 3D scene as a segmented ring flat on the bed around
+   each cat's feet, so no HTML overlay styles are needed for it) */
 /* ---------- Material comparison panel ---------- */
 .cmp-panel{position:absolute;top:64px;right:14px;z-index:9;width:min(288px,calc(100vw - 28px));max-height:min(66vh,560px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px}
 .cmp-panel[hidden]{display:none}
@@ -110,9 +154,19 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 /* ---------- Insufficient-pressure highlight: a gentle pulse on exactly
    the control that must change (the Machine pressure group), never a
    hard blink, and it clears itself (see flashNeedHighlight) ---------- */
-.mach-group{display:inline-flex;align-items:center;gap:5px;padding:1px 6px 1px 4px;border-radius:9px;border:2px solid transparent}
+.mach-group{border-radius:9px;border:2px solid transparent}
 .mach-group.mode-off{opacity:.35;pointer-events:none;filter:grayscale(.6)}
-.dens-group{display:inline-flex;align-items:center;gap:5px}
+/* ---------- Decluttered control rows: one labelled row per control,
+   sliders share one tidy column instead of wrapping at random ---------- */
+.ctl-block{margin-top:7px}
+.ctl-lbl-row{display:flex;align-items:center;justify-content:space-between}
+.surf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:3px}
+.surf-grid .tex-btn{padding:4px 1px;font-size:10.8px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:9px}
+.ctl-rows{margin-top:7px;display:flex;flex-direction:column;gap:2px}
+.ctl-row{display:flex;align-items:center;gap:6px;padding:0 3px;min-height:22px}
+.ctl-lbl{flex:none;width:64px;margin:0;font-size:10.5px;letter-spacing:.07em;white-space:nowrap}
+.ctl-range{flex:1 1 auto;min-width:0;max-width:none;height:18px;cursor:pointer;margin:0}
+.ctl-val{flex:none;min-width:46px;text-align:right}
 @keyframes needPulse{0%,100%{background:rgba(255,210,31,0);border-color:rgba(229,50,45,0);box-shadow:0 0 0 0 rgba(229,50,45,0)}50%{background:rgba(255,210,31,.40);border-color:var(--red);box-shadow:0 0 0 4px rgba(229,50,45,.20)}}
 .needs-change{animation:needPulse 1.15s ease-in-out infinite}
 .dial-wrap{position:relative;width:64px;height:64px;flex:none}
@@ -166,9 +220,8 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 #fallback{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);background:var(--paper);border:2px solid var(--line);border-radius:16px;box-shadow:6px 6px 0 rgba(33,26,19,.9);padding:18px 22px;display:none;text-align:center;font-weight:700;z-index:9;max-width:min(420px,calc(100vw - 32px))}
 
 @media(min-width:681px){
-  /* right-side panel: rows stack full-width instead of stretching long */
-  .mach-group,.dens-group{flex:1 1 100%}
-  .mach-range,.dens-range{max-width:none}
+  /* right-side panel: control rows already run full-width in one column */
+  .ctl-range{max-width:none}
 }
 @media(max-width:680px){
   /* masthead gets a capped width and the utilities stack in a column on the
@@ -191,7 +244,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .subcaption{font-size:10.5px;white-space:normal;overflow:visible;text-overflow:clip;line-height:1.25}
   .dial-wrap{width:58px;height:58px}
   .dial-wrap svg{width:58px;height:58px}
-  .hold-btn{width:42px;height:42px;font-size:13px}
+  .hold-btn{width:42px;height:42px;font-size:11.5px;letter-spacing:.02em}
   .readout{min-width:62px}
   .readout .num{font-size:24px}
   .keys-hint{display:none}
@@ -224,7 +277,6 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
     </div>
     <button class="u-btn" id="bagBtn" aria-label="Open the backpack"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M9.5 13h5v4.5h-5z"/></svg><span class="u-txt" id="bagLbl">Bag · $0</span></button>
     <button class="u-btn" id="photoBtn" aria-label="Play with a photo"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.4"/></svg><span class="u-txt" id="photoLbl">Photo</span></button>
-    <button class="u-btn on" id="fxBtn" aria-label="Toggle machine effects"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><span class="u-txt" id="fxLbl">FX</span></button>
     <button class="u-btn on" id="soundBtn" aria-label="Toggle sound"><svg viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.2 6a9 9 0 0 1 0 12"/></svg><span class="u-txt" id="soundLbl">Sound</span></button>
     <button class="u-btn" id="resetBtn" aria-label="Reset"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg><span class="u-txt" id="resetLbl">Reset</span></button>
   </div>
@@ -286,39 +338,48 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
       </div>
     </div>
     <div class="gen-row"><button class="gen-btn" id="genBtn">Gen cat</button><button class="vac-btn" id="vacBtn">Vacuum</button></div>
-    <div class="tex-row" role="group" aria-label="Jelly surface texture">
-      <span class="tex-lbl" id="texLbl">Surface</span>
-      <button class="tex-btn" data-tex="glass">Glass</button>
-      <button class="tex-btn" data-tex="iron">Iron</button>
-      <button class="tex-btn" data-tex="diamond">Diamond</button>
-      <button class="tex-btn active" data-tex="jelly">Jelly</button>
-      <button class="tex-btn" data-tex="brick">Brick</button>
-      <button class="tex-btn" data-tex="water">Water ball</button>
-      <button class="tex-btn" data-tex="lego">Toy Brick</button>
-      <span class="tex-lbl" id="sizeLbl" style="margin-left:10px">Size</span>
-      <input class="size-range" type="range" id="sizeRange" min="70" max="150" step="5" value="100" aria-label="Cat size"/>
-      <span class="size-val" id="sizeVal">100%</span>
+    <div class="hp-card" id="hpCard" aria-label="Cat health">
+      <div class="hp-head"><span class="hp-title"><span id="hpLbl">Cat HP</span> · <b id="hpName">Mochi</b></span><b class="hp-pct" id="hpPct">100%</b></div>
+      <div class="hp-track" id="hpTrack"><i id="hpFill"></i></div>
+      <div class="hp-list" id="hpList" hidden></div>
+    </div>
+    <div class="ctl-block">
+      <div class="ctl-lbl-row"><span class="tex-lbl" id="texLbl">Surface</span></div>
+      <div class="surf-grid" role="group" aria-label="Jelly surface texture">
+        <button class="tex-btn" data-tex="glass">Glass</button>
+        <button class="tex-btn" data-tex="iron">Iron</button>
+        <button class="tex-btn" data-tex="diamond">Diamond</button>
+        <button class="tex-btn active" data-tex="jelly">Jelly</button>
+        <button class="tex-btn" data-tex="brick">Brick</button>
+        <button class="tex-btn" data-tex="water">Water ball</button>
+        <button class="tex-btn" data-tex="lego">Toy Brick</button>
+      </div>
+    </div>
+    <div class="ctl-rows">
+      <div class="ctl-row">
+        <span class="tex-lbl ctl-lbl" id="sizeLbl">Size</span>
+        <input class="size-range ctl-range" type="range" id="sizeRange" min="70" max="150" step="5" value="100" aria-label="Cat size"/>
+        <span class="size-val ctl-val" id="sizeVal">100%</span>
+      </div>
+      <div class="ctl-row mach-group" id="machGroup">
+        <span class="tex-lbl ctl-lbl" id="machLbl">Machine</span>
+        <input class="mach-range ctl-range" type="range" id="machRange" min="100" max="600" step="25" value="400" aria-label="Machine max pressure"/>
+        <span class="size-val ctl-val" id="machVal">400 bar</span>
+      </div>
+      <div class="ctl-row">
+        <span class="tex-lbl ctl-lbl" id="densLbl">Density</span>
+        <input class="dens-range ctl-range" type="range" id="densRange" min="50" max="200" step="10" value="100" aria-label="Material density"/>
+        <span class="size-val ctl-val" id="densVal">100%</span>
+      </div>
     </div>
     <div class="phys-hud" id="physHud" aria-label="Live physics readout">
       <div class="phys-head"><b id="physMat">Jelly</b><button class="phys-cmp" id="cmpBtn">Compare</button></div>
-      <div class="phys-row"><span id="physCrackLbl">Crack</span><b id="physCrack">-</b></div>
       <div class="phys-row"><span id="physHardLbl">Hardness</span><span class="phys-bar"><i id="physHardBar"></i></span><b id="physHardVal">-</b></div>
-      <div class="phys-row"><span id="physBounceLbl">Bounce</span><b id="physBounce">-</b></div>
-      <div class="phys-row"><span id="physMassLbl">Mass</span><b id="physMass">-</b></div>
-      <div class="phys-row"><span id="physNeedLbl">Needs</span><b id="physNeed">-</b></div>
-      <div class="phys-row"><span id="physDmgLbl">Damage</span><b id="physDmg">0%</b></div>
-    </div>
-    <div class="tex-row" role="group" aria-label="Machine pressure and material density">
-      <span class="mach-group" id="machGroup">
-        <span class="tex-lbl" id="machLbl">Machine</span>
-        <input class="mach-range" type="range" id="machRange" min="100" max="600" step="25" value="400" aria-label="Machine max pressure"/>
-        <span class="size-val" id="machVal">400 bar</span>
-      </span>
-      <span class="dens-group">
-        <span class="tex-lbl" id="densLbl" style="margin-left:10px">Density</span>
-        <input class="dens-range" type="range" id="densRange" min="50" max="200" step="10" value="100" aria-label="Material density"/>
-        <span class="size-val" id="densVal">100%</span>
-      </span>
+      <div class="phys-stats">
+        <div class="phys-stat"><span id="physBounceLbl">Bounce</span><b id="physBounce">-</b></div>
+        <div class="phys-stat"><span id="physMassLbl">Mass</span><b id="physMass">-</b></div>
+        <div class="phys-stat"><span id="physNeedLbl">Needs</span><b id="physNeed">-</b></div>
+      </div>
     </div>
   </section>
 </div>
@@ -362,8 +423,8 @@ scene.fog=new THREE.Fog(0xe6d09c,26,58);
 
 /* ---------- Camera: low bench-level view ---------- */
 var camera=new THREE.PerspectiveCamera(40,1,0.1,140);
-var camTheta=0.55, camPhi=1.08, camDist=14.5, camTarget=new THREE.Vector3(0,2.1,0);
-var camHome={theta:0.55,phi:1.08,dist:14.5};
+var camTheta=0.55, camPhi=1.08, camDist=14.5, camDistGoal=16.8, camTarget=new THREE.Vector3(0,2.1,0);
+var camHome={theta:0.55,phi:1.08,dist:16.8};
 function applyCam(){
   camera.position.set(
     camTarget.x+camDist*Math.sin(camPhi)*Math.sin(camTheta),
@@ -444,13 +505,13 @@ floorRing.rotation.x=Math.PI/2; floorRing.position.y=0.02; scene.add(floorRing);
 var steel=new THREE.MeshStandardMaterial({color:0x9aa2ad,roughness:0.34,metalness:0.88});
 var steelDark=new THREE.MeshStandardMaterial({color:0x39404a,roughness:0.45,metalness:0.8});
 var inkMetal=new THREE.MeshStandardMaterial({color:0x23262c,roughness:0.5,metalness:0.65});
-var bed=new THREE.Mesh(new THREE.CylinderGeometry(3.55,3.8,BED_Y,44),steel);
+var bed=new THREE.Mesh(new THREE.CylinderGeometry(4.30,4.55,BED_Y,44),steel);
 bed.position.y=BED_Y/2; bed.castShadow=true; bed.receiveShadow=true; scene.add(bed);
-var bedRim=new THREE.Mesh(new THREE.TorusGeometry(3.55,0.09,12,56),steelDark);
+var bedRim=new THREE.Mesh(new THREE.TorusGeometry(4.30,0.09,12,56),steelDark);
 bedRim.rotation.x=Math.PI/2; bedRim.position.y=BED_Y; scene.add(bedRim);
 
 /* ---------- Trash bin: where the vacuum sends every crumb ---------- */
-var BIN_POS=new THREE.Vector3(4.5,1.05,2.5);
+var BIN_POS=new THREE.Vector3(5.3,1.05,3.0);
 var trashBin=null; /* the bin group, set below - tapping it runs the vacuum */
 (function(){
   var bin=new THREE.Group();
@@ -474,7 +535,7 @@ var trashBin=null; /* the bin group, set below - tapping it runs the vacuum */
    machine then dresses THIS skeleton with its own cladding, so the
    three machines share a mechanism but never a silhouette. */
 var press=new THREE.Group(); scene.add(press);
-var POST_XS=[-3.15,3.15], POST_ZS=[-0.85,-2.25];
+var POST_XS=[-3.85,3.85], POST_ZS=[-0.85,-2.25];
 POST_XS.forEach(function(x){
   POST_ZS.forEach(function(z){
     var post=new THREE.Mesh(new THREE.CylinderGeometry(0.30,0.36,7.6,20),inkMetal);
@@ -485,10 +546,10 @@ POST_XS.forEach(function(x){
     collar.position.set(x,6.6,z); press.add(collar);
   });
 });
-var beam=new THREE.Mesh(new THREE.BoxGeometry(7.5,1.05,1.7),inkMetal);
+var beam=new THREE.Mesh(new THREE.BoxGeometry(8.9,1.05,1.7),inkMetal);
 beam.position.set(0,7.35,-0.85); beam.castShadow=true; press.add(beam);
 /* rear top rail + side rails: the rear posts carry a real top frame too */
-var rearRail=new THREE.Mesh(new THREE.BoxGeometry(7.5,0.8,1.0),inkMetal);
+var rearRail=new THREE.Mesh(new THREE.BoxGeometry(8.9,0.8,1.0),inkMetal);
 rearRail.position.set(0,7.35,-2.25); rearRail.castShadow=true; press.add(rearRail);
 POST_XS.forEach(function(x){
   var sideRail=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.7,3.1),inkMetal);
@@ -509,7 +570,7 @@ cylNeck.position.set(0,6.90,-0.1); cylHousing.add(cylNeck);
   cx.fillStyle='#ffd21f'; cx.fillRect(0,0,256,32); cx.fillStyle='#191919';
   for(var i=-1;i<9;i++){ cx.beginPath(); cx.moveTo(i*32,32); cx.lineTo(i*32+16,0); cx.lineTo(i*32+32,0); cx.lineTo(i*32+16,32); cx.fill(); }
   var tex=new THREE.CanvasTexture(cv); tex.wrapS=THREE.RepeatWrapping; tex.repeat.x=2;
-  var plate=new THREE.Mesh(new THREE.BoxGeometry(7.52,0.34,1.72),new THREE.MeshBasicMaterial({map:tex}));
+  var plate=new THREE.Mesh(new THREE.BoxGeometry(8.92,0.34,1.72),new THREE.MeshBasicMaterial({map:tex}));
   plate.position.set(0,6.72,-0.85); press.add(plate);
 })();
 /* machine aura light: recoloured per fantasy machine (dragon fire
@@ -519,7 +580,7 @@ var auraLight=new THREE.PointLight(0x000000,0,30,2); auraLight.position.set(0,6.
    housing flange (6.34) with a visible length of ram between them -
    at the old 6.8 the platen's top overlapped the beam and the head
    read as fused to the frame */
-var PLATEN_R=2.35, PLATEN_TOP=5.85, PLATEN_MIN=0.62;
+var PLATEN_R=2.95, PLATEN_TOP=5.85, PLATEN_MIN=0.62;
 var platenGroup=new THREE.Group(); press.add(platenGroup);
 var ram=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.52,1,16),steel);
 ram.castShadow=true; platenGroup.add(ram);
@@ -540,7 +601,7 @@ function platenBottom(){ return platenY-0.35; }
 function platenTopY(){ return platenY+0.26; }
 var platenVelY=0; /* units per second, tracked every frame in animate() */
 
-/* ---------- Fantasy press skins: EXACTLY three machines ----------
+/* ---------- Press skins: FOUR machines (base + three fantasy) ----------
    Built to the user's Fantasy Hydraulic Press asset sheet, and each
    one is a different MACHINE, not a recolour: different frame
    dressing, different platen underside, different aura light,
@@ -558,12 +619,13 @@ var platenVelY=0; /* units per second, tracked every frame in animate() */
    Only the active machine's decor group is visible; applyMachineTheme
    switches groups, frame colours and the aura light together. */
 var decorGroups={}, platenDecor={};
-var machineFx={dragon:{flames:[]},hell:{wisps:[]},angel:{floats:[]}};
+var machineFx={base:{lamps:[]},dragon:{flames:[]},hell:{wisps:[]},angel:{floats:[]}};
 /* VFX registry: every halo / vortex / glow extra lives here per
-   machine, so the FX toggle can switch ALL of it off at once. The
-   decor itself (frames, jars, rings) always stays - only the light
-   effects toggle, and they never sit inside the work chamber. */
-var fxOn=true, fxRegistry={dragon:[],hell:[],angel:[]};
+   machine. Machine effects are ALWAYS ON - there is no FX toggle
+   any more (user: the show is part of the machine, not an option).
+   fxOn stays as a constant true so every effect gate below simply
+   passes; the decor itself always stays too. */
+var fxOn=true, fxRegistry={base:[],dragon:[],hell:[],angel:[]};
 var decorMats={
   dragonBody:new THREE.MeshStandardMaterial({color:0x38130a,roughness:0.52,metalness:0.35,emissive:0xff3d00,emissiveIntensity:0.20}),
   dragonScale:new THREE.MeshStandardMaterial({color:0x5c1a0c,roughness:0.42,metalness:0.30,emissive:0xff5a00,emissiveIntensity:0.38}),
@@ -578,7 +640,10 @@ var decorMats={
   bronze:new THREE.MeshStandardMaterial({color:0xb18a4f,roughness:0.38,metalness:0.85}),
   obsidian:new THREE.MeshStandardMaterial({color:0x241a16,roughness:0.62,metalness:0.35}),
   pearl:new THREE.MeshStandardMaterial({color:0xe9e2d2,roughness:0.24,metalness:0.12}),
-  magentaGlow:new THREE.MeshStandardMaterial({color:0xcc6aff,roughness:0.35,metalness:0.0,emissive:0xcc6aff,emissiveIntensity:1.3})
+  magentaGlow:new THREE.MeshStandardMaterial({color:0xcc6aff,roughness:0.35,metalness:0.0,emissive:0xcc6aff,emissiveIntensity:1.3}),
+  baseTrim:new THREE.MeshStandardMaterial({color:0x8f9aa6,roughness:0.32,metalness:0.9}),
+  basePanel:new THREE.MeshStandardMaterial({color:0x2e343b,roughness:0.5,metalness:0.7}),
+  baseGlow:new THREE.MeshStandardMaterial({color:0x9fdcff,roughness:0.3,metalness:0.0,emissive:0x38c8ff,emissiveIntensity:1.6})
 };
 /* flame-sigil disc for the dragon machine's cylinder housing: a
    gold flame swirl on scorched black, drawn once on a canvas */
@@ -627,6 +692,42 @@ function pentagramTexture(){
   if(THREE.SRGBColorSpace!==undefined) tex.colorSpace=THREE.SRGBColorSpace;
   return tex;
 }
+/* ----- 0. BASE PRESS: the factory standard every player starts
+   with. Honest industrial steel - machined post collars, a cyan
+   power strip down each front post, a dark beam fascia with three
+   status lamps, a glowing ring on the cylinder housing and a plain
+   steel base skirt. No fantasy dressing, no signature show: its
+   frame VFX is the shared body-energy system in factory blue. --- */
+(function(){
+  var g=new THREE.Group();
+  POST_XS.forEach(function(x){
+    POST_ZS.forEach(function(z){
+      [1.5,4.4].forEach(function(y){
+        var col=dMesh(new THREE.TorusGeometry(0.42,0.055,8,22),decorMats.baseTrim,x,y,z,g);
+        col.rotation.x=Math.PI/2;
+      });
+    });
+    /* cyan power strip down the chamber face of each front post */
+    dMesh(new THREE.BoxGeometry(0.08,5.4,0.045),decorMats.baseGlow,x,3.6,-0.50,g);
+    /* floor cable duct from the rear post foot outward */
+    dMesh(new THREE.BoxGeometry(0.20,0.07,1.5),decorMats.basePanel,x*1.13,0.05,-3.1,g);
+  });
+  var fasciaB=dMesh(new THREE.BoxGeometry(8.94,0.52,0.14),decorMats.basePanel,0,7.35,0.05,g);
+  [-0.55,0,0.55].forEach(function(x,li){
+    var lampCols=[0xff4444,0xffb52e,0x51ff7a];
+    var lamp=new THREE.Mesh(new THREE.SphereGeometry(0.075,10,10),new THREE.MeshBasicMaterial({color:lampCols[li],transparent:true,opacity:0.9}));
+    lamp.position.set(x,7.35,0.15); g.add(lamp);
+    machineFx.base.lamps.push(lamp);
+  });
+  dMesh(new THREE.BoxGeometry(1.7,0.16,0.05),decorMats.baseTrim,0,7.02,0.08,g);
+  var ringB=dMesh(new THREE.TorusGeometry(1.00,0.04,8,36),decorMats.baseGlow,0,6.55,-0.1,g);
+  ringB.rotation.x=Math.PI/2;
+  var skirtB=dMesh(new THREE.CylinderGeometry(4.62,4.78,0.34,44),decorMats.basePanel,0,0.12,-0.1,g);
+  var trimB=dMesh(new THREE.TorusGeometry(4.65,0.045,8,56),decorMats.baseGlow,0,0.30,-0.1,g);
+  trimB.rotation.x=Math.PI/2;
+  g.add(glowDisc(0x38c8ff,0.10,5.8));
+  press.add(g); decorGroups.base=g;
+})();
 /* ----- 1. FIRE DRAGON ----- */
 (function(){
   var g=new THREE.Group();
@@ -661,7 +762,7 @@ function pentagramTexture(){
   });
   var breath=dMesh(new THREE.ConeGeometry(0.17,1.0,8),decorMats.lava,0,-0.14,1.25,head);
   breath.rotation.x=2.0; machineFx.dragon.flames.push(breath);
-  [-3.15,3.15].forEach(function(x){
+  [-3.85,3.85].forEach(function(x){
     dMesh(new THREE.CylinderGeometry(0.30,0.20,0.24,10),decorMats.hellDark,x,0.42,-0.85,g);
     var fl=dMesh(new THREE.ConeGeometry(0.21,0.62,8),decorMats.lava,x,0.82,-0.85,g);
     machineFx.dragon.flames.push(fl);
@@ -672,7 +773,7 @@ function pentagramTexture(){
     var ban=new THREE.Mesh(new THREE.PlaneGeometry(0.72,1.5),new THREE.MeshStandardMaterial({color:0x7a1408,roughness:0.85,emissive:0xff2200,emissiveIntensity:0.28,side:THREE.DoubleSide}));
     ban.position.set(x,6.30,0.05); g.add(ban);
   });
-  var lavaRing=dMesh(new THREE.TorusGeometry(3.56,0.075,10,56),decorMats.lava,0,BED_Y+0.03,0,g);
+  var lavaRing=dMesh(new THREE.TorusGeometry(4.15,0.075,10,56),decorMats.lava,0,BED_Y+0.03,0,g);
   lavaRing.rotation.x=Math.PI/2;
   g.add(glowDisc(0xff4400,0.16,5.4));
   /* --- DRAGON frame cladding: this machine's own frame, not a
@@ -695,7 +796,7 @@ function pentagramTexture(){
     var gauge=dMesh(new THREE.CylinderGeometry(0.16,0.16,0.06,16),decorMats.bronze,x*1.24,1.58,-1.80,g);
     gauge.rotation.x=Math.PI/2;
   });
-  [-3.15,3.15].forEach(function(x){
+  [-3.85,3.85].forEach(function(x){
     /* helical dragon body wrapping the front post, y 0.9 to 5.6 */
     var pts=[], hi2;
     for(hi2=0;hi2<=40;hi2++){
@@ -710,7 +811,7 @@ function pentagramTexture(){
       csp.rotation.z=(Math.random()-0.5)*0.6;
     }
   });
-  var fasciaD=dMesh(new THREE.BoxGeometry(7.54,0.62,0.16),decorMats.bronze,0,7.35,0.06,g);
+  var fasciaD=dMesh(new THREE.BoxGeometry(8.94,0.62,0.16),decorMats.bronze,0,7.35,0.06,g);
   dMesh(new THREE.OctahedronGeometry(0.21),decorMats.lava,0,7.35,0.22,g);
   [-2.6,-1.3,1.3,2.6].forEach(function(x){
     dMesh(new THREE.OctahedronGeometry(0.11),decorMats.lava,x,7.35,0.17,g);
@@ -723,9 +824,9 @@ function pentagramTexture(){
      starburst that swallows the cat. 0.05 lower the cap reads as a
      plinth step below the bed and the fighting is gone. All three
      machine skirts share this offset for the same reason. */
-  var skirtD=dMesh(new THREE.CylinderGeometry(3.95,4.10,0.34,44),decorMats.obsidian,0,0.12,-0.1,g);
-  dMesh(new THREE.BoxGeometry(0.30,0.52,0.34),decorMats.obsidian,0,0.30,3.80,g); /* bracket: skirt to head, nothing floats */
-  var miniHead=new THREE.Group(); miniHead.position.set(0,0.62,3.72); g.add(miniHead);
+  var skirtD=dMesh(new THREE.CylinderGeometry(4.62,4.78,0.34,44),decorMats.obsidian,0,0.12,-0.1,g);
+  dMesh(new THREE.BoxGeometry(0.30,0.52,0.34),decorMats.obsidian,0,0.30,4.52,g); /* bracket: skirt to head, nothing floats */
+  var miniHead=new THREE.Group(); miniHead.position.set(0,0.62,4.44); g.add(miniHead);
   dMesh(new THREE.BoxGeometry(0.46,0.34,0.40),decorMats.dragonBody,0,0,0,miniHead);
   dMesh(new THREE.BoxGeometry(0.30,0.18,0.34),decorMats.dragonScale,0,-0.05,0.32,miniHead);
   [-1,1].forEach(function(s){
@@ -755,7 +856,7 @@ function pentagramTexture(){
     return l;
   }
   for(var ci=0;ci<15;ci++){
-    var ct=ci/14, cxp=-3.15+ct*6.3, cyp=6.95-Math.sin(ct*Math.PI)*0.55;
+    var ct=ci/14, cxp=-3.85+ct*7.7, cyp=6.95-Math.sin(ct*Math.PI)*0.55;
     chainLink(cxp,cyp,-0.15,ci%2===0);
   }
   [-2.55,2.55].forEach(function(x){
@@ -775,7 +876,7 @@ function pentagramTexture(){
   rune.rotation.x=-Math.PI/2; rune.position.set(0,BED_Y+0.015,-0.1); g.add(rune);
   for(var si=0;si<8;si++){
     var sa=si/8*Math.PI*2;
-    var sp=dMesh(new THREE.ConeGeometry(0.09,0.52,6),decorMats.hellDark,Math.cos(sa)*3.95,0.26,Math.sin(sa)*3.95,g);
+    var sp=dMesh(new THREE.ConeGeometry(0.09,0.52,6),decorMats.hellDark,Math.cos(sa)*4.55,0.26,Math.sin(sa)*4.55,g);
     sp.rotation.z=(Math.random()-0.5)*0.2;
   }
   [[-2.9,1.7],[3.1,1.5],[-3.4,0.6]].forEach(function(p){
@@ -809,14 +910,14 @@ function pentagramTexture(){
     var brk=dMesh(new THREE.BoxGeometry(0.30,0.62,0.30),decorMats.hellDark,x,3.3,-0.42,g);
     dMesh(new THREE.OctahedronGeometry(0.16),decorMats.hellGlow,x,3.3,-0.38,g);
   });
-  [-3.15,3.15].forEach(function(x){
+  [-3.85,3.85].forEach(function(x){
     /* diagonal chain run down the front post */
     for(var di2=0;di2<12;di2++){
       var dtp=di2/11;
       chainLink(x+(dtp-0.5)*0.55,5.9-dtp*3.4,-0.38,di2%2===0);
     }
   });
-  var fasciaH=dMesh(new THREE.BoxGeometry(7.54,0.60,0.16),decorMats.hellDark,0,7.35,0.06,g);
+  var fasciaH=dMesh(new THREE.BoxGeometry(8.94,0.60,0.16),decorMats.hellDark,0,7.35,0.06,g);
   dMesh(new THREE.OctahedronGeometry(0.20),decorMats.hellGlow,0,7.35,0.22,g);
   for(var spk=-3;spk<=3;spk++){
     if(spk===0) continue;
@@ -826,9 +927,9 @@ function pentagramTexture(){
   sigilH.position.set(0,6.58,0.86); g.add(sigilH);
   var hRing=dMesh(new THREE.TorusGeometry(1.00,0.045,8,36),decorMats.hellGlow,0,6.55,-0.1,g);
   hRing.rotation.x=Math.PI/2;
-  var skirtH=dMesh(new THREE.CylinderGeometry(3.95,4.10,0.34,44),decorMats.hellDark,0,0.12,-0.1,g); /* y 0.12: top cap below bed top, see skirtD note */
-  dMesh(new THREE.BoxGeometry(0.85,0.95,0.16),decorMats.hellDark,0,0.48,3.86,g); /* medallion plate, bolted to the skirt */
-  var medSkull=new THREE.Group(); medSkull.position.set(0,0.55,3.98); g.add(medSkull);
+  var skirtH=dMesh(new THREE.CylinderGeometry(4.62,4.78,0.34,44),decorMats.hellDark,0,0.12,-0.1,g); /* y 0.12: top cap below bed top, see skirtD note */
+  dMesh(new THREE.BoxGeometry(0.85,0.95,0.16),decorMats.hellDark,0,0.48,4.58,g); /* medallion plate, bolted to the skirt */
+  var medSkull=new THREE.Group(); medSkull.position.set(0,0.55,4.70); g.add(medSkull);
   var msc=dMesh(new THREE.SphereGeometry(0.30,14,12),decorMats.bone,0,0.03,0,medSkull);
   msc.scale.set(1,0.92,0.9);
   dMesh(new THREE.BoxGeometry(0.32,0.18,0.22),decorMats.bone,0,-0.28,0.05,medSkull);
@@ -850,12 +951,12 @@ function pentagramTexture(){
       fe.scale.set(0.15,flen,0.045);
       fe.rotation.z=-s*(0.28+fi*0.13);
     }
-    var post1=dMesh(new THREE.OctahedronGeometry(0.23),decorMats.crystal,s*3.15,7.95,-0.85,g);
+    var post1=dMesh(new THREE.OctahedronGeometry(0.23),decorMats.crystal,s*3.85,7.95,-0.85,g);
     machineFx.angel.floats.push(post1);
-    var post2=dMesh(new THREE.OctahedronGeometry(0.27),decorMats.crystal,s*3.15,4.45,0.38,g);
+    var post2=dMesh(new THREE.OctahedronGeometry(0.27),decorMats.crystal,s*3.85,4.45,0.38,g);
     machineFx.angel.floats.push(post2);
     [1.15,6.58].forEach(function(y){
-      var trim=dMesh(new THREE.TorusGeometry(0.40,0.05,8,22),decorMats.gold,s*3.15,y,-0.85,g);
+      var trim=dMesh(new THREE.TorusGeometry(0.40,0.05,8,22),decorMats.gold,s*3.85,y,-0.85,g);
       trim.rotation.x=Math.PI/2;
     });
   });
@@ -863,10 +964,10 @@ function pentagramTexture(){
   halo.rotation.x=0.35; machineFx.angel.halo=halo; machineFx.angel.haloY=8.80;
   var crown=dMesh(new THREE.OctahedronGeometry(0.34),decorMats.crystal,0,8.22,-0.30,g);
   machineFx.angel.floats.push(crown);
-  var big=dMesh(new THREE.OctahedronGeometry(0.55),decorMats.crystal,0,1.15,3.30,g);
+  var big=dMesh(new THREE.OctahedronGeometry(0.55),decorMats.crystal,0,1.15,5.05,g);
   machineFx.angel.floats.push(big);
-  dMesh(new THREE.ConeGeometry(0.30,0.55,4),decorMats.gold,0,0.30,3.30,g);
-  var bedRingA=dMesh(new THREE.TorusGeometry(3.56,0.06,10,56),decorMats.gold,0,BED_Y+0.03,0,g);
+  dMesh(new THREE.ConeGeometry(0.30,0.55,4),decorMats.gold,0,0.30,5.05,g);
+  var bedRingA=dMesh(new THREE.TorusGeometry(4.15,0.06,10,56),decorMats.gold,0,BED_Y+0.03,0,g);
   bedRingA.rotation.x=Math.PI/2;
   g.add(glowDisc(0x4dc3ff,0.14,5.6));
   g.add(glowDisc(0x9b7bff,0.07,7.0));
@@ -897,8 +998,8 @@ function pentagramTexture(){
       dMesh(new THREE.OctahedronGeometry(0.075),decorMats.crystal,vpts[vb].x,vpts[vb].y,vpts[vb].z,g);
     }
   });
-  var fasciaA=dMesh(new THREE.BoxGeometry(7.54,0.62,0.16),decorMats.pearl,0,7.35,0.06,g);
-  var trimA=dMesh(new THREE.BoxGeometry(7.54,0.07,0.18),decorMats.gold,0,7.02,0.06,g);
+  var fasciaA=dMesh(new THREE.BoxGeometry(8.94,0.62,0.16),decorMats.pearl,0,7.35,0.06,g);
+  var trimA=dMesh(new THREE.BoxGeometry(8.94,0.07,0.18),decorMats.gold,0,7.02,0.06,g);
   dMesh(new THREE.OctahedronGeometry(0.19),decorMats.crystal,0,7.35,0.22,g);
   [-2.6,-1.3,1.3,2.6].forEach(function(x){
     dMesh(new THREE.OctahedronGeometry(0.10),decorMats.crystal,x,7.35,0.17,g);
@@ -910,16 +1011,16 @@ function pentagramTexture(){
   hRingA2.rotation.x=Math.PI/2;
   var sigilA=new THREE.Mesh(new THREE.CircleGeometry(0.40,28),new THREE.MeshBasicMaterial({color:0x66d9ff,transparent:true,opacity:0.55,blending:THREE.AdditiveBlending,depthWrite:false}));
   sigilA.position.set(0,6.58,0.86); g.add(sigilA);
-  var skirtA=dMesh(new THREE.CylinderGeometry(3.95,4.10,0.34,44),decorMats.pearl,0,0.12,-0.1,g); /* y 0.12: top cap below bed top, see skirtD note */
-  var skirtTrim=dMesh(new THREE.TorusGeometry(3.98,0.05,8,56),decorMats.gold,0,0.30,-0.1,g); /* lowered with the skirt so the trim stays seated on its top edge */
+  var skirtA=dMesh(new THREE.CylinderGeometry(4.62,4.78,0.34,44),decorMats.pearl,0,0.12,-0.1,g); /* y 0.12: top cap below bed top, see skirtD note */
+  var skirtTrim=dMesh(new THREE.TorusGeometry(4.65,0.05,8,56),decorMats.gold,0,0.30,-0.1,g); /* lowered with the skirt so the trim stays seated on its top edge */
   skirtTrim.rotation.x=Math.PI/2;
-  dMesh(new THREE.BoxGeometry(1.0,1.05,0.16),decorMats.pearl,0,0.52,3.86,g); /* crest plate, bolted to the skirt */
-  var crest=dMesh(new THREE.OctahedronGeometry(0.46),decorMats.crystal,0,0.62,4.02,g);
+  dMesh(new THREE.BoxGeometry(1.0,1.05,0.16),decorMats.pearl,0,0.52,4.58,g); /* crest plate, bolted to the skirt */
+  var crest=dMesh(new THREE.OctahedronGeometry(0.46),decorMats.crystal,0,0.62,4.74,g);
   crest.scale.set(0.8,1.25,0.55); /* mounted in the claw frame below - it does NOT float or bob */
   [-1,1].forEach(function(s){
-    var claw1=dMesh(new THREE.ConeGeometry(0.06,0.30,5),decorMats.gold,s*0.30,0.98,3.98,g);
+    var claw1=dMesh(new THREE.ConeGeometry(0.06,0.30,5),decorMats.gold,s*0.30,0.98,4.70,g);
     claw1.rotation.z=s*0.5; claw1.rotation.x=0.4;
-    var claw2=dMesh(new THREE.ConeGeometry(0.06,0.30,5),decorMats.gold,s*0.30,0.28,3.98,g);
+    var claw2=dMesh(new THREE.ConeGeometry(0.06,0.30,5),decorMats.gold,s*0.30,0.28,4.70,g);
     claw2.rotation.z=s*0.5; claw2.rotation.x=2.7;
   });
   press.add(g); decorGroups.angel=g;
@@ -927,6 +1028,14 @@ function pentagramTexture(){
 /* ----- Platen undersides: each machine presses with its own face ----- */
 var platenRig=new THREE.Group(); platenRig.position.set(0,platenY,-0.1); press.add(platenRig);
 (function(){
+  var pb0=new THREE.Group();
+  var ring0=dMesh(new THREE.TorusGeometry(PLATEN_R+0.03,0.06,10,48),decorMats.baseTrim,0,-0.30,0,pb0);
+  ring0.rotation.x=Math.PI/2;
+  for(var b0=0;b0<6;b0++){
+    var ba0=b0/6*Math.PI*2;
+    var bolt=dMesh(new THREE.CylinderGeometry(0.09,0.09,0.16,6),decorMats.basePanel,Math.cos(ba0)*(PLATEN_R-0.35),-0.38,Math.sin(ba0)*(PLATEN_R-0.35),pb0);
+  }
+  platenRig.add(pb0); platenDecor.base=pb0;
   var pd=new THREE.Group();
   var ring=dMesh(new THREE.TorusGeometry(PLATEN_R+0.03,0.07,10,48),decorMats.lava,0,-0.30,0,pd);
   ring.rotation.x=Math.PI/2;
@@ -971,6 +1080,104 @@ var platenRig=new THREE.Group(); platenRig.position.set(0,platenY,-0.1); press.a
   if(machineFx.angel.halo) fxRegistry.angel.push(machineFx.angel.halo);
   decorGroups.dragon.children.forEach(function(c){ if(c.material===decorMats.lava) fxRegistry.dragon.push(c); });
 })();
+
+/* ================= FRAME BODY VFX =================
+   The show ON the machine's body itself - the frame bars were too
+   quiet for a Three.js scene. One shared system rides the skeleton
+   of EVERY press and is recoloured per machine (see the `vein`
+   colour in MACHINES and applyMachineTheme):
+   - ENERGY CORES: a glowing vein of light inset into the chamber
+     face of all four posts, breathing at idle and flaring hard
+     under real press load.
+   - PULSE ORBS: beads of energy climbing each post in a steady
+     stream - faster and brighter the harder the press works.
+   - BEAM CONDUIT: a light line across the top beam with pulses
+     travelling outward from the cylinder, power visibly flowing.
+   - AURA MOTES: a cloud of tiny additive particles drifting up
+     around the whole frame.
+   Load is read from the same honest signals the signature VFX
+   use - vfxLoad (fed only by real cat contact) plus the gauge
+   pressure - so the frame blazes only while a cat is genuinely
+   being worked, and settles back to a breathing idle otherwise.
+   Always on: there is no toggle. Reduced-motion keeps the glow
+   but stops the travelling and drifting. */
+var bodyFx={cores:[],pulses:[],posts:[],conduit:null,conduitPulses:[],motes:null,moteData:null,mats:[]};
+(function buildBodyFx(){
+  function veinMat(op){
+    var m=new THREE.MeshBasicMaterial({color:0x38c8ff,transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false});
+    bodyFx.mats.push(m); return m;
+  }
+  POST_XS.forEach(function(x){
+    POST_ZS.forEach(function(z){
+      bodyFx.posts.push({x:x,z:z});
+      var core=new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.055,6.9,8),veinMat(0.35));
+      core.position.set(x-Math.sign(x)*0.30,3.8,z+0.30);
+      press.add(core); bodyFx.cores.push(core);
+    });
+  });
+  var orbGeo=new THREE.SphereGeometry(0.085,10,8);
+  for(var pi=0;pi<20;pi++){
+    var pm=new THREE.Mesh(orbGeo,veinMat(0.9));
+    pm.userData.post=pi%4; pm.userData.t=Math.random();
+    press.add(pm); bodyFx.pulses.push(pm);
+  }
+  var conduit=new THREE.Mesh(new THREE.BoxGeometry(8.5,0.07,0.07),veinMat(0.4));
+  conduit.position.set(0,7.88,-0.02); press.add(conduit); bodyFx.conduit=conduit;
+  for(var ci2=0;ci2<6;ci2++){
+    var cp2=new THREE.Mesh(new THREE.BoxGeometry(0.34,0.11,0.11),veinMat(0.95));
+    cp2.position.set(0,7.88,-0.02); cp2.userData.t=Math.random();
+    press.add(cp2); bodyFx.conduitPulses.push(cp2);
+  }
+  var N=130, pos=new Float32Array(N*3), dat=[];
+  for(var mi=0;mi<N;mi++){
+    pos[mi*3]=(Math.random()-0.5)*10.5; pos[mi*3+1]=Math.random()*8.6; pos[mi*3+2]=-3.4+Math.random()*5.6;
+    dat.push({s:0.14+Math.random()*0.30,ph:Math.random()*6.28});
+  }
+  var mg=new THREE.BufferGeometry();
+  mg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  var mm=new THREE.PointsMaterial({color:0x38c8ff,size:0.13,transparent:true,opacity:0.5,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true});
+  bodyFx.mats.push(mm);
+  var motes=new THREE.Points(mg,mm); motes.frustumCulled=false; press.add(motes);
+  bodyFx.motes=motes; bodyFx.moteData=dat;
+})();
+function updateBodyFx(dt,time){
+  if(!bodyFx.motes) return;
+  var load=Math.max(vfxLoad,Math.min(1,(pressure||0)/Math.max(100,machineCap())));
+  var i, fade, ps;
+  for(i=0;i<bodyFx.cores.length;i++){
+    bodyFx.cores[i].material.opacity=Math.max(0.15,Math.min(0.95,0.32+(reduced?0:0.16*Math.sin(time*2.2+i*1.3))+load*0.48));
+    ps=1+load*0.7; bodyFx.cores[i].scale.set(ps,1,ps);
+  }
+  var speed=0.05+load*0.30;
+  for(i=0;i<bodyFx.pulses.length;i++){
+    var pm=bodyFx.pulses[i];
+    if(!reduced) pm.userData.t=(pm.userData.t+dt*speed*(0.7+(i%5)*0.09))%1;
+    var post=bodyFx.posts[pm.userData.post], t2=pm.userData.t;
+    pm.position.set(post.x-Math.sign(post.x)*0.33,0.55+t2*6.6,post.z+0.33);
+    fade=Math.sin(t2*Math.PI);
+    pm.material.opacity=0.25+0.7*fade*(0.5+load*0.6);
+    pm.scale.setScalar(0.7+fade*0.7+load*0.5);
+  }
+  if(bodyFx.conduit) bodyFx.conduit.material.opacity=0.30+load*0.5+(reduced?0:0.12*Math.sin(time*2.6));
+  for(i=0;i<bodyFx.conduitPulses.length;i++){
+    var cp=bodyFx.conduitPulses[i];
+    if(!reduced) cp.userData.t=(cp.userData.t+dt*(0.10+load*0.35))%1;
+    cp.position.x=((i%2===0)?1:-1)*cp.userData.t*4.2;
+    cp.material.opacity=0.3+0.65*(1-cp.userData.t)*(0.5+load*0.6);
+  }
+  var posA=bodyFx.motes.geometry.attributes.position;
+  for(i=0;i<bodyFx.moteData.length;i++){
+    var d=bodyFx.moteData[i];
+    if(!reduced){
+      var y=posA.getY(i)+dt*d.s*(0.6+load*1.6);
+      if(y>8.8) y=0.15;
+      posA.setY(i,y);
+      posA.setX(i,posA.getX(i)+Math.sin(time*0.7+d.ph)*dt*0.12);
+    }
+  }
+  posA.needsUpdate=true;
+  bodyFx.motes.material.opacity=0.32+load*0.4;
+}
 
 /* ================= SIGNATURE PRESS VFX =================
    The three special presses share ONE power curve now (MACHINES:
@@ -1076,12 +1283,12 @@ function pressVFXTick(h,dt,time){
   vfxX=h.mesh.position.x; vfxZ=h.mesh.position.z; vfxActive=true;
   if(!fxOn || time<pressFxAt) return;
   pressFxAt=time+0.07;
-  var cx=h.mesh.position.x, cz=h.mesh.position.z, cy=BED_Y+catRestH(h)*(1-(h.pSq||0))+0.15;
+  var cx=h.mesh.position.x, cz=h.mesh.position.z, cy=(h.baseY||BED_Y)+catRestH(h)*(1-(h.pSq||0))+0.15;
   if(m.id==='dragon'){
     spawnDust(2,cx,cy,cz,'fxember',0xff7a1e,1.6);
     if(Math.random()<0.4) spawnDust(1,cx,cy+0.3,cz,'spark',0xffb52e,1.2);
   } else if(m.id==='hell'){
-    if(Math.random()<0.65) spawnFxOrb(cx+(Math.random()-0.5)*1.6,BED_Y+0.25,cz+(Math.random()-0.5)*1.6,0xb45cff,(Math.random()-0.5)*0.6,1.1+Math.random()*0.9,(Math.random()-0.5)*0.6,1.15,0.9);
+    if(Math.random()<0.65) spawnFxOrb(cx+(Math.random()-0.5)*1.6,(h.baseY||BED_Y)+0.25,cz+(Math.random()-0.5)*1.6,0xb45cff,(Math.random()-0.5)*0.6,1.1+Math.random()*0.9,(Math.random()-0.5)*0.6,1.15,0.9);
     if(Math.random()<0.3) spawnDust(1,cx,cy,cz,'fxzap',0xc07dff,2.2);
   } else if(m.id==='angel'){
     spawnDust(1,cx,cy+0.8,cz,'fxmote',0xffe9a3,0.7);
@@ -1094,23 +1301,23 @@ function spawnPressBurstVFX(h){
   if(!fxOn) return;
   var m=curMachine(), cx=h.mesh.position.x, cz=h.mesh.position.z;
   if(m.id==='dragon'){
-    spawnFxRing(cx,cz,BED_Y+0.07,0xff5a00,3.6,0.65);
-    spawnFxRing(cx,cz,BED_Y+0.09,0xffb52e,2.4,0.5);
-    spawnDust(22,cx,BED_Y+1.0,cz,'fxember',0xff7a1e,3.0);
-    spawnDust(6,cx,BED_Y+1.4,cz,'smoke',0x8d8578,0.7);
+    spawnFxRing(cx,cz,(h.baseY||BED_Y)+0.07,0xff5a00,3.6,0.65);
+    spawnFxRing(cx,cz,(h.baseY||BED_Y)+0.09,0xffb52e,2.4,0.5);
+    spawnDust(22,cx,(h.baseY||BED_Y)+1.0,cz,'fxember',0xff7a1e,3.0);
+    spawnDust(6,cx,(h.baseY||BED_Y)+1.4,cz,'smoke',0x8d8578,0.7);
   } else if(m.id==='hell'){
-    spawnFxRing(cx,cz,BED_Y+0.07,0x9b30ff,3.4,0.8);
+    spawnFxRing(cx,cz,(h.baseY||BED_Y)+0.07,0x9b30ff,3.4,0.8);
     for(var i=0;i<7;i++){
       var a=i/7*Math.PI*2;
-      spawnFxOrb(cx+Math.cos(a)*0.8,BED_Y+0.4,cz+Math.sin(a)*0.8,0xb45cff,Math.cos(a)*0.8,2.0+Math.random()*1.2,Math.sin(a)*0.8,1.5,1.25);
+      spawnFxOrb(cx+Math.cos(a)*0.8,(h.baseY||BED_Y)+0.4,cz+Math.sin(a)*0.8,0xb45cff,Math.cos(a)*0.8,2.0+Math.random()*1.2,Math.sin(a)*0.8,1.5,1.25);
     }
-    spawnDust(12,cx,BED_Y+1.2,cz,'smoke',0x8d8578,0.8);
-    spawnDust(10,cx,BED_Y+1.0,cz,'fxzap',0xc07dff,2.6);
+    spawnDust(12,cx,(h.baseY||BED_Y)+1.2,cz,'smoke',0x8d8578,0.8);
+    spawnDust(10,cx,(h.baseY||BED_Y)+1.0,cz,'fxzap',0xc07dff,2.6);
   } else if(m.id==='angel'){
-    spawnFxRing(cx,cz,BED_Y+0.07,0xfff2c0,3.8,0.75);
-    spawnFxRing(cx,cz,BED_Y+0.10,0x66d9ff,2.6,0.55);
-    spawnDust(20,cx,BED_Y+1.6,cz,'fxmote',0xffe9a3,2.2);
-    for(var j=0;j<5;j++) spawnFxOrb(cx+(Math.random()-0.5)*1.6,BED_Y+1.2+Math.random(),cz+(Math.random()-0.5)*1.6,0x9fe8ff,(Math.random()-0.5)*1.2,0.6,(Math.random()-0.5)*1.2,1.7,1.0);
+    spawnFxRing(cx,cz,(h.baseY||BED_Y)+0.07,0xfff2c0,3.8,0.75);
+    spawnFxRing(cx,cz,(h.baseY||BED_Y)+0.10,0x66d9ff,2.6,0.55);
+    spawnDust(20,cx,(h.baseY||BED_Y)+1.6,cz,'fxmote',0xffe9a3,2.2);
+    for(var j=0;j<5;j++) spawnFxOrb(cx+(Math.random()-0.5)*1.6,(h.baseY||BED_Y)+1.2+Math.random(),cz+(Math.random()-0.5)*1.6,0x9fe8ff,(Math.random()-0.5)*1.2,0.6,(Math.random()-0.5)*1.2,1.7,1.0);
   }
 }
 /* per-frame driver for the persistent rigs: flame crown flare,
@@ -1191,13 +1398,13 @@ function sdEll(px,py,pz,cx,cy,cz,rx,ry,rz){
 function smin(a,b,k){ var h=0.5+0.5*(b-a)/k; h=h<0?0:(h>1?1:h); return b+(a-b)*h-k*h*(1-h); }
 var FORMS={
   mochi:{label:"Mochi",color:0xff4f92,height:2.92,scale:1.3,oy:1.15,pressScale:0.92,verdict:0,tex:"jelly",clones:3,
-    eyeY:1.90,eyeX:0.28,eyeZ:0.70,noseY:1.68,noseZ:0.84,
+    eyeY:1.90,eyeX:0.30,eyeZ:0.90,noseY:1.86,noseZ:0.94,
     parts:[[0,0.92,0,1.10,0.95,1.02,0.30],[0,1.80,0.05,0.80,0.70,0.74,0.34],[-0.47,2.46,0,0.20,0.38,0.20,0.16],[0.47,2.46,0,0.20,0.38,0.20,0.16],[0,1.63,0.55,0.37,0.28,0.30,0.22],[-0.53,0.22,0.50,0.30,0.21,0.42,0.20],[0.53,0.22,0.50,0.30,0.21,0.42,0.20],[0,0.66,-1.00,0.30,0.46,0.30,0.24]]},
   pudding:{label:"Pudding",color:0xff9d1f,height:2.14,scale:1.3,oy:0.8,pressScale:1.0,verdict:1,tex:"lego",clones:1,
-    eyeY:1.32,eyeX:0.30,eyeZ:0.76,noseY:1.12,noseZ:0.90,
+    eyeY:1.34,eyeX:0.32,eyeZ:0.94,noseY:1.29,noseZ:1.00,
     parts:[[0,0.60,0,1.40,0.64,1.26,0.30],[0,1.22,0.05,0.88,0.56,0.80,0.34],[-0.50,1.80,0,0.19,0.30,0.19,0.14],[0.50,1.80,0,0.19,0.30,0.19,0.14],[0,1.08,0.62,0.38,0.25,0.30,0.22],[-0.62,0.16,0.55,0.32,0.17,0.42,0.18],[0.62,0.16,0.55,0.32,0.17,0.42,0.18],[0,0.45,-1.22,0.32,0.36,0.30,0.24]]},
   soda:{label:"Soda",color:0x0ec9a4,height:3.78,scale:1.12,oy:1.55,pressScale:0.8,verdict:2,tex:"water",clones:3,
-    eyeY:2.76,eyeX:0.27,eyeZ:0.68,noseY:2.55,noseZ:0.80,
+    eyeY:2.78,eyeX:0.29,eyeZ:0.86,noseY:2.73,noseZ:0.90,
     parts:[[0,1.24,0,0.94,1.32,0.90,0.30],[0,2.66,0.05,0.76,0.68,0.72,0.34],[-0.45,3.32,0,0.19,0.37,0.19,0.16],[0.45,3.32,0,0.19,0.37,0.19,0.16],[0,2.50,0.52,0.35,0.27,0.29,0.22],[-0.48,0.20,0.46,0.29,0.20,0.40,0.20],[0.48,0.20,0.46,0.29,0.20,0.40,0.20],[0,0.72,-0.92,0.28,0.48,0.28,0.24]]}
 };
 /* ---------- Seeded RNG: every generated cat gets ONE seed ----------
@@ -1417,8 +1624,11 @@ var machineBroken=false, brokenT=0, strainT=0, pressShake=0, pressShakeT=0, plat
    Crumbs are worth money: a fragment's price is its material's unit
    value x its volume (radius cubed) x the density it was pressed at,
    so bigger, denser, rarer-material pieces pay much more. Money buys
-   the special presses in the backpack. There are EXACTLY THREE
-   machines, the three fantasy presses from the user's asset sheet,
+   the special presses in the backpack. There are FOUR machines:
+   the BASE press - the plain factory machine every player starts
+   with - plus the three fantasy presses from the user's asset
+   sheet, which are now all bought upgrades (Dragon 150, Hell 450,
+   Angel 1100),
    and this game is PRESS-ONLY: no blender, no grinder, no bulk
    chambers anywhere in the bar, the backpack or the play loop.
    BALANCE RULE (user, 2026-11-01): the special presses no longer
@@ -1430,16 +1640,18 @@ var machineBroken=false, brokenT=0, strainT=0, pressShake=0, pressShakeT=0, plat
    press harvests souls, the Angel press judges with light. Same
    strength, different show. */
 var MACHINES=[
-  {id:'dragon', cost:0,    bonus:0, speed:1.0, mode:'press', fx:'dragon', frame:0x2c2527, steel:0x9a6a3a, dark:0x2a0f06, aura:0xff5a1e, auraI:34, swatch:'#ff5a1e'},
-  {id:'hell',   cost:450,  bonus:0, speed:1.0, mode:'press', fx:'hell',   frame:0x14101f, steel:0x5f4a78, dark:0x120a1e, aura:0x9b30ff, auraI:32, swatch:'#9b30ff'},
-  {id:'angel',  cost:1100, bonus:0, speed:1.0, mode:'press', fx:'angel',  frame:0xe9e0cc, steel:0xd9b45c, dark:0xa8853c, aura:0x4dc3ff, auraI:36, swatch:'#4dc3ff'}
+  {id:'base',   cost:0,    bonus:0, speed:1.0, mode:'press', fx:'base',   frame:0x3a4149, steel:0x9aa2ad, dark:0x39404a, aura:0x38c8ff, auraI:20, swatch:'#38c8ff', vein:0x38c8ff},
+  {id:'dragon', cost:150,  bonus:0, speed:1.0, mode:'press', fx:'dragon', frame:0x2c2527, steel:0x9a6a3a, dark:0x2a0f06, aura:0xff5a1e, auraI:34, swatch:'#ff5a1e', vein:0xff6a00},
+  {id:'hell',   cost:450,  bonus:0, speed:1.0, mode:'press', fx:'hell',   frame:0x14101f, steel:0x5f4a78, dark:0x120a1e, aura:0x9b30ff, auraI:32, swatch:'#9b30ff', vein:0xb45cff},
+  {id:'angel',  cost:1100, bonus:0, speed:1.0, mode:'press', fx:'angel',  frame:0xe9e0cc, steel:0xd9b45c, dark:0xa8853c, aura:0x4dc3ff, auraI:36, swatch:'#4dc3ff', vein:0xffd76a}
 ];
 
 function machineMode(){ var m=curMachine(); return m.mode||'press'; }
-/* The starter press is owned from the first second; the two
-   special presses are bought with crumb money in the backpack.
-   Their price buys their effect and their build, never power. */
-var ownedMachines={dragon:true}, activeMachine='dragon';
+/* The BASE press is owned from the first second - it is the
+   starter machine, not the Fire Dragon. The three fantasy presses
+   are bought with crumb money in the backpack. Their price buys
+   their effect and their build, never power. */
+var ownedMachines={base:true}, activeMachine='base';
 var money=0, vacuumedCount=0, vacuumedEarned=0;
 function curMachine(){
   for(var i=0;i<MACHINES.length;i++) if(MACHINES[i].id===activeMachine) return MACHINES[i];
@@ -1451,7 +1663,7 @@ function machById(id){ for(var i=0;i<MACHINES.length;i++) if(MACHINES[i].id===id
    the tier last used in it; tiers themselves are picked in the
    backpack, which only ever lists the tiers of ONE type at a time
    (bagMode), so the shelf can never show all 9 machines at once. */
-var typeSel={press:'dragon'};
+var typeSel={press:'base'};
 var bagMode='press';
 var MACH_TYPES=[{mode:'press',key:'typePress'}];
 function machineCap(){ return machineMax; } /* balanced: every press caps at the slider value - no machine adds bonus bar any more */
@@ -1474,8 +1686,11 @@ function applyMachineTheme(){
   for(var pk in platenDecor) platenDecor[pk].visible=(pk===m.id);
   platenGroup.visible=true;
   cylHousing.visible=true;
-  /* FX toggle: every registered halo / vortex / glow extra follows it */
+  /* effects are always on: every registered halo / vortex / glow
+     extra of the ACTIVE machine shows (fxOn is a constant true) */
   for(var fk in fxRegistry) for(var fi=0;fi<fxRegistry[fk].length;fi++) fxRegistry[fk][fi].visible=fxOn;
+  /* the frame body VFX recolours with the machine */
+  if(typeof bodyFx!=='undefined' && bodyFx.mats) for(var bf=0;bf<bodyFx.mats.length;bf++) bodyFx.mats[bf].color.set(m.vein||m.aura);
   var hb=$('holdBtn');
   if(hb) hb.textContent=t('hold');
   var mg=$('machGroup');
@@ -1595,13 +1810,273 @@ function updatePhysHud(){
   var mEl=$('physMat'); if(!mEl) return;
   var kind=currentTex;
   mEl.textContent=t('tex_'+kind);
-  var cEl=$('physCrack'); if(cEl) cEl.textContent=t('crack_'+kind);
   var hs=hardScore(kind);
   var hb=$('physHardBar'); if(hb) hb.style.width=(hs*10)+'%';
   var hv=$('physHardVal'); if(hv) hv.textContent=hs+'/10';
   var bEl=$('physBounce'); if(bEl) bEl.textContent=Math.round(physFor(kind).bounce*100)+'%';
   var msEl=$('physMass'); if(msEl) msEl.textContent=catMassKg(kind)+' kg';
   var ndEl=$('physNeed'); if(ndEl) ndEl.textContent=requiredPressure(kind)+' bar';
+  updateHpUI();
+}
+/* ---------- CAT HP ----------
+   One health value per cat, read from the solver's own per-cat
+   numbers - nothing invented for show:
+   - pDmg (fatigue) is permanent wear: it never heals while the cat
+     lives and bursting at pDmg >= 1 is already a real burst path,
+     so it counts in full.
+   - pCrack (peak strain / crack growth) counts partially: heavily
+     for soft bodies, whose crack strain IS their squash toward the
+     pop point, and lightly for rigid solids, which crack early but
+     only let go when their fatigue gives out. That is what makes a
+     diamond cat's bar drain slowly and visibly across several
+     presses instead of sitting at 100% until it suddenly pops.
+   The result only ever goes DOWN while a cat lives (both inputs are
+   max-ever / cumulative), so the bar is honest progress, never a
+   yo-yo. And it goes down IN REAL TIME: pDmg accrues every frame
+   a cat is held in contact (see the press solver - rate scales
+   with strain and delivered pressure, no dead zone), so HP falls
+   continuously for as long as the press is held, not in one step
+   at a crack milestone and not only at the burst. The displayed
+   value (hpFracShown) additionally eases toward this fraction at
+   a bounded rate, so even a sudden strain spike glides. */
+function catHpFrac(h){
+  if(!h) return 1;
+  var dmg=Math.max(0,Math.min(1,h.pDmg||0));
+  var crack=Math.max(0,Math.min(1,h.pCrack||0));
+  var rigid=physFor(h.texKind).jiggle<=0;
+  var eff=Math.max(dmg,crack*(rigid?0.45:0.78));
+  return Math.max(0,Math.min(1,1-eff));
+}
+/* The DISPLAYED HP: eased toward the true fraction in
+   updateHpFloats (every frame), falling at a bounded rate so the
+   ring and the deck card glide down continuously with the hold
+   instead of stepping in one chunk when strain spikes. It only
+   ever rises for a fresh cat (whose true fraction is 1 again). */
+function hpFracShown(h){
+  if(!h) return 1;
+  if(h.hpShown===undefined||h.hpShown===null) h.hpShown=catHpFrac(h);
+  return h.hpShown;
+}
+/* ---------- CAT EXPRESSIONS ----------
+   Every cat's face reads its OWN press state, live: the stage is
+   driven by contact, squash toward its own pop point, crack
+   growth and cumulative damage (via catHpFrac), so a cat being
+   ignored keeps a calm face while its neighbour suffers.
+   0 CALM: round eyes, gentle brows, a smile.
+   1 STRAINED: the platen touches it - eyes squint a little,
+     brows tilt in, the smile flattens.
+   2 PAIN: deep squash / cracks / HP dropping - eyes squeezed,
+     brows steep, mouth flips to a frown.
+   3 ABOUT TO POP: past ~78% of its break point or HP under 30% -
+     eyes snap wide, the mouth becomes a little "o", and the
+     whole face trembles. Damage keeps a face worried between
+     presses too: a cat at 25% HP does not smile again until it
+     is replaced. Stages blend through one smoothed value, and
+     idle cats blink. */
+function updateCatFace(h,dt,time){
+  var fc=h.face; if(!fc) return;
+  var hpF=catHpFrac(h);
+  var burstProg=(h.texKind==='jelly')? (h.pSq||0)/Math.max(0.2,h.burstAt||burstAt)
+    : Math.max((h.pRaw||0)/Math.max(0.05,(physFor(h.texKind).burstRaw||0.3)), h.pCrack||0);
+  var target=0;
+  if(h.pContact || (h.pSq||0)>0.03 || (h.pCrack||0)>0.08) target=1;
+  if(burstProg>0.45 || (h.pCrack||0)>0.40 || hpF<0.62) target=2;
+  if(burstProg>0.78 || hpF<0.30 || (h.pDmg||0)>0.72) target=3;
+  h.expr=(h.expr||0)+(target-(h.expr||0))*Math.min(1,dt*6.5);
+  var e=h.expr;
+  var strain=Math.min(1,Math.max(0,e)), pain=Math.min(1,Math.max(0,e-1)), panic=Math.min(1,Math.max(0,e-2));
+  var blink=false;
+  if(!h.pContact){ var bp=((h.seed||0)%1000)/137 + time; if((bp%3.9)<0.085) blink=true; }
+  var eyeSY=1.18*(1-0.30*strain-0.38*pain+0.55*panic);
+  if(blink) eyeSY*=0.10;
+  var eyeSX=1+0.08*pain+0.22*panic;
+  for(var i=0;i<fc.eyes.length;i++){
+    fc.eyes[i].scale.set(eyeSX,Math.max(0.08,eyeSY),0.62);
+    var gl=fc.glints[i];
+    if(gl){ gl.visible=(panic<0.55 && !blink); gl.scale.setScalar(1+panic*0.5); }
+    var g2=fc.glints2?fc.glints2[i]:null;
+    if(g2) g2.visible=(panic<0.55 && !blink);
+    var br=fc.brows[i];
+    if(br){ var sd=br.userData.side; br.rotation.z=sd*(0.06+0.30*strain+0.48*pain+0.30*panic); br.position.y=br.userData.y0-0.035*pain+0.02*panic; }
+  }
+  if(fc.nose) fc.nose.scale.set(1.35+0.15*strain,0.8,0.6);
+  if(fc.arc){
+    fc.arc.rotation.z=(pain>0.45||panic>0.2)?0:Math.PI; /* smile flips to a frown */
+    fc.arc.scale.set(1-0.25*strain+0.1*panic,Math.max(0.25,1-0.55*strain-0.2*pain),1);
+    fc.arc.visible=panic<0.5;
+  }
+  if(fc.o) fc.o.visible=panic>=0.5;
+  if(fc.grp) fc.grp.position.x=(panic>0.05 && !reduced)? Math.sin(time*43+(h.seed||0)%17)*0.012*panic : 0;
+}
+function hpBand(frac){ return frac>0.55?'':(frac>0.30?'warn':'crit'); }
+var hpListSig='';
+var HP_LIST_TOP=3; /* deck detail rows: the 3 highest-HP cats only, re-ranked live */
+function updateHpUI(){
+  var card=$('hpCard'); if(!card) return;
+  var pctEl=$('hpPct'), fillEl=$('hpFill'), trackEl=$('hpTrack'), nameEl=$('hpName');
+  if(!heroes.length || !hero){
+    if(pctEl) pctEl.textContent='-';
+    if(fillEl) fillEl.style.width='0%';
+    if(nameEl) nameEl.textContent='-';
+  } else {
+    var frac=hpFracShown(hero), pct=Math.round(frac*100);
+    if(pctEl) pctEl.textContent=pct+'%';
+    if(fillEl) fillEl.style.width=pct+'%';
+    if(trackEl) trackEl.className='hp-track '+hpBand(frac);
+    if(nameEl) nameEl.textContent=hero.form.label;
+  }
+  /* Detail rows for the TOP 3 CATS BY HP ONLY (highest health
+     first), re-ranked LIVE on every refresh - the rows are never
+     pinned to fixed cats: as a cat is pressed and its HP falls it
+     drops out of the top 3 and the next-healthiest cat takes its
+     row, and a fresh Gen cat at 100% jumps straight in. The card
+     therefore never grows past 3 rows (plus one compact "+N more"
+     line) no matter how many cats are on the bed, so the deck
+     keeps one fixed height and the Gen cat button stays exactly
+     where it was - tappable again and again for rapid adding.
+     Every cat still keeps its own full segmented HP ring at its
+     feet in the scene; cats outside the top 3 lose only this text
+     row, never any health display on the bed. */
+  var list=$('hpList'); if(!list) return;
+  if(heroes.length<=1){
+    list.hidden=true; hpListSig='';
+    heroes.forEach(function(h){ h.hpRowFill=null; h.hpRowTrack=null; h.hpRowPct=null; });
+    return;
+  }
+  var ranked=heroes.map(function(h,i){ return {h:h,i:i,f:hpFracShown(h)}; });
+  ranked.sort(function(a,b){ return (b.f-a.f)||(a.i-b.i); });
+  var top=ranked.slice(0,HP_LIST_TOP);
+  var rest=heroes.length-top.length;
+  var sig=top.map(function(r){ return r.h.seed; }).join('|')+'#'+rest;
+  if(sig!==hpListSig){
+    hpListSig=sig; list.innerHTML='';
+    heroes.forEach(function(h){ h.hpRowFill=null; h.hpRowTrack=null; h.hpRowPct=null; });
+    top.forEach(function(r){
+      var h=r.h;
+      var row=document.createElement('div'); row.className='hp-li';
+      var nm=document.createElement('span'); nm.className='hp-li-name'; nm.textContent=h.form.label+' · '+t('tex_'+h.texKind);
+      var tr=document.createElement('span'); tr.className='hp-li-track'; var fl=document.createElement('i'); tr.appendChild(fl);
+      var pc=document.createElement('span'); pc.className='hp-li-pct';
+      row.appendChild(nm); row.appendChild(tr); row.appendChild(pc);
+      h.hpRowFill=fl; h.hpRowTrack=tr; h.hpRowPct=pc;
+      list.appendChild(row);
+    });
+    if(rest>0){
+      var more=document.createElement('div'); more.className='hp-more'; more.id='hpMoreLine';
+      list.appendChild(more);
+    }
+    list.hidden=false;
+  }
+  top.forEach(function(r){
+    var h=r.h; if(!h.hpRowFill) return;
+    var f2=r.f, p2=Math.round(f2*100);
+    h.hpRowFill.style.width=p2+'%';
+    if(h.hpRowTrack) h.hpRowTrack.className='hp-li-track '+hpBand(f2);
+    if(h.hpRowPct) h.hpRowPct.textContent=p2+'%';
+  });
+  var moreEl=$('hpMoreLine');
+  if(moreEl) moreEl.textContent=t('hpMore').replace('{n}',rest);
+}
+/* ---------- HP RING at each cat's feet (replaces the head bars) ----------
+   As the user sketched it: HP is a flat ring / band lying right on
+   the bed around the cat's feet, at the front of the press - never
+   a bar floating over the head. One ring per cat, built in the 3D
+   scene so it stays glued to the cat's footprint when the cat is
+   dragged, squashed, stacked or joined by neighbours.
+   STACKED SEGMENTS, COLOURS BY HP PORTION: the ring is 16 stacked
+   segments. Segment i stands for the HP slice [i/16, (i+1)/16) and
+   is coloured by that slice - the lowest quarter red, then orange,
+   then yellow, the top quarter green. A full cat shows the whole
+   stacked rainbow ring starting at the front of the bed; pressing
+   burns the segments away from the green (high) end first, so the
+   colour left on the table IS the health that is left. Under the
+   lit segments sits a faint dark track ring, so the missing part
+   still reads as an empty slot. With many cats the rings sit on
+   the bed side by side, each lifted a hair (0.008 per cat) so
+   overlapping rings stack instead of z-fighting. A stacked-up cat
+   still gets its ring projected onto the bed under its footprint,
+   like a shadow - its health is read on the table, at foot level.
+   Segment geometries and the four colour materials are SHARED by
+   every cat (created once); per cat only the group and its segment
+   visibility are its own, so disposal never touches the cache. */
+var HP_RING_SEGS=16;
+var hpRingGeos=null, hpRingMats=null, hpRingTrackGeo=null, hpRingTrackMat=null;
+function hpSegColorHex(i){
+  var mid=(i+0.5)/HP_RING_SEGS;
+  if(mid<0.25) return 0xe5322d; /* low HP portion: red */
+  if(mid<0.50) return 0xff7a1e; /* orange */
+  if(mid<0.75) return 0xffd21f; /* yellow */
+  return 0x2fa84f;              /* high HP portion: green */
+}
+function buildHpRingAssets(){
+  if(hpRingGeos) return;
+  hpRingGeos=[]; hpRingMats={};
+  var step=Math.PI*2/HP_RING_SEGS;
+  for(var i=0;i<HP_RING_SEGS;i++){
+    /* unit ring (inner 0.80, outer 1.0); the group is scaled to the
+       cat's footprint. Segment 0 starts at the FRONT of the bed
+       (+Z): RingGeometry lies in XY and is rotated flat below, and
+       after that rotation -PI/2 in the geometry's own frame lands
+       the segment at world +Z, so the stack reads from the front. */
+    var g=new THREE.RingGeometry(0.80,1.0,5,1,-Math.PI/2+i*step,step*0.84);
+    hpRingGeos.push(g);
+    var hex=hpSegColorHex(i);
+    if(!hpRingMats[hex]) hpRingMats[hex]=new THREE.MeshBasicMaterial({color:hex,side:THREE.DoubleSide,depthWrite:false});
+  }
+  hpRingTrackGeo=new THREE.RingGeometry(0.80,1.0,48,1);
+  hpRingTrackMat=new THREE.MeshBasicMaterial({color:0x211a13,transparent:true,opacity:0.22,side:THREE.DoubleSide,depthWrite:false});
+}
+function ensureHpRing(h){
+  if(h.hpRing) return h.hpRing;
+  buildHpRingAssets();
+  var grp=new THREE.Group();
+  var track=new THREE.Mesh(hpRingTrackGeo,hpRingTrackMat);
+  track.rotation.x=-Math.PI/2; track.renderOrder=2; grp.add(track);
+  var segs=[];
+  for(var i=0;i<HP_RING_SEGS;i++){
+    var m=new THREE.Mesh(hpRingGeos[i],hpRingMats[hpSegColorHex(i)]);
+    m.rotation.x=-Math.PI/2; m.renderOrder=3; grp.add(m); segs.push(m);
+  }
+  grp.position.set(h.mesh.position.x,BED_Y+0.035,h.mesh.position.z);
+  scene.add(grp);
+  h.hpRing=grp; h.hpSegs=segs;
+  return grp;
+}
+function removeHpFloat(h){
+  /* old name kept for the existing dispose call sites: it now
+     removes the cat's foot HP ring. Shared geometries/materials
+     are NOT disposed - the next cat reuses them. */
+  if(h && h.hpRing) scene.remove(h.hpRing);
+  if(h){ h.hpRing=null; h.hpSegs=null; h.hpEl=null; h.hpFillEl=null; h.hpPctEl=null; }
+}
+function updateHpFloats(){
+  /* old name kept for the animate() call site: it now updates the
+     foot HP rings, every frame, from each cat's own HP fraction. */
+  var now=(window.performance&&performance.now)?performance.now()/1000:0;
+  for(var i=0;i<heroes.length;i++){
+    var h=heroes[i], grp=ensureHpRing(h); if(!grp) continue;
+    /* ease the displayed HP toward the true value: it may FALL at
+       most ~0.55/s (fast enough to feel live under a hard hold,
+       slow enough to never jump in one step) and rises instantly
+       only when the true value does (a fresh cat). */
+    var rawFrac=catHpFrac(h);
+    if(h.hpShown===undefined||h.hpShown===null) h.hpShown=rawFrac;
+    var dtF=Math.min(0.1,Math.max(0.001,now-(h._hpT||now))); h._hpT=now;
+    if(rawFrac<h.hpShown) h.hpShown=Math.max(rawFrac,h.hpShown-0.55*dtF);
+    else h.hpShown=rawFrac;
+    var frac=h.hpShown;
+    var lit=frac<=0?0:Math.max(1,Math.ceil(frac*HP_RING_SEGS-1e-6));
+    if(h.hpSegs) for(var s=0;s<h.hpSegs.length;s++) h.hpSegs[s].visible=s<lit;
+    /* the ring hugs the feet: footprint radius, widening a little
+       as the cat squashes and spreads under the platen */
+    var spread=1+(h.pSq||0)*0.45;
+    var R=catFootR(h)*1.22*spread;
+    var pulse=(frac>0 && frac<=0.30 && !reduced)? 1+0.045*Math.sin(now*7+i*1.7) : 1;
+    grp.scale.set(R*pulse,1,R*pulse);
+    /* flat on the bed under the footprint, lifted a hair per cat
+       so many cats' rings stack cleanly where they overlap */
+    grp.position.set(h.mesh.position.x,BED_Y+0.035+i*0.008,h.mesh.position.z);
+  }
 }
 function renderCompare(){
   var list=$('cmpList'); if(!list) return;
@@ -1795,10 +2270,95 @@ function jellyMat(color,op,texKind){
   m.customProgramCacheKey=function(){ return "jellypress-"+kind; };
   return m;
 }
-var eyeMat=new THREE.MeshPhysicalMaterial({color:0x2a0e1e,roughness:0.15,clearcoat:1,envMapIntensity:1.0});
+/* Face materials, premium pass: the eyes are deep glossy beads
+   (clearcoat physical material, near-black plum) carrying TWO
+   white highlights each, so they read as polished toy eyes rather
+   than flat dots. Readability no longer depends on the material
+   being flat: every feature is seated on the cat's real SDF
+   surface by buildFaceGroup below (proud of the skin, never sunk
+   into it) and renders after the body (renderOrder 6-7), so no
+   surface texture can wash it out or cover it. */
+var eyeMat=new THREE.MeshPhysicalMaterial({color:0x2a0f1c,roughness:0.12,metalness:0.0,clearcoat:1.0,clearcoatRoughness:0.08,envMapIntensity:1.4});
 var noseMat=new THREE.MeshPhysicalMaterial({color:0xe8254f,roughness:0.2,clearcoat:1,envMapIntensity:1.0});
 var glintMat=new THREE.MeshBasicMaterial({color:0xffffff});
 var bubbleMat=new THREE.MeshPhysicalMaterial({color:0xd8fff4,roughness:0.05,clearcoat:1,transparent:true,opacity:0.55,envMapIntensity:1.2});
+
+/* ---------- THE FACE, premium pass ----------
+   One shared builder for the hero cats AND the mini clones, so
+   every cat wears the same face. Three things make it read as a
+   designed kawaii face instead of dots stuck on a blob:
+   - RAISED CLUSTER: eyeY / noseY in FORMS now sit high on the
+     head (the face used to sit too low, down on the muzzle), with
+     eyes, nose and mouth kept tight together as one cluster.
+   - SEATED ON THE REAL SURFACE: each feature's Z is SOLVED from
+     the cat's own SDF at its (x, y) - faceSurfZ walks in from the
+     front until it finds the skin - then pushed a hair proud.
+     The face can never sink into the body or be covered by its
+     texture, and because the whole group lives inside bodyG it
+     squashes, wobbles and travels WITH the head when pressed.
+   - LAYERED PARTS: glossy bead eyes with a big and a small
+     highlight, a curved lash arc over each eye, soft capsule
+     brows, a glossy nose with its own sparkle, pink blush cheeks
+     and fine whiskers. The expression driver (updateCatFace)
+     still morphs eyes / glints / brows / nose / mouth per cat. */
+function faceSurfZ(form,x,y,fallback){
+  if(sdfCat(form,x,y,3.4)<0) return fallback;
+  var zPrev=3.4, z=3.4, i, mid, a, b;
+  while(z>-0.6){
+    z-=0.07;
+    if(sdfCat(form,x,y,z)<0){
+      a=z; b=zPrev;
+      for(i=0;i<14;i++){ mid=(a+b)*0.5; if(sdfCat(form,x,y,mid)<0) a=mid; else b=mid; }
+      return (a+b)*0.5;
+    }
+    zPrev=z;
+  }
+  return fallback;
+}
+var blushMat=new THREE.MeshBasicMaterial({color:0xff6f9d,transparent:true,opacity:0.50,depthWrite:false});
+function buildFaceGroup(f){
+  var faceG=new THREE.Group();
+  var parts={grp:faceG,eyes:[],glints:[],glints2:[],brows:[],lashes:[],nose:null,arc:null,o:null};
+  [-1,1].forEach(function(side){
+    var ex=side*f.eyeX, ez=faceSurfZ(f,ex,f.eyeY,f.eyeZ)+0.030;
+    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.155,20,16),eyeMat);
+    eye.scale.set(1,1.18,0.62); eye.position.set(ex,f.eyeY,ez); eye.renderOrder=6; faceG.add(eye); parts.eyes.push(eye);
+    var g1=new THREE.Mesh(new THREE.SphereGeometry(0.052,10,10),glintMat);
+    g1.position.set(ex-0.048,f.eyeY+0.064,ez+0.080); g1.renderOrder=7; faceG.add(g1); parts.glints.push(g1);
+    var g2=new THREE.Mesh(new THREE.SphereGeometry(0.026,8,8),glintMat);
+    g2.position.set(ex+0.055,f.eyeY-0.058,ez+0.082); g2.renderOrder=7; faceG.add(g2); parts.glints2.push(g2);
+    var lash=new THREE.Mesh(new THREE.TorusGeometry(0.150,0.020,8,22,2.1),eyeMat);
+    lash.position.set(ex,f.eyeY+0.014,ez+0.048); lash.rotation.z=(Math.PI-2.1)/2; lash.renderOrder=6; faceG.add(lash); parts.lashes.push(lash);
+    var browY=f.eyeY+0.235, bz=faceSurfZ(f,ex,browY,f.eyeZ+0.05)+0.028;
+    var brow=new THREE.Mesh(new THREE.SphereGeometry(0.075,12,10),eyeMat);
+    brow.scale.set(1.7,0.34,0.30); brow.position.set(ex,browY,bz); brow.rotation.z=side*0.06; brow.renderOrder=6;
+    brow.userData.side=side; brow.userData.y0=browY;
+    faceG.add(brow); parts.brows.push(brow);
+    var bx=side*(f.eyeX+0.30), by=f.noseY+0.03;
+    var blush=new THREE.Mesh(new THREE.SphereGeometry(0.105,12,10),blushMat);
+    blush.scale.set(1.3,0.82,0.30); blush.position.set(bx,by,faceSurfZ(f,bx,by,f.eyeZ-0.30)+0.014); blush.rotation.y=-side*0.35; blush.renderOrder=5; faceG.add(blush);
+    [0.16,0.34].forEach(function(tilt,wi){
+      var wx=side*(f.eyeX+0.27), wy=f.noseY-0.01-wi*0.085;
+      var wh=new THREE.Mesh(new THREE.CylinderGeometry(0.0075,0.0075,0.24,5),eyeMat);
+      wh.position.set(wx,wy,faceSurfZ(f,wx,wy,f.eyeZ-0.35)+0.020);
+      wh.rotation.z=side>0? -Math.PI/2+tilt : Math.PI/2-tilt;
+      wh.rotation.y=-side*0.45; wh.renderOrder=6; faceG.add(wh);
+    });
+  });
+  var nz=faceSurfZ(f,0,f.noseY,f.noseZ)+0.028;
+  var nose=new THREE.Mesh(new THREE.SphereGeometry(0.088,14,12),noseMat);
+  nose.scale.set(1.35,0.8,0.6); nose.position.set(0,f.noseY,nz); nose.renderOrder=6; faceG.add(nose); parts.nose=nose;
+  var ng=new THREE.Mesh(new THREE.SphereGeometry(0.020,8,8),glintMat);
+  ng.position.set(-0.030,f.noseY+0.028,nz+0.048); ng.renderOrder=7; faceG.add(ng);
+  var mouthY=f.noseY-0.115, mz=faceSurfZ(f,0,mouthY,f.noseZ+0.10)+0.042;
+  var arcM=new THREE.Mesh(new THREE.TorusGeometry(0.125,0.032,10,24,Math.PI),eyeMat);
+  arcM.position.set(0,mouthY,mz); arcM.rotation.z=Math.PI; arcM.rotation.x=-0.2; arcM.renderOrder=6;
+  faceG.add(arcM); parts.arc=arcM;
+  var oM=new THREE.Mesh(new THREE.SphereGeometry(0.078,12,10),eyeMat);
+  oM.scale.set(1,1.25,0.5); oM.position.set(0,mouthY-0.02,mz); oM.visible=false; oM.renderOrder=6;
+  faceG.add(oM); parts.o=oM;
+  return parts;
+}
 
 function buildCatMesh(type){
   var f=FORMS[type];
@@ -1808,14 +2368,13 @@ function buildCatMesh(type){
   var mat=jellyMat(f.color,undefined,currentTex);
   var jelly=new THREE.Mesh(currentTex==='diamond'? facetedCatGeometry(type) : catGeometry(type),mat);
   jelly.castShadow=true; jelly.receiveShadow=true; bodyG.add(jelly);
-  [-1,1].forEach(function(side){
-    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.095,14,12),eyeMat);
-    eye.scale.set(1,1.15,0.55); eye.position.set(side*f.eyeX,f.eyeY,f.eyeZ); bodyG.add(eye);
-    var glint=new THREE.Mesh(new THREE.SphereGeometry(0.03,8,8),glintMat);
-    glint.position.set(side*f.eyeX+0.032,f.eyeY+0.045,f.eyeZ+0.05); bodyG.add(glint);
-  });
-  var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,12,10),noseMat);
-  nose.scale.set(1.35,0.8,0.6); nose.position.set(0,f.noseY,f.noseZ); bodyG.add(nose);
+  /* the whole face lives in one group inside bodyG, so the
+     expression driver (updateCatFace) can morph it per cat and
+     the face squashes and travels WITH the head - see
+     buildFaceGroup above for the premium layout: raised cluster,
+     SDF-seated parts, glossy bead eyes, lashes, blush, whiskers */
+  var faceParts=buildFaceGroup(f); bodyG.add(faceParts.grp);
+  g.userData.face=faceParts;
   if(type==='soda'){
     for(var i=0;i<11;i++){
       var b=new THREE.Mesh(new THREE.SphereGeometry(0.05+Math.random()*0.07,8,8),bubbleMat);
@@ -2436,25 +2995,25 @@ var I18N={
 en:{subtitle:"Jelly cat pressing research",count:"Cats popped",ready:"Ready",pressing:"Pressing",playmode:"Play mode",sound:"Sound",reset:"Reset",hold:"HOLD",raise:"Raise",pressure:"Pressure",mochiSub:"strawberry round",puddingSub:"caramel flat",sodaSub:"mint tall, fizzy",texLabel:"Surface",tex_glass:"Glass",tex_iron:"Iron",tex_diamond:"Diamond",tex_jelly:"Jelly",tex_brick:"Brick",tex_water:"Slime ball",tex_lego:"Toy Brick",sizeLabel:"Cat size",splitToast:"It split into smaller pieces.",cloneToast:"{name} popped into {n} mini clones at {bar} bar.",
 captions:["Ready when you are.","Contact.","It is fine. It is jelly.","Getting wider.","That is a pancake now.","It is making a noise.","Please."],
 subs:["Hold the red button. The cat has made its peace.","The press has opinions about this cat.","Jelly law: volume is conserved. Dignity is not.","Surface area is having a great day.","Somewhere, a physicist is nodding.","The gauge believes in you. The cat does not.","Any second now."],
-playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",boughtToast:"{name} is yours.",machines:["Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Dragon","Hell","Angel"],fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - all {n} cells are taken. Pop a cat or vacuum the crumbs first.",stackToast:"Side by side: {n} cats, each in its own cell.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
+playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",boughtToast:"{name} is yours.",machines:["Base Press","Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Base","Dragon","Hell","Angel"],fx_base:"Effect: Factory standard - clean steel, cyan power veins, status lamps. Same power as every press.",fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",hpTxt:"Cat HP",hpFull:"Full health - hold to wear it down.",hpWeak:"Cracking - keep pressing, it is giving way.",hpCrit:"Nearly popped - one more push!",hpNone:"No cat on the bed.",hpEach:"{n} cats - one HP ring each, flat on the bed at each cat's feet.",hpMore:"+{n} more cats",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - {n} cats is the most the press can hold. Pop a cat or vacuum the crumbs first.",stackToast:"{n} cats on the press - they drop in, bump and stack like real physics.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
 verdicts:["Pawp.","Flopped.","Fizzed."],stat:"Gave up at {bar} bar and {pct}% of its height.",
 poppedToast:"{name} popped at {bar} bar.",newCatToast:"{name} is on the bed. It suspects nothing.",grabToast:"Grabbed. It stretches. It forgives nothing.",resetToast:"Fresh cat, full height, no memory of the press."},
 vi:{subtitle:"Nghiên cứu ép mèo jelly",count:"Mèo đã bẹp",ready:"Sẵn sàng",pressing:"Đang ép",playmode:"Chế độ chơi",sound:"Âm thanh",reset:"Làm lại",hold:"GIỮ",raise:"Nâng lên",pressure:"Áp lực",mochiSub:"dâu, tròn",puddingSub:"caramel, dẹt",sodaSub:"bạc hà, cao, có ga",texLabel:"Bề mặt",tex_glass:"Thủy tinh",tex_iron:"Sắt",tex_diamond:"Kim cương",tex_jelly:"Thạch",tex_brick:"Gạch",tex_water:"Bóng slime",tex_lego:"Gạch đồ chơi",sizeLabel:"Cỡ mèo",splitToast:"Nó tách ra thành các mảnh nhỏ hơn.",cloneToast:"{name} bẹp thành {n} mèo mini phân thân ở {bar} bar.",
 captions:["Sẵn sàng khi anh sẵn sàng.","Chạm rồi.","Không sao. Nó là thạch mà.","Đang bè ra.","Giờ là bánh kếp rồi.","Nó đang kêu đấy.","Xin đấy."],
 subs:["Giữ nút đỏ. Bé mèo đã chấp nhận số phận.","Máy ép có ý kiến riêng về bé này.","Luật thạch: thể tích giữ nguyên. Thể diện thì không.","Diện tích bề mặt đang rất vui.","Ở đâu đó, một nhà vật lý đang gật đầu.","Đồng hồ tin anh. Bé mèo thì không.","Sắp rồi, sắp rồi."],
-playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",boughtToast:"{name} là của anh rồi.",machines:["Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Hỏa Long","Địa Ngục","Thiên Thần"],fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - đã hết ô, tối đa {n} mèo xếp cạnh nhau. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"Xếp cạnh nhau: {n} mèo, mỗi mèo một ô riêng.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
+playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",boughtToast:"{name} là của anh rồi.",machines:["Máy Ép Gốc","Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Gốc","Hỏa Long","Địa Ngục","Thiên Thần"],fx_base:"Hiệu ứng: Máy xưởng tiêu chuẩn - thép sạch, gân điện xanh, đèn trạng thái. Sức ép ngang mọi máy.",fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",hpTxt:"Máu mèo",hpFull:"Đang khỏe nguyên - giữ ép để bào dần nhé.",hpWeak:"Đang nứt rồi - ép tiếp đi, sắp chịu hết nổi.",hpCrit:"Sắp bẹp rồi - ép thêm chút nữa thôi!",hpNone:"Chưa có mèo trên bàn.",hpEach:"{n} mèo - mỗi bé một vòng máu quanh chân trên mặt bàn.",hpMore:"+{n} mèo nữa",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - máy chứa tối đa {n} mèo. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"{n} mèo trên bàn - thả vào là va chạm, xếp chồng như vật lý thật.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
 verdicts:["Bẹp.","Xẹp lép.","Xì ga."],stat:"Bỏ cuộc ở {bar} bar và {pct}% chiều cao.",
 poppedToast:"{name} bẹp ở {bar} bar.",newCatToast:"{name} đã lên bàn ép. Bé chưa nghi ngờ gì.",grabToast:"Đã nắm. Nó giãn ra. Nó không tha thứ đâu.",resetToast:"Mèo mới, chiều cao nguyên vẹn, không nhớ gì về máy ép."},
 es:{subtitle:"Investigación del prensado de gatos de gelatina",count:"Gatos aplastados",ready:"Listo",pressing:"Prensando",playmode:"Modo juego",sound:"Sonido",reset:"Reiniciar",hold:"MANTÉN",raise:"Subir",pressure:"Presión",mochiSub:"fresa, redondo",puddingSub:"caramelo, plano",sodaSub:"menta, alto, con gas",texLabel:"Superficie",tex_glass:"Vidrio",tex_iron:"Hierro",tex_diamond:"Diamante",tex_jelly:"Gelatina",tex_brick:"Ladrillo",tex_water:"Bola de slime",tex_lego:"Ladrillo de juguete",sizeLabel:"Tamaño",splitToast:"Se partió en trozos más pequeños.",cloneToast:"{name} reventó en {n} miniclones a {bar} bar.",
 captions:["Listo cuando quieras.","Contacto.","No pasa nada. Es gelatina.","Se está ensanchando.","Eso ya es una tortita.","Está haciendo un ruido.","Por favor."],
 subs:["Mantén el botón rojo. El gato ya aceptó su destino.","La prensa tiene opiniones sobre este gato.","Ley de la gelatina: el volumen se conserva. La dignidad no.","El área superficial está feliz.","En algún lugar, un físico asiente.","El medidor cree en ti. El gato no.","En cualquier momento."],
-playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Dragón","Infierno","Ángel"],fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: las {n} celdas están ocupadas. Revienta un gato o aspira antes.",stackToast:"Lado a lado: {n} gatos, cada uno en su celda.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
+playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Base","Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Base","Dragón","Infierno","Ángel"],fx_base:"Efecto: Estándar de fábrica - acero limpio, venas de energía cian, luces de estado. Misma potencia que todas.",fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",hpTxt:"PV del gato",hpFull:"Salud completa: mantén para desgastarlo.",hpWeak:"Se está agrietando: sigue, ya cede.",hpCrit:"Casi revienta: ¡un empujón más!",hpNone:"No hay gato en la base.",hpEach:"{n} gatos: un anillo de PV en la base, a los pies de cada gato.",hpMore:"+{n} gatos más",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: {n} gatos es lo máximo que cabe. Revienta un gato o aspira antes.",stackToast:"{n} gatos en la prensa: caen, chocan y se apilan con física real.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
 verdicts:["Pawp.","Aplastado.","Burbujeó."],stat:"Se rindió a {bar} bar y al {pct}% de su altura.",
 poppedToast:"{name} reventó a {bar} bar.",newCatToast:"{name} está en la base. No sospecha nada.",grabToast:"Agarrado. Se estira. No perdona nada.",resetToast:"Gato nuevo, altura completa, sin recuerdos de la prensa."},
 zh:{subtitle:"果冻猫压制研究",count:"已压猫数",ready:"就绪",pressing:"正在压",playmode:"游玩模式",sound:"声音",reset:"重置",hold:"按住",raise:"升起",pressure:"压力",mochiSub:"草莓, 圆",puddingSub:"焦糖, 扁",sodaSub:"薄荷, 高, 带气泡",texLabel:"表面",tex_glass:"玻璃",tex_iron:"铁",tex_diamond:"钻石",tex_jelly:"果冻",tex_brick:"砖块",tex_water:"史莱姆球",tex_lego:"玩具积木",sizeLabel:"大小",splitToast:"它裂成了更小的碎块。",cloneToast:"{name} 在 {bar} bar 时爆成了 {n} 只迷你分身猫。",
 captions:["随时可以开始。","接触了。","没事。它是果冻。","越来越宽了。","这已经是煎饼了。","它在发出声音。","拜托了。"],
 subs:["按住红按钮。这只猫已经接受命运了。","压机对这只猫有自己的看法。","果冻定律: 体积守恒, 尊严不守恒。","表面积今天很开心。","在某个地方, 一位物理学家在点头。","仪表相信你。猫不相信。","随时都会发生。"],
-playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",boughtToast:"{name} 归你了。",machines:["火龙压机","地狱压机","天使压机"],shortMachines:["火龙","地狱","天使"],fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - {n} 个格子都满了。先压爆一只猫或吸走碎屑。",stackToast:"并排: {n} 只猫, 每只占一格。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
+playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",boughtToast:"{name} 归你了。",machines:["基础压机","火龙压机","地狱压机","天使压机"],shortMachines:["基础","火龙","地狱","天使"],fx_base:"效果:工厂标准 - 干净钢材、青色能量脉络、状态灯。与所有压机同等力量。",fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",hpTxt:"猫的血量",hpFull:"满血状态 - 按住压机慢慢磨。",hpWeak:"正在开裂 - 继续压, 它快撑不住了。",hpCrit:"快爆了 - 再压一下!",hpNone:"台上还没有猫。",hpEach:"{n} 只猫 - 每只脚边一个平贴台面的血量环。",hpMore:"还有 {n} 只猫",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - 压机最多放 {n} 只猫。先压爆一只猫或吸走碎屑。",stackToast:"台上有 {n} 只猫:掉落、碰撞、像真实物理一样堆叠。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
 verdicts:["啪叽。","压扁了。","滋滋冒泡。"],stat:"在 {bar} bar 和 {pct}% 高度时放弃了。",
 poppedToast:"{name} 在 {bar} bar 时爆开了。",newCatToast:"{name} 已经上台了。它什么都没怀疑。",grabToast:"抓住了。它在拉伸。它什么都不原谅。",resetToast:"新猫, 完整高度, 完全不记得压机。"}
 };
@@ -2638,8 +3197,8 @@ var currentType='mochi';
 var hero=null; /* {mesh,inner,mat,form} */
 var squash=0, squashV=0, pressure=0, holding=false;
 var bladeSpeed=0, grindSpin=0, burstStyle='press', crumbSizeMul=1; /* machine work visuals + burst flavour */
-var heroes=[]; /* the cat GRID: every hero stands in its OWN cell on the bed, side by side - never on another cat's head. The last entry is the active cat (hero) */
-var MAX_STACK=4;
+var heroes=[]; /* every cat on the bed: free physical bodies that fall, collide and stack on each other inside the press. The last entry is the active cat (hero) */
+var MAX_STACK=12;
 var burstAt=0.6, popTotal=0, maxPressure=0, lastCrumbSquash=0;
 var pieces=[], droplets=[];
 var catSize=1; /* user-adjustable hero scale, 0.7 to 1.5, from the Size slider */
@@ -2662,15 +3221,16 @@ function randomTex(){
   }
   return pick;
 }
-/* ---------- Cat GRID: Gen cat no longer replaces the cat ----------
-   Every hero is one cat standing in its OWN cell on the bed, side by
-   side in a 2x2 grid - never stacked on another cat's head, never
-   overlapping a neighbour. The last entry is the active cat (the
-   global `hero`). Each cat keeps its OWN type, material, size, seed,
-   crack network and work progress - the press works every cat under
-   the platen works every cat it actually touches, cell by cell up
-   to their tier capacity (see burst), and the vacuum never touches
-   a standing cat, only loose pieces. When all 4 cells are taken,
+/* ---------- Many cats: Gen cat no longer replaces the cat ----------
+   Every hero is a free physical body on the bed: it drops in,
+   collides with its neighbours and can land ON TOP of another
+   cat, riding it like ordinary physics (see catSupportY /
+   layoutStack). Each cat keeps its OWN type, material, size,
+   seed, crack network and work progress, and its own baseY - the
+   bed for a ground cat, the crown of the cat below for a stacked
+   one. The press works every cat the platen actually touches,
+   each from its own baseY (see catContact), and the vacuum never
+   touches a standing cat, only loose pieces. At MAX_STACK cats
    Gen cat says Full and changes nothing. */
 /* full dispose for a removed cat: its crack ribbons own per-cat
    geometries and materials, and its body material is per-cat too.
@@ -2679,8 +3239,10 @@ function randomTex(){
    disposed - disposing them would break the next cat. */
 function disposeHero(h){
   if(!h) return;
+  removeHpFloat(h);
   scene.remove(h.mesh);
   if(h.crack) h.crack.traverse(function(o){ if(o.isMesh){ if(o.geometry) o.geometry.dispose(); if(o.material) o.material.dispose(); } });
+  if(h.face&&h.face.grp) h.face.grp.traverse(function(o){ if(o.isMesh&&o.geometry) o.geometry.dispose(); }); /* face geometries are per-cat; its materials are shared and kept */
   if(h.mat) h.mat.dispose();
 }
 function makeHeroCat(type,texKind,sizeF){
@@ -2698,7 +3260,7 @@ function makeHeroCat(type,texKind,sizeF){
   var jrng=mulberry32(heroSeed^0x51ab);
   var bfp=formPhys(type);
   var heroFp={stiff:bfp.stiff*(0.85+jrng()*0.3),damp:bfp.damp*(0.85+jrng()*0.3),volKeep:bfp.volKeep,spread:bfp.spread,wobbleAmp:bfp.wobbleAmp,fric:bfp.fric,bounce:bfp.bounce,bend:bfp.bend,fragN:bfp.fragN,fragBounce:bfp.fragBounce,mass:bfp.mass,comp:bfp.comp};
-  return {mesh:mesh,inner:mesh.userData.inner,mat:mesh.userData.mat,form:FORMS[type],type:type,texKind:texKind,sizeF:sizeF,wob:0,wobV:0,shake:0,vx:0,vz:0,held:false,tiltX:0,tiltZ:0,crack:crackGrp,dustAt:0,leakAt:0,ejAt:0,puddleFeed:0,fp:heroFp,seed:heroSeed,lean:jrng()*Math.PI*2,voro:(crackGrp.userData.voroCells||[]),workP:0,drop:0,dropV:0,baseY:BED_Y,cellIdx:0,gridF:1,hopY:0,hopV:0,tvx:0,tvz:0,rax:0,raz:0,kickAt:0,spinF:0.5+Math.random()*0.9,pSq:0,pSqV:0,pRaw:0,pContact:false,pEngaged:false,pDmg:0,pCrack:0,lastCrumb:0,burstAt:0.54+Math.random()*0.12};
+  return {mesh:mesh,inner:mesh.userData.inner,mat:mesh.userData.mat,form:FORMS[type],type:type,texKind:texKind,sizeF:sizeF,wob:0,wobV:0,shake:0,vx:0,vz:0,vy:0,held:false,tiltX:0,tiltZ:0,crack:crackGrp,dustAt:0,leakAt:0,ejAt:0,puddleFeed:0,fp:heroFp,seed:heroSeed,lean:jrng()*Math.PI*2,voro:(crackGrp.userData.voroCells||[]),workP:0,face:mesh.userData.face||null,expr:0,drop:0,dropV:0,baseY:BED_Y,cellIdx:0,gridF:1,hopY:0,hopV:0,tvx:0,tvz:0,rax:0,raz:0,kickAt:0,spinF:0.5+Math.random()*0.9,pSq:0,pSqV:0,pRaw:0,pContact:false,pEngaged:false,pDmg:0,pCrack:0,hpShown:1,lastCrumb:0,burstAt:0.54+Math.random()*0.12};
 }
 /* (stackRestHeight is gone on purpose: one shared tallest-cat
    height driving every cat's squash WAS the early-press bug.) */
@@ -2724,9 +3286,9 @@ function reqPressureFor(h){
   return Math.round(base*(0.55+0.45*Math.pow(h.sizeF||1,2))*(0.45+0.55*density));
 }
 function catContact(h,pb){
-  var restH=catRestH(h), restTop=BED_Y+restH;
+  var restH=catRestH(h), restTop=(h.baseY||BED_Y)+restH;
   var dist=Math.hypot(h.mesh.position.x,h.mesh.position.z+0.1);
-  var footR=1.02*h.form.scale*(h.sizeF||1)*(h.gridF||1);
+  var footR=catFootR(h);
   if(dist>=PLATEN_R+footR || pb>=restTop) return null; /* face has not reached this cat */
   return {restH:restH,restTop:restTop,raw:Math.max(0,Math.min(0.98,(restTop-pb)/restH))};
 }
@@ -2738,34 +3300,43 @@ function platenFloorBottom(){
   var fl=PLATEN_MIN-0.35;
   for(var i=0;i<heroes.length;i++){
     var h=heroes[i];
-    var footR=1.02*h.form.scale*(h.sizeF||1)*(h.gridF||1);
+    var footR=catFootR(h);
     if(Math.hypot(h.mesh.position.x,h.mesh.position.z+0.1)>=PLATEN_R+footR) continue;
-    fl=Math.max(fl,BED_Y+catRestH(h)-catRestH(h)*catMaxPen(h)-0.02);
+    fl=Math.max(fl,(h.baseY||BED_Y)+catRestH(h)*(1-catMaxPen(h))-0.02);
   }
   return fl;
 }
-/* the four cells of the 2x2 grid on the bed disc (bed centre 0,-0.1).
-   A lone cat stands in the middle; with 2-4 cats each takes a corner
-   cell and shrinks a little (gridF) so neighbours never intersect:
-   at gridF the widest cat's diameter stays under the 1.96 cell pitch */
-var CELL_POS=[[-0.98,-1.08],[0.98,-1.08],[-0.98,0.88],[0.98,0.88]];
-function cellHome(h){
-  if(heroes.length<=1) return {x:0,z:-0.1};
-  var c=CELL_POS[(h.cellIdx||0)%4]; return {x:c[0],z:c[1]};
+/* ---------- FREE STACKING: no cells, no shrink ----------
+   Cats are physical bodies on the bed now. Each cat has a
+   footprint radius and a current (squash-aware) height; its
+   SUPPORT is the bed itself or the crown of a cat underneath it
+   whose footprint it overlaps - so cats land on each other and
+   ride each other down as the press squashes the pile, exactly
+   like ordinary physics. Nothing ever shrinks a cat to fit:
+   gridF stays 1 forever. The pile may not grow past the press
+   mouth (STACK_TOP): a cat that would poke into the resting
+   platen simply does not count the support and slides off. */
+var STACK_TOP=5.95; /* platen rest bottom is 5.50; a stacked crown may reach a little into the squash zone, never through the face */
+function catFootR(h){ return 1.02*h.form.scale*(h.sizeF||1); }
+function curCatH(h){
+  var sy=(h.inner&&h.inner.scale)?Math.max(0.12,h.inner.scale.y||1):1;
+  return catRestH(h)*sy;
 }
-function freeCellIdx(){
-  for(var ci=0;ci<4;ci++){
-    var used=false;
-    for(var hi=0;hi<heroes.length;hi++) if(heroes[hi].cellIdx===ci) used=true;
-    if(!used) return ci;
+function catSupportY(h){
+  var sup=BED_Y;
+  var hx=h.mesh.position.x, hz=h.mesh.position.z, hy=h.mesh.position.y-(h.hopY||0);
+  for(var i=0;i<heroes.length;i++){
+    var o=heroes[i]; if(o===h) continue;
+    var dx=hx-o.mesh.position.x, dz=hz-o.mesh.position.z;
+    var rr=(catFootR(h)+catFootR(o))*0.70;
+    if(dx*dx+dz*dz>=rr*rr) continue;
+    var oTop=(o.baseY||BED_Y)+curCatH(o);
+    if(oTop<=sup) continue;
+    if(hy<oTop-0.55) continue; /* beside it, not above it: no landing */
+    if(oTop+catRestH(h)>STACK_TOP) continue; /* would pierce the resting platen */
+    sup=oTop;
   }
-  return 0;
-}
-function gridTargetF(){
-  if(heroes.length<=1) return 1;
-  var mx=1;
-  for(var i=0;i<heroes.length;i++) mx=Math.max(mx,heroes[i].sizeF||1);
-  return Math.max(0.40,Math.min(0.68,0.68/mx));
+  return sup;
 }
 function syncTexButtons(){
   document.querySelectorAll('.tex-btn').forEach(function(c){ c.classList.toggle('active',c.getAttribute('data-tex')===currentTex); });
@@ -2787,55 +3358,84 @@ function setHero(type,keepTex){
   updateMatStats();
 }
 function stackCat(type){
-  /* FULL means FULL: every cell taken - no new cat, no deleting an
-     old one, no squeezing two cats into one cell */
+  /* FULL means the press is genuinely crowded: MAX_STACK cats
+     standing, stacked and squeezed on the bed - no new cat then,
+     and nothing old is ever deleted to make room */
   if(heroes.length>=MAX_STACK){ toast(t('stackFull').replace('{n}',MAX_STACK)); return false; }
   var h=makeHeroCat(type,randomTex(),catSize);
-  h.cellIdx=freeCellIdx();
-  h.drop=2.4; h.dropV=0; /* it FALLS into its own empty cell and settles - see layoutStack */
+  /* DROP-IN: the new cat falls from just under the platen at a
+     random spot over the bed, at FULL size. Gravity, support and
+     cat-vs-cat collision decide where it ends up - on the bed,
+     shoved beside a neighbour, or riding on top of the pile. */
+  var ang=Math.random()*Math.PI*2, rad=Math.random()*1.55;
+  /* rapid repeat Gen taps: stagger the drop height a little by how
+     many cats are already up, so cats added in quick succession do
+     not all spawn at the exact same height and interpenetrate on
+     the way down - each still lands with full collision + stacking */
+  h.mesh.position.set(Math.cos(ang)*rad,BED_Y+2.6+Math.random()*0.5+(heroes.length%3)*0.3,-0.1+Math.sin(ang)*rad);
+  h.vy=0; h.baseY=BED_Y;
   heroes.push(h); hero=h;
-  var home=cellHome(h);
-  h.mesh.position.set(home.x,BED_Y+h.drop,home.z);
   currentType=type; currentTex=h.texKind;
   mode='ready';
   syncTexButtons(); updateMatStats();
   toast(t('stackToast').replace('{n}',heroes.length));
   return true;
 }
-/* per-frame grid layout: every cat stands on the BED in its own
-   cell (baseY is always BED_Y), at its grid scale, with its own
-   squash applied by the machine loops. Falling cats settle into
-   their cell with a wobble, never teleport, never land on a
-   neighbour. Cats drift back to their own cell when idle. */
+/* per-frame stack physics: gravity, landing, riding and
+   cat-vs-cat collision. Every cat falls until its support (bed
+   or another cat's crown) catches it, rides that support as it
+   squashes or rebounds, and shoves neighbours aside when their
+   bodies overlap side by side. Cats keep their full size and
+   stay where physics leaves them - no homing, no cells. */
 function layoutStack(dt,time){
-  var gF=gridTargetF();
-  for(var si=0;si<heroes.length;si++){
-    var hh=heroes[si];
-    hh.baseY=BED_Y;
-    hh.gridF=(hh.gridF||1)+(gF-(hh.gridF||1))*Math.min(1,dt*3.5);
-    if(hh.mesh.userData.bodyG) hh.mesh.userData.bodyG.scale.setScalar(hh.form.scale*(hh.sizeF||1)*hh.gridF);
-    if(hh.drop>0){
-      hh.dropV+=24*dt; hh.drop-=hh.dropV*dt;
-      if(hh.drop<=0){ hh.drop=0; hh.wobV+=4.5; plop(1); }
-    }
-    hh.mesh.position.y=BED_Y+Math.max(0,hh.drop)+(hh.hopY||0);
+  var i,j,hh;
+  for(i=0;i<heroes.length;i++){
+    hh=heroes[i];
+    hh.gridF=1; /* never shrunk, ever */
+    if(hh.mesh.userData.bodyG) hh.mesh.userData.bodyG.scale.setScalar(hh.form.scale*(hh.sizeF||1));
     var tumbling=(hh.hopY||0)>0.01||Math.abs(hh.tvx||0)>0.35||Math.abs(hh.tvz||0)>0.35;
     if(!tumbling){
-      /* back on the press, a cat left tipped by the bulk machines
-         rights itself - the press loop only drives the top cat */
+      /* a cat left tipped rights itself over time */
       var pux=Math.atan2(Math.sin(hh.inner.rotation.x),Math.cos(hh.inner.rotation.x));
       var puz=Math.atan2(Math.sin(hh.inner.rotation.z),Math.cos(hh.inner.rotation.z));
       var puu=Math.min(1,dt*5); hh.inner.rotation.x-=pux*puu; hh.inner.rotation.z-=puz*puu;
     }
-    if(!hh.held && !tumbling){
-      var home=cellHome(hh);
-      var settled=!(hh===hero && (Math.abs(hh.vx||0)>0.25||Math.abs(hh.vz||0)>0.25));
-      if(settled){
-        var ease=Math.min(1,dt*(hh===hero?1.6:3.2));
-        hh.mesh.position.x+=(home.x-hh.mesh.position.x)*ease;
-        hh.mesh.position.z+=(home.z-hh.mesh.position.z)*ease;
+    if(hh.held){ hh.vy=0; hh.baseY=hh.mesh.position.y-(hh.hopY||0); continue; }
+    var sup=catSupportY(hh);
+    var y=hh.mesh.position.y-(hh.hopY||0);
+    if(y>sup+0.002){
+      hh.vy=(hh.vy||0)+26*dt;
+      y-=hh.vy*dt;
+      if(y<=sup){
+        y=sup;
+        if(hh.vy>3.2){ hh.wobV+=Math.min(6,hh.vy*0.8); plop(Math.min(2,hh.vy*0.35)); }
+        hh.vy=0;
       }
-    }
+    } else { y=sup; hh.vy=0; /* ride the support: if the cat below squashes, this one sinks with it */ }
+    hh.baseY=y;
+    hh.mesh.position.y=y+(hh.hopY||0);
+  }
+  /* side-by-side collision: overlapping bodies push apart,
+     split by inverse mass; a cat riding on another is exempt */
+  for(i=0;i<heroes.length;i++) for(j=i+1;j<heroes.length;j++){
+    var a=heroes[i], b=heroes[j];
+    var aTop=(a.baseY||BED_Y)+curCatH(a), bTop=(b.baseY||BED_Y)+curCatH(b);
+    if((a.baseY||BED_Y)>bTop-0.30 || (b.baseY||BED_Y)>aTop-0.30) continue;
+    var dx=b.mesh.position.x-a.mesh.position.x, dz=b.mesh.position.z-a.mesh.position.z;
+    var rr=catFootR(a)+catFootR(b), d2=dx*dx+dz*dz;
+    if(d2>=rr*rr||d2<1e-6) continue;
+    var d=Math.sqrt(d2), push=(rr-d)*0.5, ux=dx/d, uz=dz/d;
+    var aM=(a.fp&&a.fp.mass)||1, bM=(b.fp&&b.fp.mass)||1, tot=aM+bM;
+    if(!a.held){ a.mesh.position.x-=ux*push*(2*bM/tot)*0.8; a.mesh.position.z-=uz*push*(2*bM/tot)*0.8; }
+    if(!b.held){ b.mesh.position.x+=ux*push*(2*aM/tot)*0.8; b.mesh.position.z+=uz*push*(2*aM/tot)*0.8; }
+    a.wobV+=0.8; b.wobV+=0.8;
+  }
+  /* containment: cats stay on the bed disc, inside the press */
+  for(i=0;i<heroes.length;i++){
+    hh=heroes[i];
+    var cxp=hh.mesh.position.x, czp=hh.mesh.position.z+0.1;
+    var bd=Math.hypot(cxp,czp), maxD=3.55;
+    if(bd>maxD){ hh.mesh.position.x=cxp/bd*maxD; hh.mesh.position.z=-0.1+czp/bd*maxD; }
   }
 }
 function clearPieces(){
@@ -3148,14 +3748,7 @@ function buildSplitChild(p,childR,childBase,ang,i){
     var bg=new THREE.Group(); bg.scale.setScalar(Math.max(0.18,childBase)); inner.add(bg);
     var jm=new THREE.Mesh(texKind==='diamond'? facetedCatGeometry(type) : catGeometry(type),mat); jm.castShadow=true; bg.add(jm);
     var f=FORMS[type];
-    [-1,1].forEach(function(side){
-      var eye=new THREE.Mesh(new THREE.SphereGeometry(0.095,10,8),eyeMat);
-      eye.scale.set(1,1.15,0.55); eye.position.set(side*f.eyeX,f.eyeY,f.eyeZ); bg.add(eye);
-      var glint=new THREE.Mesh(new THREE.SphereGeometry(0.03,7,7),glintMat);
-      glint.position.set(side*f.eyeX+0.032,f.eyeY+0.045,f.eyeZ+0.05); bg.add(glint);
-    });
-    var nose=new THREE.Mesh(new THREE.SphereGeometry(0.07,10,8),noseMat);
-    nose.scale.set(1.35,0.8,0.6); nose.position.set(0,f.noseY,f.noseZ); bg.add(nose);
+    var fcMini=buildFaceGroup(f); bg.add(fcMini.grp); /* mini clones wear the exact same premium face as the original */
   } else {
     var fragC=makeMatFrag(texKind,mat,Math.max(0.12,childBase));
     var cm=fragC.main; inner.add(fragC.node);
@@ -3407,7 +4000,7 @@ function applyTexture(kind){
     var idx=heroes.indexOf(hero), old=hero;
     var h=makeHeroCat(old.type,kind,old.sizeF||catSize);
     h.cellIdx=old.cellIdx||0; h.gridF=old.gridF||1;
-    h.mesh.position.x=old.mesh.position.x; h.mesh.position.z=old.mesh.position.z;
+    h.mesh.position.x=old.mesh.position.x; h.mesh.position.z=old.mesh.position.z; h.mesh.position.y=old.mesh.position.y; h.baseY=old.baseY||BED_Y;
     disposeHero(old);
     heroes[idx]=h; hero=h; currentTex=kind; currentType=h.type;
     crackLevel=0; heroDamage=0;
@@ -3467,11 +4060,12 @@ function genRandomCat(){
   var types=['mochi','pudding','soda'];
   var type=types[Math.floor(Math.random()*types.length)];
   if(heroes.length){
-    /* GRID: Gen cat never deletes the cats already on the bed - the
-       new cat drops into a FREE cell beside them with its own random
-       surface (or says Full when every cell is taken). The density
-       and size sliders stay where the user left them, so the cats
-       already standing keep the physics they were created with. */
+    /* Gen cat never deletes the cats already on the bed - the
+       new cat DROPS IN with its own random surface and lands
+       wherever physics puts it: beside the pile or on top of it
+       (or says Full at MAX_STACK). The density and size sliders
+       stay where the user left them, so the cats already standing
+       keep the physics they were created with. */
     stackCat(type);
     return;
   }
@@ -3563,10 +4157,6 @@ $('soundBtn').addEventListener('click',function(){
   soundOn=!soundOn; this.classList.toggle('on',soundOn);
   if(!soundOn) setHum(false,0); else ensureAudio();
 });
-$('fxBtn').addEventListener('click',function(){
-  fxOn=!fxOn; this.classList.toggle('on',fxOn);
-  applyMachineTheme(); /* every registered halo / vortex / glow follows fxOn */
-});
 document.querySelectorAll('.lang-btn').forEach(function(b){
   b.addEventListener('click',function(){
     langManual=true;
@@ -3579,7 +4169,6 @@ function applyLang(){
   $('subtitle').textContent=t('subtitle'); $('countLbl').textContent=t('count');
   $('soundLbl').textContent=t('sound'); $('resetLbl').textContent=t('reset');
   holdBtn.textContent=t('hold'); $('barLbl').textContent=t('pressure');
-  if($('fxLbl')) $('fxLbl').textContent=t('fxTxt');
   if($('photoLbl')) $('photoLbl').textContent=t('photoTxt');
   if($('photoTitle')) $('photoTitle').textContent=t('photoTitle');
   if($('photoHint')) $('photoHint').textContent=t('photoHint');
@@ -3592,12 +4181,13 @@ function applyLang(){
   $('vacBtn').textContent=t('vacTxt');
   $('bagTitle').textContent=t('bagTxt'); $('bagMoneyLbl').textContent=t('moneyTxt');
   updateBagUI(); renderBag();
-  if($('physCrackLbl')) $('physCrackLbl').textContent=t('physCrack');
   if($('physHardLbl')) $('physHardLbl').textContent=t('physHard');
   if($('physBounceLbl')) $('physBounceLbl').textContent=t('physBounce');
   if($('physMassLbl')) $('physMassLbl').textContent=t('physMass');
   if($('physNeedLbl')) $('physNeedLbl').textContent=t('physNeed');
   if($('physDmgLbl')) $('physDmgLbl').textContent=t('physDmg');
+  if($('hpLbl')) $('hpLbl').textContent=t('hpTxt');
+  hpListSig=''; updateHpUI();
   if($('cmpBtn')) $('cmpBtn').textContent=t('cmpTxt');
   updatePhysHud();
   if($('cmpPanel') && !$('cmpPanel').hidden) renderCompare();
@@ -3619,6 +4209,7 @@ window.addEventListener('keyup',function(e){ if(e.code==='Space'||e.code==='Arro
 /* ---------- Pointer: orbit camera + grab and fling pieces ---------- */
 var ray=new THREE.Raycaster(), mouseV=new THREE.Vector2();
 var pointers={}, dragPiece=null, dragHero=false, dragInfo=null;
+var orbitDrag=null, pinchDist=0; /* empty-space drag orbits the camera; a two-finger pinch zooms it */
 var tapCand=null; /* a press that hit nothing: if it ends as a quick, still tap on the trash bin, the bin vacuums the debris up */
 var dragPlane=new THREE.Plane(), dragHit=new THREE.Vector3();
 function castRay(e){
@@ -3653,6 +4244,7 @@ canvas.addEventListener('pointerdown',function(e){
       canvas.classList.add('grabbing');
     } else if(!hit){
       tapCand={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now()};
+      orbitDrag={id:e.pointerId}; /* empty space: this drag orbits the camera (a still tap still counts for the trash bin) */
     } else if(hit && hit.hero && hero){
       if(squash>0.3){ hero.wobV+=9; plop(1); spawnHearts(hero.mesh.position); }
       else {
@@ -3667,7 +4259,9 @@ canvas.addEventListener('pointerdown',function(e){
     }
   }
   if(Object.keys(pointers).length===2){
-    tapCand=null;
+    tapCand=null; orbitDrag=null;
+    var _pts=Object.keys(pointers).map(function(k){ return pointers[k]; });
+    pinchDist=Math.hypot(_pts[0].x-_pts[1].x,_pts[0].y-_pts[1].y);
     if(dragPiece){ dragPiece.held=false; dragPiece=null; dragInfo=null; canvas.classList.remove('grabbing'); }
     if(dragHero&&hero){ hero.held=false; hero.vx=0; hero.vz=0; dragHero=false; dragInfo=null; canvas.classList.remove('grabbing'); }
   }
@@ -3726,9 +4320,27 @@ canvas.addEventListener('pointermove',function(e){
     }
     return;
   }
-  /* camera locked: dragging empty space does nothing */
+  /* two fingers down: pinch zooms, the drag itself orbits a little */
+  if(Object.keys(pointers).length===2){
+    var pp=Object.keys(pointers).map(function(k){ return pointers[k]; });
+    var nd=Math.hypot(pp[0].x-pp[1].x,pp[0].y-pp[1].y);
+    if(pinchDist>0 && nd>0) camDistGoal=Math.max(9.5,Math.min(24,camDistGoal*pinchDist/nd));
+    pinchDist=nd;
+    camTheta-=dx*0.004;
+    camPhi=Math.max(0.55,Math.min(1.40,camPhi+dy*0.004));
+    return;
+  }
+  /* one finger / mouse on empty space: orbit the camera. Phi is
+     clamped so the view never dives under the floor or flips over
+     the top; theta is free, the press reads from every side */
+  if(orbitDrag && orbitDrag.id===e.pointerId){
+    camTheta-=dx*0.0052;
+    camPhi=Math.max(0.55,Math.min(1.40,camPhi+dy*0.0052));
+    canvas.classList.add('grabbing');
+  }
 });
 function endPointer(e){
+  if(orbitDrag && orbitDrag.id===e.pointerId){ orbitDrag=null; canvas.classList.remove('grabbing'); }
   if(dragPiece && dragInfo && dragInfo.id===e.pointerId){
     dragPiece.held=false;
     dragPiece.vx=Math.max(-11,Math.min(11,dragInfo.vx));
@@ -3755,11 +4367,12 @@ function endPointer(e){
     }
   }
   delete pointers[e.pointerId];
+  if(Object.keys(pointers).length<2) pinchDist=0;
 }
 canvas.addEventListener('pointerup',endPointer);
 canvas.addEventListener('pointercancel',endPointer);
-canvas.addEventListener('wheel',function(e){ e.preventDefault(); /* camera locked: no zoom */ },{passive:false});
-/* camera locked: no orbit, no pinch zoom, no double-click reset */
+canvas.addEventListener('wheel',function(e){ e.preventDefault(); camDistGoal=Math.max(9.5,Math.min(24,camDistGoal+e.deltaY*0.012)); },{passive:false});
+canvas.addEventListener('dblclick',function(){ camTheta=camHome.theta; camPhi=camHome.phi; camDistGoal=camHome.dist; });
 
 /* hearts on poke */
 var hearts=[];
@@ -3832,14 +4445,13 @@ function animate(){
      a single zero-dt frame used to push squash to NaN, and NaN scale
      made the hero cat vanish silently for the whole session. */
   var dt=Math.min(Math.max(clock.getDelta(),1/240),0.05), time=clock.elapsedTime;
-  camTheta=camHome.theta; camPhi=camHome.phi; /* camera angle locked, every frame */
-  /* ...but the DISTANCE breathes with the machine: the press sits at
-     the home distance - press-only framing, the whole machine
-     always fits the frame, never cropped, never covering the
-     cats or the work chamber */
-  var wantDist=camHome.dist, wantY=2.1; /* press-only framing: one machine, one camera */
-  camDist+=(wantDist-camDist)*Math.min(1,dt*2.8);
-  camTarget.y+=(wantY-camTarget.y)*Math.min(1,dt*2.8);
+  /* the camera is the USER'S now: dragging empty space (outside
+     any cat or loose piece) orbits it, the wheel and a two-finger
+     pinch zoom it, and a double-click reframes it home. Theta and
+     phi are set directly by the pointer handlers; only the
+     distance is eased here, so a zoom glides instead of jumping */
+  camDist+=(camDistGoal-camDist)*Math.min(1,dt*2.8);
+  camTarget.y+=(2.1-camTarget.y)*Math.min(1,dt*2.8);
   applyCam(); backdrop.position.copy(camera.position);
 
   /* press motion */
@@ -3921,6 +4533,9 @@ function animate(){
         mfx.wisps[fi2].scale.set(wS,0.8+0.45*Math.sin(time*3.1+fi2*1.4),wS);
       }
       if(mfx.halo){ mfx.halo.position.y=mfx.haloY+Math.sin(time*1.6)*0.09; mfx.halo.rotation.z=Math.sin(time*0.7)*0.12; }
+      if(mfx.lamps) for(fi2=0;fi2<mfx.lamps.length;fi2++){
+        mfx.lamps[fi2].material.opacity=0.45+0.5*Math.max(0,Math.sin(time*2.4+fi2*2.1));
+      }
       if(mfx.floats) for(fi2=0;fi2<mfx.floats.length;fi2++){
         var fc=mfx.floats[fi2];
         if(fc.userData.y0===undefined) fc.userData.y0=fc.position.y;
@@ -3941,6 +4556,7 @@ function animate(){
   }
 
   updatePressVFX(dt,time);
+  updateBodyFx(dt,time);
   if(mode==='ready' && hero){
     var form=hero.form;
     var fp=hero.fp||formPhys(currentType);
@@ -3951,7 +4567,7 @@ function animate(){
     if(!hero.held && (Math.abs(hero.vx)>0.02||Math.abs(hero.vz)>0.02)){
       hero.mesh.position.x+=hero.vx*dt; hero.mesh.position.z+=hero.vz*dt;
       var dampF=Math.pow(fp.fric>=0.5?0.02:(fp.fric<=0.35?0.10:0.055),dt/(fp.mass||1)); hero.vx*=dampF; hero.vz*=dampF; /* inertia: heavy Pudding keeps its slide, light Soda checks up sooner per unit friction */
-      var bx=hero.mesh.position.x, bz=hero.mesh.position.z+0.1, bd=Math.hypot(bx,bz), maxR=2.35;
+      var bx=hero.mesh.position.x, bz=hero.mesh.position.z+0.1, bd=Math.hypot(bx,bz), maxR=3.05;
       if(bd>maxR){
         hero.mesh.position.x=bx/bd*maxR; hero.mesh.position.z=-0.1+bz/bd*maxR;
         var nx2=bx/bd, nz2=bz/bd, dot2=hero.vx*nx2+hero.vz*nz2;
@@ -3975,7 +4591,7 @@ function animate(){
       var h=heroes[ci], hphys=physEff(h.texKind), hfp=h.fp||formPhys(h.type);
       var ctG=catContact(h,pbNow);
       if(pressingNow && ctG && !h.held) h.pEngaged=true;
-      if(h.held || (!ctG && pbNow>BED_Y+catRestH(h)+0.05)) h.pEngaged=false;
+      if(h.held || (!ctG && pbNow>(h.baseY||BED_Y)+catRestH(h)+0.05)) h.pEngaged=false;
       var ct=(h.pEngaged && ctG)? ctG : null;
       h.pContact=!!ct;
       h.pRaw=ct? ct.raw : 0;
@@ -4063,7 +4679,20 @@ function animate(){
         var strainI=(h.texKind==='jelly')? h.pSq/Math.max(0.2,h.burstAt||burstAt) : Math.max(h.pRaw/Math.max(0.1,physFor(h.texKind).burstRaw), reqI>0? pressure/reqI : 0);
         h.pCrack=Math.max(h.pCrack||0,Math.min(1,strainI));
         var srI=Math.min(1.15,strainI);
-        if(srI>0.32 && h.texKind!=='water') h.pDmg=Math.min(1,(h.pDmg||0)+dt*0.15*Math.pow(srI,1.7)*(reqI>machineCap()?1.4:1.0));
+        /* REAL-TIME HP DRAIN: fatigue accrues EVERY frame this cat
+           is in contact and being pressed - no dead-zone threshold,
+           no waiting for a crack milestone or the burst. The rate
+           scales with strain AND with the delivered pressure ratio
+           (gauge pressure vs what this cat needs), so a light hold
+           wears the cat down slowly and a hard hold fast, and the
+           HP bar falls continuously for exactly as long as the user
+           holds the press. Water cats drain too (they leak away
+           under load), at a gentler rate, via pDmg alone. */
+        if(srI>0.03){
+          var pRatio=Math.min(1,Math.max(0.15,pressure/Math.max(1,reqI)));
+          var drain=(0.014+0.26*Math.pow(Math.min(1,srI),1.6))*(0.35+0.65*pRatio)*(reqI>machineCap()?1.25:1.0);
+          h.pDmg=Math.min(1,(h.pDmg||0)+dt*drain*(h.texKind==='water'?0.7:1.0));
+        }
         h.pCrack=Math.max(h.pCrack,Math.min(1,(h.pDmg||0)*1.12));
         if(h===hero && h.pCrack>lastCrackSndLevel+0.045 && performance.now()-lastCrackSndAt>130){
           lastCrackSndLevel=h.pCrack; lastCrackSndAt=performance.now();
@@ -4071,7 +4700,7 @@ function animate(){
         }
         if(h.pCrack>0.28 && h.texKind!=='water' && time>(h.dustAt||0)){
           h.dustAt=time+0.14;
-          spawnDust(h.texKind==='jelly'?1:2,h.mesh.position.x+(Math.random()-0.5)*1.4,BED_Y+0.5+Math.random()*0.8,h.mesh.position.z+(Math.random()-0.5)*1.4,h.texKind,h.form.color,1.1);
+          spawnDust(h.texKind==='jelly'?1:2,h.mesh.position.x+(Math.random()-0.5)*1.4,(h.baseY||BED_Y)+0.5+Math.random()*0.8,h.mesh.position.z+(Math.random()-0.5)*1.4,h.texKind,h.form.color,1.1);
         }
         /* the active press's signature VFX plays at THIS contact */
         pressVFXTick(h,dt,time);
@@ -4079,11 +4708,11 @@ function animate(){
         var crumbB=hphys.jiggle>0? h.pSq : Math.min(1,h.pRaw/Math.max(0.02,physFor(h.texKind).burstRaw))*0.55;
         if(crumbB>0.14 && crumbB>(h.lastCrumb||0)+0.06){
           h.lastCrumb=crumbB;
-          if(h.texKind==='jelly') spawnCrumbs(3,h.mesh.position.x,h.mesh.position.z,h.form.color,1.5,'jelly');
+          if(h.texKind==='jelly') spawnCrumbs(3,h.mesh.position.x,h.mesh.position.z,h.form.color,1.5,'jelly',(h.baseY||BED_Y)-BED_Y);
           else if(h.texKind==='water'){
-            for(var wd2=0;wd2<2;wd2++) spawnSlimeGlob(h.mesh.position.x+(Math.random()-0.5)*1.6,BED_Y+0.5,h.mesh.position.z+(Math.random()-0.5)*1.6,(Math.random()-0.5)*3,1.6+Math.random()*1.4,(Math.random()-0.5)*3,0.04+Math.random()*0.04,1.3);
+            for(var wd2=0;wd2<2;wd2++) spawnSlimeGlob(h.mesh.position.x+(Math.random()-0.5)*1.6,(h.baseY||BED_Y)+0.5,h.mesh.position.z+(Math.random()-0.5)*1.6,(Math.random()-0.5)*3,1.6+Math.random()*1.4,(Math.random()-0.5)*3,0.04+Math.random()*0.04,1.3);
           }
-          else if(h.texKind==='brick'||h.texKind==='glass') spawnCrumbs(2,h.mesh.position.x,h.mesh.position.z,h.form.color,1.2,h.texKind);
+          else if(h.texKind==='brick'||h.texKind==='glass') spawnCrumbs(2,h.mesh.position.x,h.mesh.position.z,h.form.color,1.2,h.texKind,(h.baseY||BED_Y)-BED_Y);
         }
         if(crumbB<(h.lastCrumb||0)-0.05) h.lastCrumb=crumbB;
         /* a slime ball leaks only while IT is really squeezed */
@@ -4092,11 +4721,12 @@ function animate(){
           var nJ=1+(h.pRaw>0.45?1:0);
           for(var lj=0;lj<nJ;lj++){
             var la=Math.random()*Math.PI*2;
-            spawnSlimeGlob(h.mesh.position.x+Math.cos(la)*1.1,BED_Y+0.4+Math.random()*0.5,h.mesh.position.z+Math.sin(la)*1.1,Math.cos(la)*(1.4+Math.random()*1.2),1.2+Math.random()*1.0,Math.sin(la)*(1.4+Math.random()*1.2),0.04+Math.random()*0.04,1.3);
+            spawnSlimeGlob(h.mesh.position.x+Math.cos(la)*1.1,(h.baseY||BED_Y)+0.4+Math.random()*0.5,h.mesh.position.z+Math.sin(la)*1.1,Math.cos(la)*(1.4+Math.random()*1.2),1.2+Math.random()*1.0,Math.sin(la)*(1.4+Math.random()*1.2),0.04+Math.random()*0.04,1.3);
           }
           spawnPuddle(h.mesh.position.x,h.mesh.position.z,0.22+h.pRaw*0.30,false);
         }
       }
+      updateCatFace(h,dt,time);
       setCrackVisual(h.crack,h.pCrack||0);
     }
     /* globals mirror the ACTIVE cat for the HUD, captions, gauge */
@@ -4392,13 +5022,14 @@ function animate(){
   updateVacuum(dt);
   updatePuddles(dt,time);
   updateSlimeStrands(dt);
-  /* live damage readout for the physics HUD, 5x per second - the
-     crack / fatigue percentage the solver is actually carrying */
+  /* live HP readout, 5x per second: the deck card and the per-cat
+     mini rows refresh from each cat's own fatigue + crack strain.
+     The segmented HP rings at the cats' feet update every frame. */
   if(time>hudAt){
     hudAt=time+0.2;
-    var dmgEl=$('physDmg');
-    if(dmgEl) dmgEl.textContent=Math.round(Math.max(crackLevel||0,heroDamage||0)*100)+'%';
+    updateHpUI();
   }
+  updateHpFloats();
   governQuality(dt);
   renderer.render(scene,camera);
 }
