@@ -732,6 +732,28 @@ function layoutPlaten(){
 layoutPlaten();
 function platenBottom(){ return platenY-0.35; }
 function platenTopY(){ return platenY+0.26; }
+/* REST LIFT: a cat (or pile) taller than the standard rest gap used
+   to spawn already interpenetrating the resting platen - head
+   hidden inside the disc, and the first touch of HOLD slammed it
+   flat by the pre-penetration depth. Now the press LIFTS its rest
+   position to clear the tallest crown actually under the disc, up
+   to PLATEN_LIFT_MAX (platen top 6.31 stays just under the cylinder
+   housing flange at 6.34). A crown that still does not fit even at
+   max lift is slid out from under the disc instead (layoutStack),
+   so no cat ever rests with its crown inside the face. */
+var PLATEN_LIFT_MAX=6.05;
+function platenRestY(){
+  var rest=PLATEN_TOP;
+  if(typeof heroes!=='undefined'){
+    for(var i=0;i<heroes.length;i++){
+      var h=heroes[i];
+      if(h.held || !catUnderDisc(h)) continue;
+      var need=(h.baseY||BED_Y)+catRestH(h)+0.39;
+      if(need>rest) rest=Math.min(PLATEN_LIFT_MAX,need);
+    }
+  }
+  return rest;
+}
 var platenVelY=0; /* units per second, tracked every frame in animate() */
 
 /* ---------- Press skins: FOUR machines (base + three fantasy) ----------
@@ -3382,6 +3404,18 @@ function makeHeroCat(type,texKind,sizeF){
    a cat the face has not reached has pRaw exactly 0, and the press
    loop gives it no squash, no cracks, no damage and no burst. */
 function catRestH(h){ return h.form.height*h.form.scale*(h.sizeF||1)*(h.gridF||1); }
+function catCrownR(h){ return 0.62*catFootR(h); }
+/* Is THIS cat's crown actually under the platen disc? The old test
+   used the cat's full BASE footprint radius (dist < PLATEN_R +
+   footR, up to ~4.9 for a big cat), so a cat standing beside the
+   press - head completely clear of the disc - still counted as
+   touched and flattened when the face came down near it. Contact
+   now turns on the CROWN (head) circle, and only a real overlap of
+   that circle with the disc counts. */
+function catUnderDisc(h){
+  var dist=Math.hypot(h.mesh.position.x,h.mesh.position.z+0.1);
+  return dist<PLATEN_R+catCrownR(h)*0.35;
+}
 function catMaxPen(h){
   /* the deepest the platen may ever travel into THIS cat while it
      lives: soft bodies burst at their threshold, rigid bodies at
@@ -3396,9 +3430,7 @@ function reqPressureFor(h){
 }
 function catContact(h,pb){
   var restH=catRestH(h), restTop=(h.baseY||BED_Y)+restH;
-  var dist=Math.hypot(h.mesh.position.x,h.mesh.position.z+0.1);
-  var footR=catFootR(h);
-  if(dist>=PLATEN_R+footR || pb>=restTop) return null; /* face has not reached this cat */
+  if(!catUnderDisc(h) || pb>=restTop) return null; /* face has not reached this cat */
   return {restH:restH,restTop:restTop,raw:Math.max(0,Math.min(0.98,(restTop-pb)/restH))};
 }
 function platenFloorBottom(){
@@ -3409,8 +3441,7 @@ function platenFloorBottom(){
   var fl=PLATEN_MIN-0.35;
   for(var i=0;i<heroes.length;i++){
     var h=heroes[i];
-    var footR=catFootR(h);
-    if(Math.hypot(h.mesh.position.x,h.mesh.position.z+0.1)>=PLATEN_R+footR) continue;
+    if(!catUnderDisc(h)) continue;
     fl=Math.max(fl,(h.baseY||BED_Y)+catRestH(h)*(1-catMaxPen(h))-0.02);
   }
   return fl;
@@ -3425,7 +3456,7 @@ function platenFloorBottom(){
    gridF stays 1 forever. The pile may not grow past the press
    mouth (STACK_TOP): a cat that would poke into the resting
    platen simply does not count the support and slides off. */
-var STACK_TOP=5.95; /* platen rest bottom is 5.50; a stacked crown may reach a little into the squash zone, never through the face */
+var STACK_TOP=5.66; /* a stacked crown may never pass the highest face the press can rest at (lifted rest bottom 5.70, see platenRestY): the old 5.95 let a pile settle with its crown up to 0.45 INSIDE the resting platen, so the top cat was pre-penetrated and slammed flat the instant HOLD was touched */
 function catFootR(h){ return 1.02*h.form.scale*(h.sizeF||1); }
 function curCatH(h){
   var sy=(h.inner&&h.inner.scale)?Math.max(0.12,h.inner.scale.y||1):1;
@@ -3538,6 +3569,28 @@ function layoutStack(dt,time){
     if(!a.held){ a.mesh.position.x-=ux*push*(2*bM/tot)*0.8; a.mesh.position.z-=uz*push*(2*bM/tot)*0.8; }
     if(!b.held){ b.mesh.position.x+=ux*push*(2*aM/tot)*0.8; b.mesh.position.z+=uz*push*(2*aM/tot)*0.8; }
     a.wobV+=0.8; b.wobV+=0.8;
+  }
+  /* REST CLEARANCE: while the press sits at rest (not held), a cat
+     whose crown still pokes above the resting face - too tall even
+     for the lifted rest - is slid radially out from under the disc
+     until its crown circle clears the rim or its crown fits. It is
+     never left interpenetrating the platen, and it is never
+     squashed for it: sliding is the whole resolution. */
+  if(!holding && platenY>=platenRestY()-0.03){
+    for(i=0;i<heroes.length;i++){
+      hh=heroes[i];
+      if(hh.held) continue;
+      if((hh.mesh.position.y-(hh.hopY||0))>catSupportY(hh)+0.05) continue; /* still falling/hopping */
+      var penOut=(hh.baseY||BED_Y)+catRestH(hh)-platenBottom();
+      if(penOut<=0.02) continue; /* crown already clears the face */
+      var sx=hh.mesh.position.x, sz=hh.mesh.position.z+0.1;
+      var sd=Math.hypot(sx,sz);
+      if(sd>=PLATEN_R+catCrownR(hh)) continue; /* crown fully out from under the disc */
+      var ux2=sd>0.05? sx/sd : 1, uz2=sd>0.05? sz/sd : 0;
+      var pushSpd=2.6+penOut*5; /* the deeper the overlap, the firmer the nudge out */
+      hh.mesh.position.x+=ux2*pushSpd*dt;
+      hh.mesh.position.z+=uz2*pushSpd*dt;
+    }
   }
   /* containment: cats stay on the bed disc, inside the press */
   for(i=0;i<heroes.length;i++){
@@ -4657,8 +4710,9 @@ function animate(){
   if(platenRecoil){
     /* explosion recoil: the ram is thrown back up on an eased spring
        instead of teleporting to the top in a single frame */
-    platenY+=(PLATEN_TOP-platenY)*Math.min(1,dt*8.5);
-    if(PLATEN_TOP-platenY<0.03){ platenY=PLATEN_TOP; platenRecoil=false; }
+    var recoilRest=platenRestY();
+    platenY+=(recoilRest-platenY)*Math.min(1,dt*8.5);
+    if(recoilRest-platenY<0.03){ platenY=recoilRest; platenRecoil=false; }
   } else if(pressingNow){
     /* hard materials fight the press: once the platen is in contact with
        a glass / iron / diamond / brick / toy-brick cat it descends slower,
@@ -4688,7 +4742,7 @@ function animate(){
     platenY=Math.max(platenFloorBottom()+0.35,platenY-dt*(mode==='ready'?2.15:2.9)*pressSlowF);
     if(AC && soundOn && time>creakAt && pressure>300){ creakAt=time+1.2+Math.random()*1.5; tone(90+Math.random()*60,60,0.3,'sawtooth',0.03); }
   } else {
-    platenY=Math.min(PLATEN_TOP,platenY+dt*2.6);
+    platenY=Math.min(platenRestY(),platenY+dt*2.6);
   }
   platenVelY=dt>0? (platenY-prevPlatenY)/dt : 0;
   layoutPlaten();
