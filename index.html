@@ -21,8 +21,21 @@ html,body{margin:0;height:100%;overflow:hidden;background-color:#e0ca94;backgrou
 canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
 canvas.grabbing{cursor:grabbing}
 canvas.over{cursor:pointer}
-button{font-family:inherit}
+button{font-family:inherit;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+/* ---------- Gesture hygiene: rapid repeat taps (Gen cat above all)
+   must never double-tap-zoom the page, and a long press anywhere in
+   the game must only press / drag - never the browser magnifier,
+   text selection or the long-press callout menu. The canvas keeps
+   touch-action:none (its own orbit / pinch handling is untouched),
+   and buttons use touch-action:manipulation above, which disables
+   double-tap zoom while leaving taps instant. ---------- */
+body{-webkit-touch-callout:none}
+#wrap{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#wrap img{-webkit-user-drag:none}
+/* scrollable sheets and modals keep their vertical scroll but give
+   up double-tap zoom like everything else */
+.deck,.bag,.cmp-panel,.photo-panel{touch-action:pan-y}
 
 /* ---------- Masthead: editorial, top-left, never blocks the stage ---------- */
 .mast{position:absolute;top:14px;left:16px;z-index:5;pointer-events:none;max-width:min(430px,72vw)}
@@ -45,10 +58,29 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .lang-btn.active{background:var(--ink);color:var(--paper)}
 
 /* ---------- Verdict: big italic stamp after a pop ---------- */
-.verdict{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%) rotate(-4deg) scale(.8);z-index:4;text-align:center;pointer-events:none;opacity:0;transition:opacity .25s,transform .25s}
-.verdict.show{opacity:1;transform:translate(-50%,-50%) rotate(-4deg) scale(1)}
-.verdict .word{font-family:"Barlow Condensed",sans-serif;font-style:italic;font-weight:800;font-size:clamp(56px,11vw,124px);line-height:.9;color:var(--ink);text-shadow:4px 4px 0 var(--yellow)}
-.verdict .stat{margin-top:10px;display:inline-block;background:var(--ink);color:var(--paper);font-weight:700;font-size:clamp(12.5px,2vw,15px);padding:6px 14px;border-radius:999px}
+/* the pop verdict is a SMALL chip hugging the top edge - never a
+   giant word stamped over the middle of the stage any more: the
+   player watches the cat and the press, not the typography */
+.verdict{position:absolute;left:50%;top:14px;transform:translateX(-50%) scale(.92);z-index:6;display:flex;align-items:center;gap:8px;background:var(--ink);border:2px solid var(--line);border-radius:999px;box-shadow:3px 3px 0 rgba(33,26,19,.55);padding:5px 13px;pointer-events:none;opacity:0;transition:opacity .22s,transform .22s;max-width:calc(100vw - 24px);white-space:nowrap}
+.verdict.show{opacity:1;transform:translateX(-50%) scale(1)}
+.verdict .word{font-family:"Barlow Condensed",sans-serif;font-style:italic;font-weight:800;font-size:21px;line-height:1;color:var(--yellow)}
+.verdict .stat{display:inline;background:transparent;color:var(--paper);font-weight:700;font-size:12px;padding:0}
+
+/* ---------- Combo: chained pops inside the grace window stack a
+   big arcade counter over the stage - it pops in with a spring,
+   grows and heats up as the chain climbs, and a thin timer bar
+   under it drains over the window so the player can SEE the chain
+   about to expire. Purely presentational: pointer-events none. --- */
+.combo{position:absolute;left:50%;top:17%;transform:translate(-50%,-50%);z-index:6;text-align:center;pointer-events:none;opacity:0;transition:opacity .18s}
+.combo.show{opacity:1}
+.combo-num{font-family:"Barlow Condensed",sans-serif;font-style:italic;font-weight:800;font-size:clamp(38px,7.5vw,68px);line-height:.9;color:var(--ink);text-shadow:3px 3px 0 var(--yellow)}
+.combo.hot .combo-num{color:var(--red-dk);text-shadow:4px 4px 0 var(--yellow),0 0 26px rgba(255,122,30,.55)}
+.combo.show .combo-num{animation:comboPop .38s cubic-bezier(.2,1.6,.4,1)}
+.combo-lbl{margin-top:2px;font-weight:800;font-size:clamp(13px,2.2vw,18px);letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
+.combo-bar{margin:7px auto 0;width:min(170px,34vw);height:7px;background:rgba(33,26,19,.28);border:2px solid var(--line);border-radius:99px;overflow:hidden}
+.combo-bar i{display:block;height:100%;width:100%;background:var(--red)}
+@keyframes comboPop{0%{transform:scale(.35) rotate(-7deg)}55%{transform:scale(1.22) rotate(2deg)}100%{transform:scale(1) rotate(-2deg)}}
+@media(prefers-reduced-motion:reduce){.combo.show .combo-num{animation:none}}
 
 /* ---------- Control panel: one compact card. On desktop it lives on
    the RIGHT side of the screen, vertically centred; on phones it drops
@@ -122,21 +154,23 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .hp-li .hp-li-track.warn i{background:#eda417}
 .hp-li .hp-li-track.crit i{background:var(--red)}
 .hp-li .hp-li-pct{flex:none;min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
-.hp-more{font-size:10.5px;font-weight:800;color:#8a6d3f;letter-spacing:.04em;padding:1px 0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hp-more{font-size:10.5px;font-weight:800;color:#8a6d3f;letter-spacing:.04em;padding:1px 0 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:16px;line-height:15px}
+.hp-li.empty{opacity:.45}
+.hp-li.empty .hp-li-name{font-weight:700;color:#8a6d3f}
 /* (the old floating HP bars over the cats' heads are gone - HP now
    lives in the 3D scene as a segmented ring flat on the bed around
    each cat's feet, so no HTML overlay styles are needed for it) */
 /* ---------- Material comparison panel ---------- */
-.cmp-panel{position:absolute;top:64px;right:14px;z-index:9;width:min(288px,calc(100vw - 28px));max-height:min(66vh,560px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px}
+.cmp-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10;width:min(320px,calc(100vw - 32px));max-height:min(80vh,620px);max-height:min(80dvh,620px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:6px 6px 0 rgba(33,26,19,.9);padding:10px 12px 11px;animation:modalIn .22s ease-out}
 .cmp-panel[hidden]{display:none}
 .cmp-head{display:flex;align-items:center;justify-content:space-between;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:21px;line-height:1;text-transform:uppercase}
-@media(max-width:680px){.cmp-panel{top:172px;right:10px}}
+
 .mb-btn.active .mb-sub{color:#5f451c}
 .mb-btn.active{background:var(--yellow)}
 .mb-btn.locked{opacity:.62}
 .mb-btn:active{transform:translate(1px,1px)}
 /* ---------- Photo play panel: on-device photo analysis ---------- */
-.photo-panel{position:absolute;top:64px;right:14px;z-index:9;width:min(288px,calc(100vw - 28px));max-height:min(72vh,600px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px}
+.photo-panel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10;width:min(320px,calc(100vw - 32px));max-height:min(82vh,640px);max-height:min(82dvh,640px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:6px 6px 0 rgba(33,26,19,.9);padding:10px 12px 11px;animation:modalIn .22s ease-out}
 .photo-panel[hidden]{display:none}
 .photo-head{display:flex;align-items:center;justify-content:space-between;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:21px;line-height:1;text-transform:uppercase}
 .photo-hint{font-size:12px;font-weight:600;color:#75592e;margin-top:5px;line-height:1.35}
@@ -186,7 +220,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .vac-btn{flex:none;background:#fff;border:2px solid var(--line);color:var(--ink);font-weight:800;font-size:12.5px;padding:7px 10px;border-radius:999px;cursor:pointer;box-shadow:2px 2px 0 rgba(33,26,19,.9)}
 .vac-btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 rgba(33,26,19,.9)}
 /* ---------- Backpack: compact machine manager, top-right, temporary ---------- */
-.bag{position:absolute;top:64px;right:14px;z-index:9;width:min(278px,calc(100vw - 28px));max-height:min(66vh,560px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:4px 4px 0 rgba(33,26,19,.9);padding:10px 12px 11px}
+.bag{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:10;width:min(320px,calc(100vw - 32px));max-height:min(80vh,620px);max-height:min(80dvh,620px);overflow-y:auto;background:var(--paper);border:2px solid var(--line);border-radius:14px;box-shadow:6px 6px 0 rgba(33,26,19,.9);padding:10px 12px 11px;animation:modalIn .22s ease-out}
 .bag[hidden]{display:none}
 .bag-head{display:flex;align-items:center;justify-content:space-between;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:21px;line-height:1;text-transform:uppercase}
 .bag-x{border:2px solid var(--line);background:#fff;color:var(--ink);width:26px;height:26px;border-radius:50%;font-size:16px;font-weight:800;line-height:1;cursor:pointer;padding:0}
@@ -210,6 +244,14 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
 .size-val{font-weight:800;font-size:12px;min-width:44px;font-variant-numeric:tabular-nums}
 .mach-range{flex:1 1 90px;min-width:80px;max-width:170px;accent-color:#39404a;height:20px;cursor:pointer;margin:0 2px}
 .dens-range{flex:1 1 90px;min-width:80px;max-width:170px;accent-color:#8a5a18;height:20px;cursor:pointer;margin:0 2px}
+/* ---------- Modal scrim: one shared dimmed, blurred backdrop for
+   the Photo / Backpack / Compare modals. It fades in under whichever
+   panel is open, swallows every tap outside the panel (the tap
+   closes the modal - see the script), and dims the stage, the deck
+   and the masthead together so nothing visually collides. -------- */
+#modalScrim{position:absolute;inset:0;background:rgba(26,18,8,.56);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:8;opacity:0;pointer-events:none;transition:opacity .22s ease-out}
+#modalScrim.on{opacity:1;pointer-events:auto}
+@keyframes modalIn{from{opacity:0;transform:translate(-50%,-46%) scale(.95)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
 #boomFlash{position:absolute;inset:0;background:radial-gradient(circle at 50% 42%,rgba(255,216,150,.50),rgba(255,130,40,.20) 38%,rgba(20,10,0,0) 68%);opacity:0;pointer-events:none;z-index:8;transition:opacity .55s ease-out}
 #boomFlash.on{opacity:1}
 #brokenBanner{position:absolute;left:50%;top:112px;transform:translateX(-50%);background:#b71f1a;color:#fff;border:2px solid var(--line);border-radius:12px;box-shadow:4px 4px 0 rgba(33,26,19,.9);font-weight:800;font-size:14px;padding:8px 16px;z-index:8;display:none;text-align:center;max-width:calc(100vw - 32px)}
@@ -241,8 +283,9 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
        primary row (dial + HOLD + pressure) is compact enough to
        stay fully visible without scrolling;
      - toast / broken banner float just above the dock; backpack,
-       compare and photo open as sheets over the deck, not as
-       panels dropped into the middle of the stage. */
+       compare and photo are NOT part of this layout at all - they
+       open as centred modals over a dimmed scrim (see #modalScrim),
+       identical on every screen size. */
   .mast{top:max(8px,env(safe-area-inset-top));left:10px;max-width:calc(100vw - 186px)}
   .mast h1{font-size:21px;line-height:.95}
   .mast p{font-size:10.5px;padding:2px 7px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -267,12 +310,26 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .gen-row{margin-top:5px}
   .gen-btn{padding:7px 11px;font-size:13px}
   .vac-btn{padding:7px 10px;font-size:12px}
-  .hp-card{margin-top:5px;padding:5px 8px 6px}
+  /* ONE-LINE ESSENTIALS on phones: dial + HOLD, pressure, a COMPACT
+     HP readout (name + pct + one slim bar - the fixed top-3 slot
+     list is hidden here to save the space, the 3D foot rings still
+     show every cat's health), and Gen / Vacuum as a slim button
+     column - all on a single row. The surface/colour chips follow
+     as one single row of seven below it. */
+  .deck-main{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+  .deck-main .deck-top{flex:none}
+  .deck-main .readout{min-width:54px}
+  .deck-main .readout .num{font-size:22px}
+  .deck-main .readout .lbl{font-size:9.5px}
+  .hp-card{flex:1 1 auto;min-width:0;margin-top:0;padding:5px 8px 6px}
+  .hp-list{display:none}
   .hp-pct{font-size:18px}
   .hp-track{height:11px;margin-top:3px}
+  .deck-main .gen-row{flex:none;flex-direction:column;gap:4px;margin-top:0}
+  .deck-main .gen-btn,.deck-main .vac-btn{padding:6px 9px;font-size:11.5px;white-space:nowrap}
   .ctl-block{margin-top:5px}
-  .surf-grid{gap:4px;margin-top:3px}
-  .surf-grid .tex-btn{padding:5px 1px;font-size:10.5px}
+  .surf-grid{grid-template-columns:repeat(7,1fr);gap:3px;margin-top:3px}
+  .surf-grid .tex-btn{padding:5px 0;font-size:9.3px;letter-spacing:-.01em}
   .ctl-rows{margin-top:5px;gap:1px}
   .ctl-row{min-height:21px}
   .ctl-lbl{width:58px;font-size:10px}
@@ -283,11 +340,17 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .mb-btn{width:50px;font-size:8.5px;padding:5px 1px 4px;gap:2px}
   .mb-btn .mb-dot{width:12px;height:12px}
   .mb-btn .mb-sub{max-width:48px;font-size:7.5px}
-  .toast{top:auto;bottom:calc(40vh + 80px);bottom:calc(40dvh + 80px);white-space:normal;text-align:center;line-height:1.3}
+  .toast{top:auto;bottom:calc(40vh + 118px);bottom:calc(40dvh + 118px);white-space:normal;text-align:center;line-height:1.3;font-size:12px;padding:6px 12px}
   #brokenBanner{top:auto;bottom:calc(40vh + 80px);bottom:calc(40dvh + 80px)}
-  .bag,.cmp-panel,.photo-panel{left:8px;right:8px;width:auto;top:auto;bottom:max(8px,env(safe-area-inset-bottom));max-height:64vh;max-height:64dvh}
+  .bag,.cmp-panel,.photo-panel{left:50%;right:auto;width:min(320px,calc(100vw - 24px));top:50%;bottom:auto;transform:translate(-50%,-50%);max-height:82vh;max-height:82dvh}
   .keys-hint{display:none}
-  .verdict{top:31%}
+  /* the verdict chip parks in the gap just above the machine dock,
+     stacked under the toast - the middle of the stage stays clear.
+     Its stat line is hidden here: the toast right above it already
+     carries the same name + bar numbers, so nothing is lost. */
+  .verdict{top:auto;bottom:calc(40vh + 76px);bottom:calc(40dvh + 76px)}
+  .verdict .word{font-size:18px}
+  .verdict .stat{display:none}
 }
 @media(max-width:380px){
   .mast{max-width:calc(100vw - 178px)}
@@ -314,7 +377,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   .side-note{top:calc(max(8px,env(safe-area-inset-top)) + 102px);bottom:auto}
   .mach-bar{bottom:calc(40vh + 18px);bottom:calc(40dvh + 18px)}
 }
-@media(prefers-reduced-motion:reduce){*{transition:none!important}.needs-change{animation:none;background:rgba(255,210,31,.40);border-color:var(--red)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}.needs-change{background:rgba(255,210,31,.40);border-color:var(--red)}}
 </style>
 </head>
 <body>
@@ -338,6 +401,8 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   </div>
 
   <nav class="mach-bar" id="machBar" aria-label="Machines"><div class="mb-lbl" id="machBarLbl">Machines</div></nav>
+
+  <div id="modalScrim"></div>
 
   <div class="photo-panel" id="photoPanel" hidden>
     <div class="photo-head"><span id="photoTitle">Photo play</span><button class="bag-x" id="photoClose" aria-label="Close">&times;</button></div>
@@ -367,7 +432,8 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
     <div id="cmpList"></div>
   </div>
 
-  <div class="verdict" id="verdict" aria-live="polite"><div class="word" id="verdictWord">Pawp.</div><br/><span class="stat" id="verdictStat"></span></div>
+  <div class="verdict" id="verdict" aria-live="polite"><div class="word" id="verdictWord">Pawp.</div><span class="stat" id="verdictStat"></span></div>
+  <div class="combo" id="comboFx" aria-hidden="true"><div class="combo-num" id="comboNum">x2</div><div class="combo-lbl" id="comboLbl">COMBO</div><div class="combo-bar"><i id="comboBarFill"></i></div></div>
   <div id="boomFlash"></div>
   <div id="brokenBanner" role="alert"></div>
   <div class="toast" id="toast"></div>
@@ -379,6 +445,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
   </aside>
 
   <section class="deck" aria-label="Press controls">
+    <div class="deck-main">
     <div class="deck-top">
       <div class="dial-wrap">
         <svg viewBox="0 0 120 120" role="meter" aria-label="Pressure" aria-valuemin="0" aria-valuemax="600" aria-valuenow="0" id="dialSvg">
@@ -398,6 +465,7 @@ button:focus-visible,a:focus-visible{outline:3px solid var(--ink);outline-offset
       <div class="hp-head"><span class="hp-title"><span id="hpLbl">Cat HP</span> · <b id="hpName">Mochi</b></span><b class="hp-pct" id="hpPct">100%</b></div>
       <div class="hp-track" id="hpTrack"><i id="hpFill"></i></div>
       <div class="hp-list" id="hpList" hidden></div>
+    </div>
     </div>
     <div class="ctl-block">
       <div class="ctl-lbl-row"><span class="tex-lbl" id="texLbl">Surface</span></div>
@@ -495,6 +563,7 @@ var camHome={theta:0.55,phi:1.08,dist:16.8};
    before, just composed so the cat sits in the clear band between
    the status strip and the machine dock). */
 var frameDistMul=1, frameShiftFrac=0, frameFov=40;
+var camShake=0; /* combo screen-kick amplitude, decayed in animate() */
 function applyCam(){
   var d=camDist*frameDistMul;
   camera.position.set(
@@ -503,6 +572,7 @@ function applyCam(){
     camTarget.z+d*Math.sin(camPhi)*Math.cos(camTheta));
   camera.lookAt(camTarget);
   if(frameShiftFrac>0) camera.translateY(-frameShiftFrac*2*d*Math.tan(camera.fov*Math.PI/360));
+  if(camShake>0.002 && !reduced){ camera.position.x+=(Math.random()-0.5)*camShake*0.30; camera.position.y+=(Math.random()-0.5)*camShake*0.24; }
 }
 
 /* ---------- Environment for glossy gel reflections ----------
@@ -2016,7 +2086,8 @@ function updateCatFace(h,dt,time){
   if(fc.grp) fc.grp.position.x=(panic>0.05 && !reduced)? Math.sin(time*43+(h.seed||0)%17)*0.012*panic : 0;
 }
 function hpBand(frac){ return frac>0.55?'':(frac>0.30?'warn':'crit'); }
-var hpListSig='';
+var hpListSig=''; /* legacy: language switches still poke it, harmless */
+var hpSlots=null; /* the fixed top-3 slot rows: built once, updated in place, never rebuilt */
 var HP_LIST_TOP=3; /* deck detail rows: the 3 highest-HP cats only, re-ranked live */
 function updateHpUI(){
   var card=$('hpCard'); if(!card) return;
@@ -2033,56 +2104,57 @@ function updateHpUI(){
     if(nameEl) nameEl.textContent=hero.form.label;
   }
   /* Detail rows for the TOP 3 CATS BY HP ONLY (highest health
-     first), re-ranked LIVE on every refresh - the rows are never
-     pinned to fixed cats: as a cat is pressed and its HP falls it
-     drops out of the top 3 and the next-healthiest cat takes its
-     row, and a fresh Gen cat at 100% jumps straight in. The card
-     therefore never grows past 3 rows (plus one compact "+N more"
-     line) no matter how many cats are on the bed, so the deck
-     keeps one fixed height and the Gen cat button stays exactly
-     where it was - tappable again and again for rapid adding.
-     Every cat still keeps its own full segmented HP ring at its
-     feet in the scene; cats outside the top 3 lose only this text
-     row, never any health display on the bed. */
+     first), re-ranked LIVE on every refresh - WHICH cats hold the
+     rows changes, but the BOX NEVER DOES: the list is a fixed set
+     of exactly 3 slot rows plus one fixed-height "+N more" line,
+     built once and updated IN PLACE (text, fill width, band class)
+     on every refresh. Nothing is ever inserted, removed, hidden
+     or rebuilt, so the card's height is constant from 0 cats to
+     12 - no layout jump, and every control around it (Gen above
+     all) stays exactly where the player's thumb expects it. A
+     slot with no cat shows a dim empty placeholder instead of
+     collapsing. Every cat still keeps its own full segmented HP
+     ring at its feet in the scene; cats outside the top 3 lose
+     only this text row, never any health display on the bed. */
   var list=$('hpList'); if(!list) return;
-  if(heroes.length<=1){
-    list.hidden=true; hpListSig='';
-    heroes.forEach(function(h){ h.hpRowFill=null; h.hpRowTrack=null; h.hpRowPct=null; });
-    return;
-  }
-  var ranked=heroes.map(function(h,i){ return {h:h,i:i,f:hpFracShown(h)}; });
-  ranked.sort(function(a,b){ return (b.f-a.f)||(a.i-b.i); });
-  var top=ranked.slice(0,HP_LIST_TOP);
-  var rest=heroes.length-top.length;
-  var sig=top.map(function(r){ return r.h.seed; }).join('|')+'#'+rest;
-  if(sig!==hpListSig){
-    hpListSig=sig; list.innerHTML='';
-    heroes.forEach(function(h){ h.hpRowFill=null; h.hpRowTrack=null; h.hpRowPct=null; });
-    top.forEach(function(r){
-      var h=r.h;
-      var row=document.createElement('div'); row.className='hp-li';
-      var nm=document.createElement('span'); nm.className='hp-li-name'; nm.textContent=h.form.label+' · '+t('tex_'+h.texKind);
+  if(!hpSlots){
+    hpSlots=[];
+    for(var si=0;si<HP_LIST_TOP;si++){
+      var row=document.createElement('div'); row.className='hp-li empty';
+      var nm=document.createElement('span'); nm.className='hp-li-name';
       var tr=document.createElement('span'); tr.className='hp-li-track'; var fl=document.createElement('i'); tr.appendChild(fl);
       var pc=document.createElement('span'); pc.className='hp-li-pct';
       row.appendChild(nm); row.appendChild(tr); row.appendChild(pc);
-      h.hpRowFill=fl; h.hpRowTrack=tr; h.hpRowPct=pc;
       list.appendChild(row);
-    });
-    if(rest>0){
-      var more=document.createElement('div'); more.className='hp-more'; more.id='hpMoreLine';
-      list.appendChild(more);
+      hpSlots.push({row:row,nm:nm,tr:tr,fl:fl,pc:pc,sig:''});
     }
+    var more0=document.createElement('div'); more0.className='hp-more'; more0.id='hpMoreLine';
+    list.appendChild(more0);
     list.hidden=false;
   }
-  top.forEach(function(r){
-    var h=r.h; if(!h.hpRowFill) return;
-    var f2=r.f, p2=Math.round(f2*100);
-    h.hpRowFill.style.width=p2+'%';
-    if(h.hpRowTrack) h.hpRowTrack.className='hp-li-track '+hpBand(f2);
-    if(h.hpRowPct) h.hpRowPct.textContent=p2+'%';
-  });
+  var ranked=heroes.map(function(h,i){ return {h:h,i:i,f:hpFracShown(h)}; });
+  ranked.sort(function(a,b){ return (b.f-a.f)||(a.i-b.i); });
+  var rest=Math.max(0,heroes.length-HP_LIST_TOP);
+  for(var s2=0;s2<HP_LIST_TOP;s2++){
+    var slot=hpSlots[s2], r=ranked[s2];
+    if(r){
+      var h=r.h, p2=Math.round(r.f*100);
+      var sig2=h.seed+'|'+h.form.label+'|'+h.texKind;
+      if(slot.sig!==sig2){ slot.sig=sig2; slot.row.className='hp-li'; slot.nm.textContent=h.form.label+' · '+t('tex_'+h.texKind); }
+      slot.fl.style.width=p2+'%';
+      var band2='hp-li-track '+hpBand(r.f);
+      if(slot.tr.className!==band2) slot.tr.className=band2;
+      var pctTxt=p2+'%';
+      if(slot.pc.textContent!==pctTxt) slot.pc.textContent=pctTxt;
+    } else {
+      if(slot.sig!=='empty'){ slot.sig='empty'; slot.row.className='hp-li empty'; slot.nm.textContent=t('hpSlot'); slot.fl.style.width='0%'; slot.tr.className='hp-li-track'; slot.pc.textContent='-'; }
+    }
+  }
   var moreEl=$('hpMoreLine');
-  if(moreEl) moreEl.textContent=t('hpMore').replace('{n}',rest);
+  if(moreEl){
+    var moreTxt=rest>0?t('hpMore').replace('{n}',rest):'';
+    if(moreEl.textContent!==moreTxt) moreEl.textContent=moreTxt;
+  }
 }
 /* ---------- HP RING at each cat's feet (replaces the head bars) ----------
    As the user sketched it: HP is a flat ring / band lying right on
@@ -3102,25 +3174,25 @@ var I18N={
 en:{subtitle:"Jelly cat pressing research",count:"Cats popped",ready:"Ready",pressing:"Pressing",playmode:"Play mode",sound:"Sound",reset:"Reset",hold:"HOLD",raise:"Raise",pressure:"Pressure",mochiSub:"strawberry round",puddingSub:"caramel flat",sodaSub:"mint tall, fizzy",texLabel:"Surface",tex_glass:"Glass",tex_iron:"Iron",tex_diamond:"Diamond",tex_jelly:"Jelly",tex_brick:"Brick",tex_water:"Slime ball",tex_lego:"Toy Brick",sizeLabel:"Cat size",splitToast:"It split into smaller pieces.",cloneToast:"{name} popped into {n} mini clones at {bar} bar.",
 captions:["Ready when you are.","Contact.","It is fine. It is jelly.","Getting wider.","That is a pancake now.","It is making a noise.","Please."],
 subs:["Hold the red button. The cat has made its peace.","The press has opinions about this cat.","Jelly law: volume is conserved. Dignity is not.","Surface area is having a great day.","Somewhere, a physicist is nodding.","The gauge believes in you. The cat does not.","Any second now."],
-playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",boughtToast:"{name} is yours.",machines:["Base Press","Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Base","Dragon","Hell","Angel"],fx_base:"Effect: Factory standard - clean steel, cyan power veins, status lamps. Same power as every press.",fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",hpTxt:"Cat HP",hpFull:"Full health - hold to wear it down.",hpWeak:"Cracking - keep pressing, it is giving way.",hpCrit:"Nearly popped - one more push!",hpNone:"No cat on the bed.",hpEach:"{n} cats - one HP ring each, flat on the bed at each cat's feet.",hpMore:"+{n} more cats",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - {n} cats is the most the press can hold. Pop a cat or vacuum the crumbs first.",stackToast:"{n} cats on the press - they drop in, bump and stack like real physics.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
+playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",boughtToast:"{name} is yours.",machines:["Base Press","Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Base","Dragon","Hell","Angel"],fx_base:"Effect: Factory standard - clean steel, cyan power veins, status lamps. Same power as every press.",fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",hpTxt:"Cat HP",hpFull:"Full health - hold to wear it down.",hpWeak:"Cracking - keep pressing, it is giving way.",hpCrit:"Nearly popped - one more push!",hpNone:"No cat on the bed.",hpEach:"{n} cats - one HP ring each, flat on the bed at each cat's feet.",hpMore:"+{n} more cats",hpSlot:"Empty slot",comboTxt:"COMBO",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - {n} cats is the most the press can hold. Pop a cat or vacuum the crumbs first.",stackToast:"{n} cats on the press - they drop in, bump and stack like real physics.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
 verdicts:["Pawp.","Flopped.","Fizzed."],stat:"Gave up at {bar} bar and {pct}% of its height.",
 poppedToast:"{name} popped at {bar} bar.",newCatToast:"{name} is on the bed. It suspects nothing.",grabToast:"Grabbed. It stretches. It forgives nothing.",resetToast:"Fresh cat, full height, no memory of the press."},
 vi:{subtitle:"Nghiên cứu ép mèo jelly",count:"Mèo đã bẹp",ready:"Sẵn sàng",pressing:"Đang ép",playmode:"Chế độ chơi",sound:"Âm thanh",reset:"Làm lại",hold:"GIỮ",raise:"Nâng lên",pressure:"Áp lực",mochiSub:"dâu, tròn",puddingSub:"caramel, dẹt",sodaSub:"bạc hà, cao, có ga",texLabel:"Bề mặt",tex_glass:"Thủy tinh",tex_iron:"Sắt",tex_diamond:"Kim cương",tex_jelly:"Thạch",tex_brick:"Gạch",tex_water:"Bóng slime",tex_lego:"Gạch đồ chơi",sizeLabel:"Cỡ mèo",splitToast:"Nó tách ra thành các mảnh nhỏ hơn.",cloneToast:"{name} bẹp thành {n} mèo mini phân thân ở {bar} bar.",
 captions:["Sẵn sàng khi anh sẵn sàng.","Chạm rồi.","Không sao. Nó là thạch mà.","Đang bè ra.","Giờ là bánh kếp rồi.","Nó đang kêu đấy.","Xin đấy."],
 subs:["Giữ nút đỏ. Bé mèo đã chấp nhận số phận.","Máy ép có ý kiến riêng về bé này.","Luật thạch: thể tích giữ nguyên. Thể diện thì không.","Diện tích bề mặt đang rất vui.","Ở đâu đó, một nhà vật lý đang gật đầu.","Đồng hồ tin anh. Bé mèo thì không.","Sắp rồi, sắp rồi."],
-playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",boughtToast:"{name} là của anh rồi.",machines:["Máy Ép Gốc","Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Gốc","Hỏa Long","Địa Ngục","Thiên Thần"],fx_base:"Hiệu ứng: Máy xưởng tiêu chuẩn - thép sạch, gân điện xanh, đèn trạng thái. Sức ép ngang mọi máy.",fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",hpTxt:"Máu mèo",hpFull:"Đang khỏe nguyên - giữ ép để bào dần nhé.",hpWeak:"Đang nứt rồi - ép tiếp đi, sắp chịu hết nổi.",hpCrit:"Sắp bẹp rồi - ép thêm chút nữa thôi!",hpNone:"Chưa có mèo trên bàn.",hpEach:"{n} mèo - mỗi bé một vòng máu quanh chân trên mặt bàn.",hpMore:"+{n} mèo nữa",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - máy chứa tối đa {n} mèo. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"{n} mèo trên bàn - thả vào là va chạm, xếp chồng như vật lý thật.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
+playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",boughtToast:"{name} là của anh rồi.",machines:["Máy Ép Gốc","Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Gốc","Hỏa Long","Địa Ngục","Thiên Thần"],fx_base:"Hiệu ứng: Máy xưởng tiêu chuẩn - thép sạch, gân điện xanh, đèn trạng thái. Sức ép ngang mọi máy.",fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",hpTxt:"Máu mèo",hpFull:"Đang khỏe nguyên - giữ ép để bào dần nhé.",hpWeak:"Đang nứt rồi - ép tiếp đi, sắp chịu hết nổi.",hpCrit:"Sắp bẹp rồi - ép thêm chút nữa thôi!",hpNone:"Chưa có mèo trên bàn.",hpEach:"{n} mèo - mỗi bé một vòng máu quanh chân trên mặt bàn.",hpMore:"+{n} mèo nữa",hpSlot:"Chỗ trống",comboTxt:"COMBO",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - máy chứa tối đa {n} mèo. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"{n} mèo trên bàn - thả vào là va chạm, xếp chồng như vật lý thật.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
 verdicts:["Bẹp.","Xẹp lép.","Xì ga."],stat:"Bỏ cuộc ở {bar} bar và {pct}% chiều cao.",
 poppedToast:"{name} bẹp ở {bar} bar.",newCatToast:"{name} đã lên bàn ép. Bé chưa nghi ngờ gì.",grabToast:"Đã nắm. Nó giãn ra. Nó không tha thứ đâu.",resetToast:"Mèo mới, chiều cao nguyên vẹn, không nhớ gì về máy ép."},
 es:{subtitle:"Investigación del prensado de gatos de gelatina",count:"Gatos aplastados",ready:"Listo",pressing:"Prensando",playmode:"Modo juego",sound:"Sonido",reset:"Reiniciar",hold:"MANTÉN",raise:"Subir",pressure:"Presión",mochiSub:"fresa, redondo",puddingSub:"caramelo, plano",sodaSub:"menta, alto, con gas",texLabel:"Superficie",tex_glass:"Vidrio",tex_iron:"Hierro",tex_diamond:"Diamante",tex_jelly:"Gelatina",tex_brick:"Ladrillo",tex_water:"Bola de slime",tex_lego:"Ladrillo de juguete",sizeLabel:"Tamaño",splitToast:"Se partió en trozos más pequeños.",cloneToast:"{name} reventó en {n} miniclones a {bar} bar.",
 captions:["Listo cuando quieras.","Contacto.","No pasa nada. Es gelatina.","Se está ensanchando.","Eso ya es una tortita.","Está haciendo un ruido.","Por favor."],
 subs:["Mantén el botón rojo. El gato ya aceptó su destino.","La prensa tiene opiniones sobre este gato.","Ley de la gelatina: el volumen se conserva. La dignidad no.","El área superficial está feliz.","En algún lugar, un físico asiente.","El medidor cree en ti. El gato no.","En cualquier momento."],
-playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Base","Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Base","Dragón","Infierno","Ángel"],fx_base:"Efecto: Estándar de fábrica - acero limpio, venas de energía cian, luces de estado. Misma potencia que todas.",fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",hpTxt:"PV del gato",hpFull:"Salud completa: mantén para desgastarlo.",hpWeak:"Se está agrietando: sigue, ya cede.",hpCrit:"Casi revienta: ¡un empujón más!",hpNone:"No hay gato en la base.",hpEach:"{n} gatos: un anillo de PV en la base, a los pies de cada gato.",hpMore:"+{n} gatos más",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: {n} gatos es lo máximo que cabe. Revienta un gato o aspira antes.",stackToast:"{n} gatos en la prensa: caen, chocan y se apilan con física real.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
+playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Base","Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Base","Dragón","Infierno","Ángel"],fx_base:"Efecto: Estándar de fábrica - acero limpio, venas de energía cian, luces de estado. Misma potencia que todas.",fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",hpTxt:"PV del gato",hpFull:"Salud completa: mantén para desgastarlo.",hpWeak:"Se está agrietando: sigue, ya cede.",hpCrit:"Casi revienta: ¡un empujón más!",hpNone:"No hay gato en la base.",hpEach:"{n} gatos: un anillo de PV en la base, a los pies de cada gato.",hpMore:"+{n} gatos más",hpSlot:"Vacío",comboTxt:"COMBO",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: {n} gatos es lo máximo que cabe. Revienta un gato o aspira antes.",stackToast:"{n} gatos en la prensa: caen, chocan y se apilan con física real.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
 verdicts:["Pawp.","Aplastado.","Burbujeó."],stat:"Se rindió a {bar} bar y al {pct}% de su altura.",
 poppedToast:"{name} reventó a {bar} bar.",newCatToast:"{name} está en la base. No sospecha nada.",grabToast:"Agarrado. Se estira. No perdona nada.",resetToast:"Gato nuevo, altura completa, sin recuerdos de la prensa."},
 zh:{subtitle:"果冻猫压制研究",count:"已压猫数",ready:"就绪",pressing:"正在压",playmode:"游玩模式",sound:"声音",reset:"重置",hold:"按住",raise:"升起",pressure:"压力",mochiSub:"草莓, 圆",puddingSub:"焦糖, 扁",sodaSub:"薄荷, 高, 带气泡",texLabel:"表面",tex_glass:"玻璃",tex_iron:"铁",tex_diamond:"钻石",tex_jelly:"果冻",tex_brick:"砖块",tex_water:"史莱姆球",tex_lego:"玩具积木",sizeLabel:"大小",splitToast:"它裂成了更小的碎块。",cloneToast:"{name} 在 {bar} bar 时爆成了 {n} 只迷你分身猫。",
 captions:["随时可以开始。","接触了。","没事。它是果冻。","越来越宽了。","这已经是煎饼了。","它在发出声音。","拜托了。"],
 subs:["按住红按钮。这只猫已经接受命运了。","压机对这只猫有自己的看法。","果冻定律: 体积守恒, 尊严不守恒。","表面积今天很开心。","在某个地方, 一位物理学家在点头。","仪表相信你。猫不相信。","随时都会发生。"],
-playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",boughtToast:"{name} 归你了。",machines:["基础压机","火龙压机","地狱压机","天使压机"],shortMachines:["基础","火龙","地狱","天使"],fx_base:"效果:工厂标准 - 干净钢材、青色能量脉络、状态灯。与所有压机同等力量。",fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",hpTxt:"猫的血量",hpFull:"满血状态 - 按住压机慢慢磨。",hpWeak:"正在开裂 - 继续压, 它快撑不住了。",hpCrit:"快爆了 - 再压一下!",hpNone:"台上还没有猫。",hpEach:"{n} 只猫 - 每只脚边一个平贴台面的血量环。",hpMore:"还有 {n} 只猫",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - 压机最多放 {n} 只猫。先压爆一只猫或吸走碎屑。",stackToast:"台上有 {n} 只猫:掉落、碰撞、像真实物理一样堆叠。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
+playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",boughtToast:"{name} 归你了。",machines:["基础压机","火龙压机","地狱压机","天使压机"],shortMachines:["基础","火龙","地狱","天使"],fx_base:"效果:工厂标准 - 干净钢材、青色能量脉络、状态灯。与所有压机同等力量。",fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",hpTxt:"猫的血量",hpFull:"满血状态 - 按住压机慢慢磨。",hpWeak:"正在开裂 - 继续压, 它快撑不住了。",hpCrit:"快爆了 - 再压一下!",hpNone:"台上还没有猫。",hpEach:"{n} 只猫 - 每只脚边一个平贴台面的血量环。",hpMore:"还有 {n} 只猫",hpSlot:"空位",comboTxt:"连击",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - 压机最多放 {n} 只猫。先压爆一只猫或吸走碎屑。",stackToast:"台上有 {n} 只猫:掉落、碰撞、像真实物理一样堆叠。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
 verdicts:["啪叽。","压扁了。","滋滋冒泡。"],stat:"在 {bar} bar 和 {pct}% 高度时放弃了。",
 poppedToast:"{name} 在 {bar} bar 时爆开了。",newCatToast:"{name} 已经上台了。它什么都没怀疑。",grabToast:"抓住了。它在拉伸。它什么都不原谅。",resetToast:"新猫, 完整高度, 完全不记得压机。"}
 };
@@ -3176,6 +3248,17 @@ function ensureAudio(){
     if(AC.state==='suspended') AC.resume();
   }catch(e){}
 }
+/* Sound is ON by default and now unlocks ITSELF: mobile browsers
+   keep a fresh AudioContext suspended until a real user gesture
+   lands, and can re-suspend it when the page goes to the
+   background - which is why phones could sit silent even with the
+   Sound toggle on. So the first touch / tap / key anywhere on the
+   page creates and resumes the context, and coming back to the
+   foreground resumes it again. No toggle hunting needed. */
+['pointerdown','touchstart','keydown'].forEach(function(evName){
+  window.addEventListener(evName,function(){ ensureAudio(); },{passive:true});
+});
+document.addEventListener('visibilitychange',function(){ if(!document.hidden) ensureAudio(); });
 function setHum(on,pressure){
   if(!AC||!humGain) return;
   var g=on? 0.015+pressure/400*0.075 : 0;
@@ -3296,6 +3379,40 @@ function burstSound(kind,scale){
     tone(300,540,0.14,'sine',0.10*s);
     setTimeout(function(){ tone(660,190,0.18,'triangle',0.10*s); },45);
   }
+}
+/* ---------- Combo: chained pops inside a short grace window ----------
+   Every hero pop feeds the chain; popping again before the window
+   (3s) runs out grows it - x2, x3, x4... The overlay (see .combo in
+   the stylesheet) springs in again on every pop, heats up from x5,
+   plays a rising three-note jingle pitched higher the longer the
+   chain runs, flashes the stage and kicks the camera a little.
+   Synthesized live with the same WebAudio graph as every other
+   sound here, so the combo needs no audio files. The chain is
+   presentation only - it never touches the press, the cats, the
+   money or the pop counter. */
+var comboCount=0, comboUntil=0;
+var COMBO_WINDOW=3000;
+function comboSound(n){
+  if(!AC||!soundOn) return;
+  var base=500+Math.min(n,12)*42;
+  tone(base,base*1.02,0.09,'square',0.09);
+  setTimeout(function(){ tone(base*1.26,base*1.28,0.09,'square',0.09); },55);
+  setTimeout(function(){ tone(base*1.5,base*1.56,0.15,'square',0.11); noiseBurst(0.12,0.09,3200); },112);
+}
+function notePop(n){
+  var now=performance.now();
+  if(now>comboUntil) comboCount=0;
+  comboCount+=n; comboUntil=now+COMBO_WINDOW;
+  if(comboCount<2) return;
+  var fx=$('comboFx'); if(!fx) return;
+  $('comboNum').textContent='x'+comboCount;
+  $('comboLbl').textContent=t('comboTxt');
+  fx.classList.toggle('hot',comboCount>=5);
+  var bf=$('comboBarFill'); if(bf) bf.style.width='100%';
+  fx.classList.remove('show'); void fx.offsetWidth; fx.classList.add('show');
+  comboSound(comboCount);
+  var fl=$('boomFlash'); if(fl){ fl.classList.add('on'); setTimeout(function(){ fl.classList.remove('on'); },240); }
+  if(!reduced) camShake=Math.min(0.55,0.14+comboCount*0.045);
 }
 
 /* ---------- Game state ---------- */
@@ -3911,6 +4028,7 @@ function burstCats(list){
   var topH=list[list.length-1];
   var form=topH.form, barNow=Math.round(pressure), heightPct=Math.max(8,Math.round(100*(1-(topH.pSq||0))));
   popTotal+=list.length; $('popCount').textContent=popTotal;
+  notePop(list.length); /* chained pops inside the grace window build the combo */
   burstSound(topH.texKind); setHum(false,0);
   for(var bi=0;bi<list.length;bi++){
     crackLevel=list[bi].pCrack||0; /* fragments seed along THIS cat's own cracks */
@@ -4258,6 +4376,45 @@ $('bagBtn').addEventListener('click',function(){
   var p=$('bagPanel'); p.hidden=!p.hidden; if(!p.hidden) renderBag();
 });
 $('bagClose').addEventListener('click',function(){ $('bagPanel').hidden=true; });
+
+/* ---------- Modal scrim: the Photo, Backpack and Compare panels
+   open as true CENTRED MODALS over one shared dimmed, blurred
+   backdrop - never as boxes dropped onto the stage or the deck.
+   A MutationObserver on the three panels' hidden attribute keeps
+   the scrim in sync with EVERY existing open/close path (toolbar
+   buttons, X buttons, buy/use flows that auto-close) without any
+   of them needing to know about it. Tapping the dimmed backdrop
+   or pressing Escape closes whichever panel is open, exactly
+   like the X buttons do. ---------- */
+var modalPanels=[$('photoPanel'),$('bagPanel'),$('cmpPanel')];
+function closeModals(){ modalPanels.forEach(function(p){ if(p) p.hidden=true; }); }
+function syncScrim(){
+  var anyOpen=modalPanels.some(function(p){ return p && !p.hidden; });
+  var sc=$('modalScrim'); if(sc) sc.classList.toggle('on',anyOpen);
+}
+if(window.MutationObserver){
+  var modalObs=new MutationObserver(syncScrim);
+  modalPanels.forEach(function(p){ if(p) modalObs.observe(p,{attributes:true,attributeFilter:['hidden']}); });
+}
+syncScrim();
+if($('modalScrim')) $('modalScrim').addEventListener('pointerdown',function(){ closeModals(); });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeModals(); });
+
+/* ---------- Gesture hygiene (the JS half; the CSS half is the
+   touch-action / user-select / touch-callout rules at the top of
+   the stylesheet): a long press must never raise the browser's
+   context menu, magnifier or text selection, and a double click
+   must never zoom the page. The canvas's own dblclick handler
+   (reframe home) still runs - it is attached to the canvas itself,
+   so it fires before this wrap-level preventDefault, which only
+   suppresses the browser DEFAULT, never the game's handlers.
+   gesturestart covers legacy iOS Safari page pinch-zoom; the
+   game's own pinch zoom runs on pointer events and is unaffected. */
+wrap.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+wrap.addEventListener('selectstart',function(e){ e.preventDefault(); });
+wrap.addEventListener('dragstart',function(e){ e.preventDefault(); });
+wrap.addEventListener('dblclick',function(e){ e.preventDefault(); });
+document.addEventListener('gesturestart',function(e){ e.preventDefault(); });
 renderBag(); updateBagUI(); applyMachineTheme();
 $('resetBtn').addEventListener('click',function(){ ensureAudio(); setHero(currentType); platenY=PLATEN_TOP; toast(t('resetToast')); });
 $('soundBtn').addEventListener('click',function(){
@@ -4585,6 +4742,16 @@ function animate(){
   camDist+=(camDistGoal-camDist)*Math.min(1,dt*2.8);
   camTarget.y+=(2.1-camTarget.y)*Math.min(1,dt*2.8);
   applyCam(); backdrop.position.copy(camera.position);
+
+  /* combo chain upkeep: drain the on-screen timer bar while the
+     grace window runs, expire (and hide) the chain when it runs
+     out, and decay the camera kick from the last pop */
+  if(comboCount>0){
+    var crem=comboUntil-performance.now();
+    if(crem<=0){ comboCount=0; var cfx0=$('comboFx'); if(cfx0) cfx0.classList.remove('show'); }
+    else { var cbf0=$('comboBarFill'); if(cbf0) cbf0.style.width=(crem/COMBO_WINDOW*100).toFixed(1)+'%'; }
+  }
+  if(camShake>0) camShake=Math.max(0,camShake-dt*1.5);
 
   /* press motion */
   var pressingNow=holding && !machineBroken;
