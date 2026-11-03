@@ -659,23 +659,23 @@ var trashBin=null; /* the bin group, set below - tapping it runs the vacuum */
   trashBin=bin;
 })();
 /* ---------- Trash-bin arrow: the tidy-up pointer ----------
-   A small yellow arrow floats above the bin, gently bobbing and
-   blinking, ONLY when the loose mess (fragments + droplets on
-   the bed and floor) passes the tidy threshold - below it the
-   arrow stays hidden so the stage never nags. It points down at
-   the bin the Vacuum button (or a tap on the bin) empties into,
-   sits high and small, and never covers a cat or the press.
+   JUST the arrowhead - one small yellow cone, no shaft, no tail,
+   no ring (user, 2026-11-03: the old shaft + dark ring read as a
+   big lollipop hovering over the stage). It hovers right at the
+   bin's mouth, slowly spinning and blinking, ONLY when the loose
+   mess (fragments + droplets on the bed and floor) passes the
+   tidy threshold - below it the arrow stays hidden so the stage
+   never nags. It points down into the bin the Vacuum button (or
+   a tap on the bin) empties into.
    Visibility is evaluated every frame in updateAmbientFx. */
 var binArrow=null, binArrowMats=[];
+var BIN_ARROW_Y=1.58; /* cone centre: the tip rides just above the bin lid (lid top ~1.17) */
 (function(){
   var g=new THREE.Group();
   var mY=new THREE.MeshBasicMaterial({color:0xffd21f,transparent:true,opacity:0.95});
-  var mO=new THREE.MeshBasicMaterial({color:0x211a13,transparent:true,opacity:0.95});
-  binArrowMats=[mY,mO];
-  var shaft=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.09,0.42,10),mY); shaft.position.y=0.34; g.add(shaft);
-  var head=new THREE.Mesh(new THREE.ConeGeometry(0.27,0.52,14),mY); head.rotation.x=Math.PI; head.position.y=-0.06; g.add(head);
-  var ring=new THREE.Mesh(new THREE.TorusGeometry(0.35,0.045,8,20),mO); ring.rotation.x=Math.PI/2; ring.position.y=0.66; g.add(ring);
-  g.position.set(BIN_POS.x,2.62,BIN_POS.z);
+  binArrowMats=[mY];
+  var head=new THREE.Mesh(new THREE.ConeGeometry(0.16,0.34,14),mY); head.rotation.x=Math.PI; g.add(head);
+  g.position.set(BIN_POS.x,BIN_ARROW_Y,BIN_POS.z);
   g.visible=false;
   scene.add(g);
   binArrow=g;
@@ -1539,7 +1539,10 @@ function updateAmbientFx(dt,time){
     var show=loose>=12 && !vacuuming;
     binArrow.visible=show;
     if(show){
-      binArrow.position.y=2.62+Math.sin(time*2.3)*0.13;
+      /* small bob right at the bin mouth, a slow spin so the eye
+         catches it, and the same gentle blink as before */
+      binArrow.position.y=BIN_ARROW_Y+Math.sin(time*2.3)*0.05;
+      binArrow.rotation.y+=dt*1.8;
       var bl=0.62+0.38*Math.sin(time*4.2);
       for(var bi3=0;bi3<binArrowMats.length;bi3++) binArrowMats[bi3].opacity=bl;
     }
@@ -3554,14 +3557,38 @@ var AC=null, humOsc=null, humGain=null, humFilter=null, soundOn=true, creakAt=0;
 function ensureAudio(){
   if(!soundOn) return;
   try{
-    if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(!AC){
+      /* latencyHint 'interactive': the default context asks the OS
+         for a big playback buffer, which on phones (Android most of
+         all) is heard as a fat delay between the press landing and
+         its sound. The interactive hint takes the smallest hardware
+         buffer the device offers - the single biggest mobile
+         sound-latency win there is. */
+      var ACtor=window.AudioContext||window.webkitAudioContext;
+      try{ AC=new ACtor({latencyHint:'interactive'}); }catch(e2){ AC=new ACtor(); }
       humOsc=AC.createOscillator(); humOsc.type='sawtooth'; humOsc.frequency.value=52;
       humFilter=AC.createBiquadFilter(); humFilter.type='lowpass'; humFilter.frequency.value=220;
       humGain=AC.createGain(); humGain.gain.value=0;
       humOsc.connect(humFilter); humFilter.connect(humGain); humGain.connect(AC.destination); humOsc.start();
+      /* one silent sample through the destination: the classic iOS
+         unlock, so the context is really running by the time the
+         first real sound is scheduled */
+      try{ var ub=AC.createBuffer(1,1,AC.sampleRate), us=AC.createBufferSource(); us.buffer=ub; us.connect(AC.destination); us.start(0); }catch(e3){}
     }
     if(AC.state==='suspended') AC.resume();
   }catch(e){}
+}
+/* The live audio clock, with a resume kick: mobile browsers
+   auto-suspend the context between gestures, and anything scheduled
+   against a frozen currentTime just sits there until the context
+   happens to resume - heard as sound trailing the action. Every
+   sound below schedules through this clock, and layered hits are
+   placed on it directly (start times in seconds) instead of via
+   setTimeout, whose callbacks on a busy phone main thread fire
+   late and smeared - the other half of the old mobile delay. */
+function audioClock(){
+  if(AC.state!=='running'){ try{ AC.resume(); }catch(e){} }
+  return AC.currentTime;
 }
 /* Sound is ON by default and now unlocks ITSELF: mobile browsers
    keep a fresh AudioContext suspended until a real user gesture
@@ -3577,29 +3604,31 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden) en
 function setHum(on,pressure){
   if(!AC||!humGain) return;
   var g=on? 0.015+pressure/400*0.075 : 0;
-  humGain.gain.setTargetAtTime(soundOn?g:0, AC.currentTime, 0.08);
-  humOsc.frequency.setTargetAtTime(52+pressure*0.22, AC.currentTime, 0.1);
-  humFilter.frequency.setTargetAtTime(220+pressure*1.4, AC.currentTime, 0.1);
+  /* short time constants: the hum tracks the press almost instantly
+     instead of swelling in a beat behind it */
+  humGain.gain.setTargetAtTime(soundOn?g:0, AC.currentTime, 0.03);
+  humOsc.frequency.setTargetAtTime(52+pressure*0.22, AC.currentTime, 0.04);
+  humFilter.frequency.setTargetAtTime(220+pressure*1.4, AC.currentTime, 0.04);
 }
-function tone(f0,f1,dur,type,vol){
+function tone(f0,f1,dur,type,vol,delay){
   if(!AC||!soundOn) return;
-  try{ var o=AC.createOscillator(), g=AC.createGain(), now=AC.currentTime;
+  try{ var o=AC.createOscillator(), g=AC.createGain(), now=audioClock()+(delay||0);
     o.type=type||'sine'; o.frequency.setValueAtTime(f0,now); o.frequency.exponentialRampToValueAtTime(Math.max(30,f1),now+dur);
     g.gain.setValueAtTime(vol,now); g.gain.exponentialRampToValueAtTime(0.001,now+dur);
     o.connect(g); g.connect(AC.destination); o.start(now); o.stop(now+dur+0.02); }catch(e){}
 }
-function noiseBurst(dur,vol,freq){
+function noiseBurst(dur,vol,freq,delay){
   if(!AC||!soundOn) return;
   try{ var len=Math.floor(AC.sampleRate*dur), buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
     for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
     var src=AC.createBufferSource(); src.buffer=buf;
     var f=AC.createBiquadFilter(); f.type='lowpass'; f.frequency.value=freq||900;
     var g=AC.createGain(); g.gain.value=vol;
-    src.connect(f); f.connect(g); g.connect(AC.destination); src.start(); }catch(e){}
+    src.connect(f); f.connect(g); g.connect(AC.destination); src.start(audioClock()+(delay||0)); }catch(e){}
 }
 function plop(v){ tone(320+(v||0)*40,90,0.16,'sine',0.14); }
 function squelch(){ tone(180,420,0.12,'triangle',0.08); noiseBurst(0.08,0.05,1400); }
-function popSound(){ tone(140,40,0.35,'sine',0.3); noiseBurst(0.28,0.32,2600); setTimeout(function(){ tone(700,180,0.2,'triangle',0.12); },40); }
+function popSound(){ tone(140,40,0.35,'sine',0.3); noiseBurst(0.28,0.32,2600); tone(700,180,0.2,'triangle',0.12,0.04); }
 /* ---------- Material voices: cracking and breaking sound DIFFERENT
    for every material - there is no shared crack or pop any more.
    - glass:   sharp, high, bright - band-passed snap + a high ping
@@ -3611,14 +3640,14 @@ function popSound(){ tone(140,40,0.35,'sine',0.3); noiseBurst(0.28,0.32,2600); s
    - lego:    plastic "tach" plus a scatter of little clicks (clatter)
    All of it is synthesized live with the WebAudio graph above, so no
    audio files are needed and every hit can vary slightly. ---------- */
-function noiseHit(dur,vol,type,freq,q,rate){
+function noiseHit(dur,vol,type,freq,q,rate,delay){
   if(!AC||!soundOn) return;
   try{ var len=Math.max(1,Math.floor(AC.sampleRate*dur)), buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
     for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
     var src=AC.createBufferSource(); src.buffer=buf; src.playbackRate.value=rate||1;
     var f=AC.createBiquadFilter(); f.type=type||'lowpass'; f.frequency.value=freq||900; f.Q.value=q||0.8;
     var g=AC.createGain(); g.gain.value=vol;
-    src.connect(f); f.connect(g); g.connect(AC.destination); src.start(); }catch(e){}
+    src.connect(f); f.connect(g); g.connect(AC.destination); src.start(audioClock()+(delay||0)); }catch(e){}
 }
 function crackSound(kind,intensity){
   if(!AC||!soundOn) return;
@@ -3647,7 +3676,7 @@ function crackSound(kind,intensity){
   } else if(kind==='lego'){
     noiseHit(0.028,v,'highpass',2500,0.7,1.2);
     tone(1150+Math.random()*250,900,0.03,'square',v*0.35);
-    setTimeout(function(){ noiseHit(0.028,v*0.85,'highpass',2900,0.7,1.3); },45+Math.random()*40);
+    noiseHit(0.028,v*0.85,'highpass',2900,0.7,1.3,(45+Math.random()*40)/1000);
   } else {
     noiseHit(0.08,v,'bandpass',1800,1.2);
   }
@@ -3659,40 +3688,40 @@ function burstSound(kind,scale){
     /* sharp shatter: a bright crack, then individual shards tinkling */
     noiseHit(0.22,0.30*s,'bandpass',3600,2.5);
     noiseHit(0.34,0.20*s,'highpass',4800,0.7,0.9);
-    [0,50,110,190].forEach(function(ms){ setTimeout(function(){ tone(2400+Math.random()*1600,2000,0.09,'sine',0.10*s); noiseHit(0.05,0.10*s,'bandpass',4200+Math.random()*1200,6); },ms); });
+    [0,50,110,190].forEach(function(ms){ var dl=ms/1000; tone(2400+Math.random()*1600,2000,0.09,'sine',0.10*s,dl); noiseHit(0.05,0.10*s,'bandpass',4200+Math.random()*1200,6,1,dl); });
   } else if(kind==='diamond'){
     /* crystalline burst: a piercing snap and a cascade of high pings */
     noiseHit(0.16,0.22*s,'highpass',5200,0.7);
-    [0,40,90,150,230].forEach(function(ms){ setTimeout(function(){ tone(3000+Math.random()*1800,2700,0.11,'sine',0.11*s); },ms); });
+    [0,40,90,150,230].forEach(function(ms){ tone(3000+Math.random()*1800,2700,0.11,'sine',0.11*s,ms/1000); });
     tone(1250,900,0.16,'triangle',0.08*s);
   } else if(kind==='iron'){
     /* heavy metal break: deep boom, low clang, almost no high end */
     tone(72,28,0.5,'sine',0.34*s);
     tone(150,60,0.28,'square',0.14*s);
     noiseHit(0.3,0.26*s,'lowpass',420,0.7,0.8);
-    setTimeout(function(){ tone(210,95,0.2,'square',0.08*s); },70);
+    tone(210,95,0.2,'square',0.08*s,0.07);
   } else if(kind==='brick'){
     /* dull crumble: muffled break, then rubble chunks tumbling down */
     noiseHit(0.26,0.30*s,'lowpass',560,0.7,0.85);
-    [60,140,230].forEach(function(ms,bi){ setTimeout(function(){ noiseHit(0.12,0.16*s,'lowpass',420-bi*70,0.7,0.8); },ms); });
+    [60,140,230].forEach(function(ms,bi){ noiseHit(0.12,0.16*s,'lowpass',420-bi*70,0.7,0.8,ms/1000); });
     tone(96,46,0.24,'sine',0.2*s);
   } else if(kind==='water'){
     /* the balloon "bup": a round low pop, then open water splashing */
     tone(230,46,0.24,'sine',0.32*s);
     noiseHit(0.3,0.24*s,'lowpass',1150,0.7,1.0);
-    setTimeout(function(){ noiseHit(0.34,0.16*s,'bandpass',750,1.1,0.8); },60);
-    setTimeout(function(){ tone(640,300,0.12,'sine',0.07*s); },120);
+    noiseHit(0.34,0.16*s,'bandpass',750,1.1,0.8,0.06);
+    tone(640,300,0.12,'sine',0.07*s,0.12);
   } else if(kind==='lego'){
     /* plastic snap ("tach") then hard little bricks clattering */
     noiseHit(0.07,0.26*s,'highpass',2300,0.7,1.15);
     tone(980,760,0.05,'square',0.10*s);
-    for(i=0;i<6;i++){ (function(ms){ setTimeout(function(){ noiseHit(0.03,0.13*s,'highpass',2600+Math.random()*900,0.7,1.25); tone(1250+Math.random()*350,1000,0.028,'square',0.05*s); },ms); })(70+i*46+Math.random()*26); }
+    for(i=0;i<6;i++){ var dl2=(70+i*46+Math.random()*26)/1000; noiseHit(0.03,0.13*s,'highpass',2600+Math.random()*900,0.7,1.25,dl2); tone(1250+Math.random()*350,1000,0.028,'square',0.05*s,dl2); }
   } else {
     /* jelly: a soft, wet pop - low body, squelch, no sharp transient */
     tone(150,42,0.32,'sine',0.3*s);
     noiseHit(0.26,0.26*s,'lowpass',820,0.7,0.9);
     tone(300,540,0.14,'sine',0.10*s);
-    setTimeout(function(){ tone(660,190,0.18,'triangle',0.10*s); },45);
+    tone(660,190,0.18,'triangle',0.10*s,0.045);
   }
 }
 /* ---------- Combo: chained pops inside a short grace window ----------
@@ -3711,8 +3740,8 @@ function comboSound(n){
   if(!AC||!soundOn) return;
   var base=500+Math.min(n,12)*42;
   tone(base,base*1.02,0.09,'square',0.09);
-  setTimeout(function(){ tone(base*1.26,base*1.28,0.09,'square',0.09); },55);
-  setTimeout(function(){ tone(base*1.5,base*1.56,0.15,'square',0.11); noiseBurst(0.12,0.09,3200); },112);
+  tone(base*1.26,base*1.28,0.09,'square',0.09,0.055);
+  tone(base*1.5,base*1.56,0.15,'square',0.11,0.112); noiseBurst(0.12,0.09,3200,0.112);
 }
 function notePop(n){
   var now=performance.now();
@@ -3849,6 +3878,23 @@ function catMaxPen(h){
 }
 function reqPressureFor(h){
   var base=MAT_REQ[h.texKind]||MAT_REQ.jelly;
+  /* RARE OBJECTS (Gen spawns) do NOT inherit the cat inflation:
+     Gen rolls a random cat size (up to 150%) and a random density
+     (up to 180%) for the CATS, and an object wearing a hard
+     material - the mini press is always iron - had those two
+     multipliers stacked onto iron's 350 bar until it needed
+     450-580 bar, past the default machine's 400: the platen
+     touched it, strained, bucked and failed, and the object could
+     NEVER be pressed at all (user report, 2026-11-03). An object
+     is a fixed thing, not a rolled cat: its size factor is capped
+     near its drawn form size and the density factor at the
+     neutral 1.0, so every rare object stays pressable on the
+     stock machine while still wearing - and bursting into - its
+     own material. Cats keep the full size/density scaling. */
+  if(h.form&&h.form.objKind){
+    var osF=Math.min(h.sizeF||1,1.1), odF=Math.min(density,1.0);
+    return Math.round(base*(0.55+0.45*osF*osF)*(0.45+0.55*odF));
+  }
   return Math.round(base*(0.55+0.45*Math.pow(h.sizeF||1,2))*(0.45+0.55*density));
 }
 function catContact(h,pb){
@@ -4289,7 +4335,7 @@ function collidePlaten(p){
   var ux,uz;
   if(dist>0.15){ ux=dx/dist; uz=dz/dist; }
   else { var ra=Math.random()*Math.PI*2; ux=Math.cos(ra); uz=Math.sin(ra); }
-  var gap=bottom-((Math.hypot(p.mesh.position.x,p.mesh.position.z)<3.55? BED_Y:0)+topOff*0.6);
+  var gap=bottom-((Math.hypot(p.mesh.position.x,p.mesh.position.z)<4.32? BED_Y:0)+topOff*0.6);
   var squirt=0.7+impact*0.55+(gap<topOff*1.4? 2.4:0.5);
   p.vx=(p.vx||0)+ux*squirt; p.vz=(p.vz||0)+uz*squirt;
   if(gap<topOff*1.6){
@@ -4570,14 +4616,23 @@ function burstOneCat(h){
       if(voroCells.length && pi<voroCells.length){
         var vcell=voroCells[pi], vsc=form.scale*(h.sizeF||1);
         np2.mesh.position.set(cx+vcell.x*vsc,Math.max(h.baseY+0.35,h.baseY+vcell.y*vsc),cz+vcell.z*vsc);
-        np2.vx=vcell.x*1.5; np2.vy=1.2+burstRng()*1.2; np2.vz=vcell.z*1.5; /* fragments separate along the fracture cells but stay over the bed - the old 2.4 launch threw them past the rim and off-frame on phones */
+        /* NATURAL SCATTER (user, 2026-11-03): fragments fly OUT
+           along their fracture cells with real energy - over the
+           bed rim, onto the floor, rolling and spreading around
+           the room. A cut-down launch used to keep everything on
+           the bed, where the big flat plates piled up in a clump
+           that buried the bed (and anything standing on it). A
+           cell near the centre gets a random outward kick too, so
+           no fragment is born dead and stays in the pile. */
+        np2.vx=vcell.x*2.6; np2.vy=1.7+burstRng()*1.7; np2.vz=vcell.z*2.6;
+        if(Math.hypot(np2.vx,np2.vz)<1.6){ var pa2=burstRng()*Math.PI*2, pk2=1.6+burstRng()*1.6; np2.vx+=Math.cos(pa2)*pk2; np2.vz+=Math.sin(pa2)*pk2; }
       }
     }
     var crumbN=Math.round(({jelly:38,glass:26,diamond:14,iron:6,brick:30,lego:10}[kind]||20)*countF);
     if(burstStyle==='blend') crumbN=Math.round(30*countF);
     if(burstStyle==='grind') crumbN=Math.round(34*countF);
     crumbSizeMul=(burstStyle==='press')?1:((curMachine().out||[0.15,0.25])[1]/0.30);
-    spawnCrumbs(crumbN,cx,cz,color,2.3,kind,yOff); /* launch power cut from 3.6: crumbs hop and scatter on the bed instead of flying off its edge */
+    spawnCrumbs(crumbN,cx,cz,color,3.2,kind,yOff); /* crumbs scatter naturally too - across the bed and off its rim onto the floor, like the fragments */
     crumbSizeMul=1;
     /* every burst throws off dust of the broken material itself */
     spawnDust((burstStyle==='grind'?2:1)*(kind==='jelly'?10:(kind==='brick'?26:16)),cx,h.baseY+1.0,cz,kind,color,2.4);
@@ -5718,7 +5773,12 @@ function animate(){
       /* mild air drag only - pieces travel, tumble and scatter further */
       var airD=Math.pow(0.55,dt); p.vx*=airD; p.vz*=airD;
       p.mesh.position.x+=p.vx*dt; p.mesh.position.y+=p.vy*dt; p.mesh.position.z+=p.vz*dt;
-      var floorY=(Math.hypot(p.mesh.position.x,p.mesh.position.z)<3.55? BED_Y:0)+ (p.mini?0:p.r*0.55);
+      /* the support edge is the bed's REAL rim (top radius 4.30,
+         the same 4.32 the cats use): pieces roll across the whole
+         bed top and drop off the rim to the floor - the old 3.55
+         cliff sat well inside the bed, so fragments heading out
+         snagged and stacked around an invisible wall on the bed */
+      var floorY=(Math.hypot(p.mesh.position.x,p.mesh.position.z)<4.32? BED_Y:0)+ (p.mini?0:p.r*0.55);
       p.restY=floorY;
       if(p.mesh.position.y<floorY){
         p.mesh.position.y=floorY;
@@ -5754,11 +5814,16 @@ function animate(){
         p.vrz=Math.max(-15,Math.min(15,-p.vx*roll*0.9));
       }
       var rr=Math.hypot(p.mesh.position.x,p.mesh.position.z);
-      /* containment wall pulled IN from 8.2 to 5.4: pieces used to
-         wander far past the bed, out of the phone frame entirely -
-         now everything the press makes stays in the play area the
-         player can actually see and reach */
-      if(rr>5.4){ p.mesh.position.x*=5.4/rr; p.mesh.position.z*=5.4/rr; p.vx*=-0.55; p.vz*=-0.55; p.wobV+=3; }
+      /* the ONLY outer bound is the far edge of the floor tiles:
+         pieces fly, fall and roll freely across the bed and the
+         floor around it and settle where physics leaves them
+         (user, 2026-11-03 - a tight wall at 5.4 used to bounce
+         everything back toward the bed, where the fragments
+         clumped into one pile). At the bound itself the outward
+         velocity is simply absorbed: a soft stop, never a bounce
+         back inward. The vacuum and the bin still collect pieces
+         from anywhere on the floor. */
+      if(rr>10.5){ var sc5=10.5/rr; p.mesh.position.x*=sc5; p.mesh.position.z*=sc5; var vn5=p.vx*(p.mesh.position.x/10.5)+p.vz*(p.mesh.position.z/10.5); if(vn5>0){ p.vx-=vn5*(p.mesh.position.x/10.5); p.vz-=vn5*(p.mesh.position.z/10.5); } }
       p.mesh.rotation.x+=p.vrx*dt; p.mesh.rotation.z+=p.vrz*dt;
       if(p.mini && p.mesh.position.y<=floorY+0.02){
         /* Mini cats settle back upright on the bed instead of staying
@@ -5863,7 +5928,7 @@ function animate(){
     }
     /* the landing surface depends on where the droplet actually is:
        on the bed disc it is BED_Y, off the bed it falls to the floor */
-    var surfY=(Math.hypot(dr.mesh.position.x,dr.mesh.position.z)<3.55? BED_Y:0);
+    var surfY=(Math.hypot(dr.mesh.position.x,dr.mesh.position.z)<4.32? BED_Y:0);
     if(dr.mesh.position.y<surfY+0.07){
       if(dr.isWater){
         /* slime does not bounce like a marble: it splats, spreads and
