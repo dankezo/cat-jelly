@@ -3813,11 +3813,15 @@ function disposeHero(h){
   if(h.face&&h.face.grp) h.face.grp.traverse(function(o){ if(o.isMesh&&o.geometry) o.geometry.dispose(); }); /* face geometries are per-cat; its materials are shared and kept */
   if(h.mat) h.mat.dispose();
 }
+/* Rare Gen objects always spawn BIG: a fixed generous size factor,
+   independent of the cat-size slider and of Gen's random size roll,
+   so a special item never turns up kitten-sized (user, 2026-11-04) */
+var RARE_SIZE=1.4;
 function makeHeroCat(type,texKind,sizeF){
   /* rare objects always wear their OWN material (a mini press is
      iron, a melon is juicy jelly, a bomb is iron) - the random
      surface roll only applies to real cats */
-  if(FORMS[type]&&FORMS[type].objKind) texKind=FORMS[type].tex;
+  if(FORMS[type]&&FORMS[type].objKind){ texKind=FORMS[type].tex; sizeF=RARE_SIZE; }
   currentTex=texKind; /* buildCatMesh reads the global */
   var mesh=buildCatMesh(type);
   if(mesh.userData.bodyG) mesh.userData.bodyG.scale.setScalar(FORMS[type].scale*sizeF);
@@ -4722,7 +4726,7 @@ function setCatSize(factor,fromSlider){
   if(!fromSlider && $('sizeRange')) $('sizeRange').value=pct;
   if(fromSlider && $('sizeRange')) $('sizeRange').value=pct;
   if($('sizeVal')) $('sizeVal').textContent=pct+'%';
-  if(hero && hero.mesh.userData.bodyG){
+  if(hero && hero.mesh.userData.bodyG && !(hero.form&&hero.form.objKind)){
     hero.sizeF=catSize;
     hero.mesh.userData.bodyG.scale.setScalar(hero.form.scale*catSize);
     hero.wobV+=3.5; squelch();
@@ -5675,7 +5679,16 @@ function animate(){
         var bReq=reqPressureFor(bh2)*(1-0.45*(bh2.pDmg||0));
         if((bh2.pDmg||0)>=1){ toBurst.push(bh2); continue; }
         if(bReq>machineCap()) continue;
-        if(bh2.texKind==='jelly'){ if(bh2.pSq>=(bh2.burstAt||burstAt) && pressure>=bReq*0.55) toBurst.push(bh2); }
+        /* jelly bursts on RENDERED squash OR on raw penetration:
+           a low-volume-keeping body (the poop, volKeep 0.78) has its
+           rendered squash hard-clamped by the anti-penetration rule
+           to ~0.89x its burst threshold, so the squash test alone
+           could NEVER fire for it at any size - it flattened to a
+           pancake and just sat there (user report, 2026-11-04). The
+           platen floor caps penetration at exactly that same burst
+           depth (catMaxPen), so penetration reaching the threshold
+           IS the body driven to its designed breaking point. */
+        if(bh2.texKind==='jelly'){ if((bh2.pSq>=(bh2.burstAt||burstAt) || bh2.pRaw>=(bh2.burstAt||burstAt)) && pressure>=bReq*0.55) toBurst.push(bh2); }
         else if(bh2.pRaw>=physFor(bh2.texKind).burstRaw && bh2.pSq>=physEff(bh2.texKind).heroMax*0.82 && pressure>=bReq*0.82) toBurst.push(bh2);
       }
       if(toBurst.length) burstCats(toBurst);
