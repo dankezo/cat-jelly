@@ -1913,8 +1913,8 @@ var texCache={};
 var currentTex='jelly';
 var MAT_PROFILES={
   glass:  {transmission:0.94,roughness:0.02,metalness:0.0,ior:1.52,thickness:0.5, clearcoat:1.0,clearcoatRoughness:0.02,env:1.5, spec:1.2, opacity:0.30,flat:false,tint:0xf7fcfd,tintAmt:0.93,atten:2.8,bump:0.0,repeat:1.5},
-  iron:   {transmission:0.0, roughness:0.38,metalness:1.0,ior:1.50,thickness:0.0, clearcoat:0.25,clearcoatRoughness:0.4, env:1.35,spec:0.9, opacity:1.0, flat:false,tint:0x8a8f96,tintAmt:0.62,atten:1.0,bump:0.012,repeat:1.5},
-  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.15,env:1.1, spec:1.0, opacity:0.97,flat:true, tint:0x46ecd2,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.30,emiss:0.16},
+  iron:   {transmission:0.0, roughness:0.34,metalness:0.88,ior:1.50,thickness:0.0, clearcoat:0.25,clearcoatRoughness:0.4, env:1.45,spec:0.9, opacity:1.0, flat:false,tint:0x8a8f96,tintAmt:0.62,atten:1.0,bump:0.012,repeat:1.5},
+  diamond:{transmission:0.18,roughness:0.07,metalness:0.0,ior:2.35,thickness:0.7, clearcoat:1.0,clearcoatRoughness:0.15,env:1.1, spec:1.0, opacity:1.0, flat:true, tint:0x46ecd2,tintAmt:1.0, atten:1.2,bump:0.0,repeat:1.0,irid:0.20,emiss:0.34},
   jelly:  {transmission:0.5, roughness:0.13,metalness:0.0,ior:1.38,thickness:1.15,clearcoat:1.0,clearcoatRoughness:0.08,env:0.75,spec:1.0, opacity:0.92,flat:false,tint:0xffffff,tintAmt:0.0, atten:0.85,bump:0.0,repeat:1.5},
   brick:  {transmission:0.0, roughness:0.92,metalness:0.0,ior:1.45,thickness:0.0, clearcoat:0.0,clearcoatRoughness:0.9, env:0.25,spec:0.35,opacity:1.0, flat:false,tint:0xb5502f,tintAmt:0.78,atten:1.0,bump:0.05,repeat:2.0},
   water:  {transmission:0.90,roughness:0.06,metalness:0.0,ior:1.36,thickness:0.9, clearcoat:1.0,clearcoatRoughness:0.05,env:1.45,spec:1.2, opacity:0.55,flat:false,tint:0x2fd35f,tintAmt:0.62,atten:1.6,bump:0.0,repeat:1.5},
@@ -2540,10 +2540,30 @@ function jellyMat(color,op,texKind){
     if(p.transmission>0 && !useTransmission){ params.transparent=true; params.opacity=p.opacity; }
   }
   if(!useTransmission && kind==='jelly'){ params.emissive=disp.clone(); params.emissiveIntensity=0.05; }
+  /* DIAMOND MUST NEVER GO DARK (user phone photo, 2026-11-07: after
+     the first diamond cat was pressed, the hard glossy cat on the
+     bed rendered near-black burgundy instead of bright cyan - the
+     photographed cat was in fact the next Gen cat, IRON, whose
+     metalness-1.0 body has NO diffuse at all and takes every photon
+     from env reflections, which under the platen are warm and dim;
+     diamond on a phone is one step from the same trap: phones run
+     useTransmission=false, so it fell back to a TRANSPARENT shell
+     (opacity 0.97) over the dark steel bed, in the platen's shadow,
+     with only its 0.16 emissive holding the cyan - not enough, so
+     the gem collapsed toward the dark scene behind it). The fix is
+     a guaranteed cyan floor that no lighting state can take away:
+     on the no-transmission path diamond is SOLID (never transparent)
+     and its emissive floor more than doubles; on the transmission
+     path the profile's raised emissive (0.34) does the same job.
+     Iron's profile above likewise steps back from metalness 1.0 to
+     0.88 so a steel cat always keeps a lit diffuse body and can
+     never render as a black lump either. The cyan itself - tint,
+     mosaic texture, flat facets - is untouched. */
+  if(kind==='diamond' && !useTransmission){ params.transparent=false; params.opacity=1; }
   if(p.irid){ /* diamond only: a light rainbow shimmer over the cyan facets */
     params.iridescence=p.irid; params.iridescenceIOR=1.8; params.iridescenceThicknessRange=[120,420];
   }
-  if(kind==='diamond'){ params.emissive=new THREE.Color(0x1de9c3); params.emissiveIntensity=p.emiss||0.16; }
+  if(kind==='diamond'){ params.emissive=new THREE.Color(0x1de9c3); params.emissiveIntensity=useTransmission? (p.emiss||0.34) : Math.max(p.emiss||0.34,0.46); }
   if(p.bump>0){ params.bumpMap=tex; params.bumpScale=p.bump; }
   /* photo play: the user's own photo becomes the jelly's skin */
   if(kind==='jelly' && photoTexActive && userPhotoTex) params.map=userPhotoTex;
@@ -3600,7 +3620,7 @@ function syncLangButtons(){
 }
 
 /* ---------- Procedural sound: hum, squelch, plop, pop ---------- */
-var AC=null, humOsc=null, humGain=null, humFilter=null, soundOn=true, creakAt=0;
+var AC=null, humOsc=null, humOsc2=null, humGain=null, humFilter=null, soundOn=true, creakAt=0;
 function ensureAudio(){
   if(!soundOn) return;
   try{
@@ -3614,9 +3634,23 @@ function ensureAudio(){
       var ACtor=window.AudioContext||window.webkitAudioContext;
       try{ AC=new ACtor({latencyHint:'interactive'}); }catch(e2){ AC=new ACtor(); }
       humOsc=AC.createOscillator(); humOsc.type='sawtooth'; humOsc.frequency.value=52;
-      humFilter=AC.createBiquadFilter(); humFilter.type='lowpass'; humFilter.frequency.value=220;
+      /* PRESS LOUDNESS (user, 2026-11-07: the press sound was too
+         quiet): the old hum was a lone 52Hz sawtooth behind a 220Hz
+         lowpass - nearly all of its energy sat in a fundamental
+         that phone speakers physically cannot reproduce, so on a
+         phone the press was almost silent even at full gain, while
+         a desktop speaker made it seem fine. A second oscillator
+         one octave up (104Hz triangle at half level) puts real
+         energy where small speakers work, and setHum below drives
+         the shared gain roughly twice as hot with a slightly more
+         open filter. ONLY the press chain changes: every other
+         voice (pops, cracks, combo) keeps its own level, and the
+         hum peak stays capped well under clipping. */
+      humOsc2=AC.createOscillator(); humOsc2.type='triangle'; humOsc2.frequency.value=104;
+      var humSub=AC.createGain(); humSub.gain.value=0.55;
+      humFilter=AC.createBiquadFilter(); humFilter.type='lowpass'; humFilter.frequency.value=300;
       humGain=AC.createGain(); humGain.gain.value=0;
-      humOsc.connect(humFilter); humFilter.connect(humGain); humGain.connect(AC.destination); humOsc.start();
+      humOsc.connect(humFilter); humOsc2.connect(humSub); humSub.connect(humFilter); humFilter.connect(humGain); humGain.connect(AC.destination); humOsc.start(); humOsc2.start();
       /* one silent sample through the destination: the classic iOS
          unlock, so the context is really running by the time the
          first real sound is scheduled */
@@ -3650,12 +3684,16 @@ function audioClock(){
 document.addEventListener('visibilitychange',function(){ if(!document.hidden) ensureAudio(); });
 function setHum(on,pressure){
   if(!AC||!humGain) return;
-  var g=on? 0.015+pressure/400*0.075 : 0;
+  /* ~2x the old drive (0.032 base + 0.135 at 400 bar, ~0.23 peak at
+     600 bar): clearly audible over a phone speaker, still far from
+     clipping even when a crack or pop lands on top of it */
+  var g=on? 0.032+pressure/400*0.135 : 0;
   /* short time constants: the hum tracks the press almost instantly
      instead of swelling in a beat behind it */
   humGain.gain.setTargetAtTime(soundOn?g:0, AC.currentTime, 0.03);
   humOsc.frequency.setTargetAtTime(52+pressure*0.22, AC.currentTime, 0.04);
-  humFilter.frequency.setTargetAtTime(220+pressure*1.4, AC.currentTime, 0.04);
+  if(humOsc2) humOsc2.frequency.setTargetAtTime(104+pressure*0.44, AC.currentTime, 0.04);
+  humFilter.frequency.setTargetAtTime(300+pressure*1.5, AC.currentTime, 0.04);
 }
 function tone(f0,f1,dur,type,vol,delay){
   if(!AC||!soundOn) return;
@@ -5569,7 +5607,7 @@ function animate(){
        most-resistant cat under it (platenFloorBottom) - it can never
        travel INTO a cat that has not burst yet */
     platenY=Math.max(platenFloorBottom()+0.35,platenY-dt*(mode==='ready'?2.15:2.9)*pressSlowF);
-    if(AC && soundOn && time>creakAt && pressure>300){ creakAt=time+1.2+Math.random()*1.5; tone(90+Math.random()*60,60,0.3,'sawtooth',0.03); }
+    if(AC && soundOn && time>creakAt && pressure>300){ creakAt=time+1.2+Math.random()*1.5; tone(90+Math.random()*60,60,0.3,'sawtooth',0.055); }
   } else {
     platenY=Math.min(platenRestY(),platenY+dt*2.6);
   }
