@@ -187,6 +187,17 @@ body{-webkit-touch-callout:none}
 @keyframes holdPing{0%,100%{box-shadow:0 4px 0 var(--line),0 0 0 0 rgba(229,50,45,.45)}55%{box-shadow:0 4px 0 var(--line),0 0 0 9px rgba(229,50,45,0)}}
 .hold-hint{margin-top:6px;text-align:center;font-size:11px;font-weight:700;color:#8a6d3f;line-height:1.25}
 .hold-hint[hidden]{display:none}
+/* ---------- Timed hint bubbles: the vacuum nudge (in the deck,
+   under the Gen/Vacuum row) and the backpack nudge (floating by
+   the top-right utility cluster, right under the Backpack
+   button). Each shows for a few seconds only, then hides itself.
+   The button it points at pulses gently while its bubble is up. */
+.hint-bubble{margin-top:7px;background:var(--yellow);border:2px solid var(--line);border-radius:10px;box-shadow:2px 2px 0 rgba(33,26,19,.85);padding:6px 9px;font-size:12px;font-weight:800;line-height:1.3;color:var(--ink);text-align:center;animation:hintPop .3s cubic-bezier(.2,1.5,.4,1)}
+.hint-bubble[hidden]{display:none}
+.hint-bubble.bag-hint{position:absolute;top:58px;right:14px;z-index:7;margin-top:0;max-width:min(250px,72vw);text-align:left}
+@keyframes hintPop{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+button.pulse{animation:btnPulse .7s ease-in-out infinite alternate}
+@keyframes btnPulse{0%{transform:scale(1)}100%{transform:scale(1.07)}}
 .readout{flex:none;text-align:right;min-width:72px}
 .readout .num{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:27px;line-height:.9;font-variant-numeric:tabular-nums}
 .readout .num small{font-size:15px;color:#75592e}
@@ -365,6 +376,8 @@ body{-webkit-touch-callout:none}
     <button class="u-btn" id="resetBtn" aria-label="Reset"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.3"/><path d="M21 3v6h-6"/></svg><span class="u-txt" id="resetLbl">Reset</span></button>
   </div>
 
+  <div class="hint-bubble bag-hint" id="bagHint" hidden></div>
+
   <nav class="mach-bar" id="machBar" aria-label="Machines"><div class="mb-lbl" id="machBarLbl">Machines</div></nav>
 
   <div id="modalScrim"></div>
@@ -422,6 +435,7 @@ body{-webkit-touch-callout:none}
       </div>
     </div>
     <div class="gen-row"><button class="gen-btn" id="genBtn">Gen cat</button><button class="vac-btn" id="vacBtn">Vacuum</button></div>
+    <div class="hint-bubble" id="vacHint" hidden></div>
     </div>
     <div class="hold-hint" id="holdHint">New here? Hold the red button to press</div>
     <div class="ctl-block">
@@ -1706,16 +1720,33 @@ var FORMS={
      white creature is an ORIGINAL design (round white blob, dot
      eyes, tiny ears), drawn for this game - not any official
      character asset. */
-  poop:{label:"Poop",color:0x7c4a21,height:1.70,scale:1.15,oy:0.8,pressScale:1.0,verdict:1,tex:"jelly",clones:0,objKind:"poop",
+  /* HEIGHT = TRUE DRAWN TOP (user report, 2026-11-07 - the bomb
+     "pierced and never exploded" AGAIN): form.height is the height
+     the whole press solver believes in - contact, the platen floor,
+     the crown clamp, stacking all read it. But the rare objects are
+     DRAWN from stacked parts (buildObjectMesh), and their drawn
+     tops sat ABOVE form.height: the bomb's cap + fuse loop reach
+     local y ~2.44 against a declared 2.10 (+0.54 world units once
+     scaled), the melon's stem ~2.20 against 2.0, the poop's tip
+     ~1.78 against 1.70, Chii's ears ~1.84 against 1.80. So the
+     descending face VISUALLY swallowed the fuse/stem/tip long
+     before the solver counted any contact at all - the object
+     looked speared through the disc while its physics height was
+     still untouched below it, and a player letting go at that
+     sight never gave the burst threshold a chance to arrive. The
+     heights below are the real drawn tops, so solver height and
+     drawn height are the same number for every special. The mini
+     press already matched (beam top 1.95) and is unchanged. */
+  poop:{label:"Poop",color:0x7c4a21,height:1.80,scale:1.15,oy:0.8,pressScale:1.0,verdict:1,tex:"jelly",clones:0,objKind:"poop",
     parts:[[0,0.8,0,1.0,0.8,1.0,0.3]]},
-  melon:{label:"Watermelon",color:0xd93636,height:2.0,scale:1.25,oy:0.95,pressScale:1.0,verdict:0,tex:"jelly",clones:0,objKind:"melon",
+  melon:{label:"Watermelon",color:0xd93636,height:2.22,scale:1.25,oy:0.95,pressScale:1.0,verdict:0,tex:"jelly",clones:0,objKind:"melon",
     parts:[[0,1.0,0,1.05,0.95,1.05,0.3]]},
-  chii:{label:"Chii",color:0xffffff,height:1.80,scale:1.10,oy:0.85,pressScale:0.9,verdict:0,tex:"jelly",clones:2,objKind:"chii",
+  chii:{label:"Chii",color:0xffffff,height:1.86,scale:1.10,oy:0.85,pressScale:0.9,verdict:0,tex:"jelly",clones:2,objKind:"chii",
     eyeY:1.06,eyeX:0.26,eyeZ:0.80,noseY:1.0,noseZ:0.84,
     parts:[[0,0.85,0,0.92,0.85,0.9,0.3]]},
   minipress:{label:"Mini Press",color:0x8a929c,height:1.95,scale:1.05,oy:0.95,pressScale:1.1,verdict:2,tex:"iron",clones:0,objKind:"minipress",
     parts:[[0,0.95,0,0.9,0.95,0.7,0.3]]},
-  bomb:{label:"Bomb",color:0x23242a,height:2.10,scale:1.10,oy:1.0,pressScale:1.1,verdict:2,tex:"iron",clones:0,objKind:"bomb",
+  bomb:{label:"Bomb",color:0x23242a,height:2.46,scale:1.10,oy:1.0,pressScale:1.1,verdict:2,tex:"iron",clones:0,objKind:"bomb",
     parts:[[0,1.0,0,0.98,0.98,0.98,0.3]]}
 };
 /* ---------- Seeded RNG: every generated cat gets ONE seed ----------
@@ -2887,17 +2918,33 @@ function buildCrackGroup(kind,form,type,seed){
     var az=Math.atan2(dir.x,dir.z);
     addBranch(polar,az,4+Math.floor(rng()*3),0.15+rng()*0.07,delay,1.15,kindStyle);
   }
+  /* ORPHAN BUG (root cause of the 2026-11-05 "cat the press
+     passes through" report, and of the earlier unpressable mini
+     press): this block used to read form.parts[2..4] and
+     form.eyeY/eyeX UNCONDITIONALLY - but the rare Gen objects
+     (poop, melon, Chii, mini press, bomb) are single-part forms
+     with no ear/muzzle parts, and some have no eye fields at all.
+     buildCrackGroup threw a TypeError for EVERY rare object,
+     makeHeroCat aborted AFTER the mesh had already been added to
+     the scene, and the object stayed on the bed as an orphan:
+     drawn, but in no physics list - no stacking, no press contact,
+     no HP, no burst; the platen simply passed through it. Zone
+     branches are now aimed only at features the form actually
+     has; single-part objects still get the generic flank branches
+     (and the crown branches above), so their cracks cover them
+     too. */
   var earL=form.parts[2], earR=form.parts[3], muz=form.parts[4];
-  var zoneDirs=[
-    dirTo(earL[0],earL[1]+earL[4]*0.75,earL[2]),
-    dirTo(earR[0],earR[1]+earR[4]*0.75,earR[2]),
-    dirTo(0,form.eyeY+0.42,form.eyeZ+0.30),
-    dirTo(-(form.eyeX+0.36),form.eyeY-0.30,form.eyeZ+0.14),
-    dirTo( (form.eyeX+0.36),form.eyeY-0.30,form.eyeZ+0.14),
-    dirTo(muz[0],muz[1],muz[2]+0.18),
-    dirTo(-0.85,form.height*0.55,0.55),
-    dirTo( 0.85,form.height*0.55,0.55)
-  ];
+  var zoneDirs=[];
+  if(earL) zoneDirs.push(dirTo(earL[0],earL[1]+earL[4]*0.75,earL[2]));
+  if(earR) zoneDirs.push(dirTo(earR[0],earR[1]+earR[4]*0.75,earR[2]));
+  if(form.eyeY!==undefined && form.eyeX!==undefined){
+    zoneDirs.push(dirTo(0,form.eyeY+0.42,form.eyeZ+0.30));
+    zoneDirs.push(dirTo(-(form.eyeX+0.36),form.eyeY-0.30,form.eyeZ+0.14));
+    zoneDirs.push(dirTo( (form.eyeX+0.36),form.eyeY-0.30,form.eyeZ+0.14));
+  }
+  if(muz) zoneDirs.push(dirTo(muz[0],muz[1],muz[2]+0.18));
+  zoneDirs.push(dirTo(-0.85,form.height*0.55,0.55));
+  zoneDirs.push(dirTo( 0.85,form.height*0.55,0.55));
   for(var zi=0;zi<zoneDirs.length;zi++) addZoneBranch(zoneDirs[zi],0.10+zi*0.04);
   /* ---- Voronoi fracture cells for THIS cat, from the same seed ----
      Cells are seeded ON the surface starting at the platen contact
@@ -3498,19 +3545,19 @@ function finishWreck(){
 /* ---------- i18n: EN primary, VI secondary, plus ES and ZH. Short dashes only. ---------- */
 var I18N={
 en:{subtitle:"Jelly cat pressing research",count:"Cats popped",ready:"Ready",pressing:"Pressing",playmode:"Play mode",sound:"Sound",reset:"Reset",hold:"HOLD",raise:"Raise",pressure:"Pressure",mochiSub:"strawberry round",puddingSub:"caramel flat",sodaSub:"mint tall, fizzy",texLabel:"Surface",tex_glass:"Glass",tex_iron:"Iron",tex_diamond:"Diamond",tex_jelly:"Jelly",tex_brick:"Brick",tex_water:"Slime ball",tex_lego:"Toy Brick",sizeLabel:"Cat size",splitToast:"It split into smaller pieces.",cloneToast:"{name} popped into {n} mini clones at {bar} bar.",
-playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",boughtToast:"{name} is yours.",machines:["Base Press","Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Base","Dragon","Hell","Angel"],fx_base:"Effect: Factory standard - clean steel, cyan power veins, status lamps. Same power as every press.",fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",boom_blast:"The press blew apart - parts flying everywhere!",boom_collapse:"The press blew and collapsed in a heap!",boom_launch:"The press blew - parts launched sky-high!",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",hpTxt:"Cat HP",hpFull:"Full health - hold to wear it down.",hpWeak:"Cracking - keep pressing, it is giving way.",hpCrit:"Nearly popped - one more push!",hpNone:"No cat on the bed.",hpEach:"{n} cats - one HP ring each, flat on the bed at each cat's feet.",hpMore:"+{n} more cats",hpSlot:"Empty slot",comboTxt:"COMBO",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - {n} cats is the most the press can hold. Pop a cat or vacuum the crumbs first.",stackToast:"{n} cats on the press - they drop in, bump and stack like real physics.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
+playCaption:"",playSub:"",machLabel:"Machine",densLabel:"Density",genCat:"Gen cat",bagTxt:"Backpack",moneyTxt:"Money",vacTxt:"Vacuum",vacLbl:"Crumbs vacuumed",useTxt:"Use",buyTxt:"Buy",activeTxt:"Active",powerTxt:"Power",speedTxt:"Speed",vacToast:"Vacuumed {c} pieces: +${n}.",vacNone:"Nothing to vacuum yet.",vacHintTxt:"So many crumbs - tap Vacuum to clean up and earn money.",bagHintTxt:"Money earned - open the Backpack to buy or upgrade a press.",boughtToast:"{name} is yours.",machines:["Base Press","Fire Dragon Press","Hell Press","Angel Press"],shortMachines:["Base","Dragon","Hell","Angel"],fx_base:"Effect: Factory standard - clean steel, cyan power veins, status lamps. Same power as every press.",fx_dragon:"Effect: Ember Nova - flame crown, ember spiral, fire-ring burst. Same power as every press.",fx_hell:"Effect: Soul Harvest - pentagram vortex, rising soul wisps, violet burst. Same power as every press.",fx_angel:"Effect: Halo Judgment - light pillars, orbiting crystals, halo ring burst. Same power as every press.",fineTxt:"Fine",boomToast:"The press blew up - not enough pressure for {mat}. It is repairing itself.",boom_blast:"The press blew apart - parts flying everywhere!",boom_collapse:"The press blew and collapsed in a heap!",boom_launch:"The press blew - parts launched sky-high!",fixedToast:"Press repaired. Ready again.",crackToast:"It is cracking.",holdBlend:"BLEND",holdGrind:"GRIND",machinesLbl:"Machines",typePress:"Press",typeGrind:"Grind",typeBlend:"Blend",bagForType:"Showing: {type} machines only - tiers of this type.",physCrack:"Crack",physHard:"Hardness",physBounce:"Bounce",physMass:"Mass",physNeed:"Needs",physDmg:"Damage",hpTxt:"Cat HP",hpFull:"Full health - hold to wear it down.",hpWeak:"Cracking - keep pressing, it is giving way.",hpCrit:"Nearly popped - one more push!",hpNone:"No cat on the bed.",hpEach:"{n} cats - one HP ring each, flat on the bed at each cat's feet.",hpMore:"+{n} more cats",hpSlot:"Empty slot",comboTxt:"COMBO",cmpTxt:"Compare",cmpTitle:"Materials at a glance",crack_glass:"Radial + ring cracks",crack_diamond:"Straight cleavage facets",crack_iron:"Ductile dent, fatigue lines",crack_jelly:"Wide curved tears",crack_brick:"Steps along mortar joints",crack_water:"No cracks - leaks slime",crack_lego:"Stud snap, stress whitening",fxTxt:"FX",photoTxt:"Photo",photoTitle:"Photo play",photoHint:"Pick or take a photo. It is analysed right here on your device - nothing is uploaded, no AI service is called.",photoPick:"Choose a photo",photoJelly:"Jelly photo cat",photoUse:"Use suggestion",photoSugg:"Closest match: {cat} in {mat}.",photoStats:"Colour {c} - light {l}% - shape {s}",shapeRound:"round",shapeFlat:"wide and flat",shapeTall:"tall",stackFull:"Full - {n} cats is the most the press can hold. Pop a cat or vacuum the crumbs first.",stackToast:"{n} cats on the press - they drop in, bump and stack like real physics.",queueToast:"{n} cat(s) still queued - run the machine again.",libNote:"Library: 24 everyday items from the Kenney, Quaternius and KayKit set families - CC0, no login - matched in-page as jelly versions; no model files are embedded, so the page stays light. Poly Haven (CC0, 1K only) is next; Sketchfab waits for account verification.",photoOnToast:"Photo jelly is on the bed.",
 verdicts:["Pawp.","Flopped.","Fizzed."],stat:"Gave up at {bar} bar and {pct}% of its height.",
 poppedToast:"{name} popped at {bar} bar.",newCatToast:"{name} is on the bed. It suspects nothing.",grabToast:"Grabbed. It stretches. It forgives nothing.",resetToast:"Fresh cat, full height, no memory of the press.",holdHint:"New here? Hold the red button to press."},
 vi:{subtitle:"Nghiên cứu ép mèo jelly",count:"Mèo đã bẹp",ready:"Sẵn sàng",pressing:"Đang ép",playmode:"Chế độ chơi",sound:"Âm thanh",reset:"Làm lại",hold:"GIỮ",raise:"Nâng lên",pressure:"Áp lực",mochiSub:"dâu, tròn",puddingSub:"caramel, dẹt",sodaSub:"bạc hà, cao, có ga",texLabel:"Bề mặt",tex_glass:"Thủy tinh",tex_iron:"Sắt",tex_diamond:"Kim cương",tex_jelly:"Thạch",tex_brick:"Gạch",tex_water:"Bóng slime",tex_lego:"Gạch đồ chơi",sizeLabel:"Cỡ mèo",splitToast:"Nó tách ra thành các mảnh nhỏ hơn.",cloneToast:"{name} bẹp thành {n} mèo mini phân thân ở {bar} bar.",
-playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",boughtToast:"{name} là của anh rồi.",machines:["Máy Ép Gốc","Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Gốc","Hỏa Long","Địa Ngục","Thiên Thần"],fx_base:"Hiệu ứng: Máy xưởng tiêu chuẩn - thép sạch, gân điện xanh, đèn trạng thái. Sức ép ngang mọi máy.",fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",boom_blast:"Máy nổ tung - các bộ phận bay tứ tung!",boom_collapse:"Máy nổ rồi sập hẳn xuống thành đống!",boom_launch:"Máy nổ - bộ phận bay vút lên trời!",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",hpTxt:"Máu mèo",hpFull:"Đang khỏe nguyên - giữ ép để bào dần nhé.",hpWeak:"Đang nứt rồi - ép tiếp đi, sắp chịu hết nổi.",hpCrit:"Sắp bẹp rồi - ép thêm chút nữa thôi!",hpNone:"Chưa có mèo trên bàn.",hpEach:"{n} mèo - mỗi bé một vòng máu quanh chân trên mặt bàn.",hpMore:"+{n} mèo nữa",hpSlot:"Chỗ trống",comboTxt:"COMBO",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - máy chứa tối đa {n} mèo. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"{n} mèo trên bàn - thả vào là va chạm, xếp chồng như vật lý thật.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
+playCaption:"",playSub:"",machLabel:"Máy ép",densLabel:"Độ đặc",genCat:"Gen mèo",bagTxt:"Balo",moneyTxt:"Tiền",vacTxt:"Hút vụn",vacLbl:"Vụn đã hút",useTxt:"Dùng",buyTxt:"Mua",activeTxt:"Đang dùng",powerTxt:"Áp lực",speedTxt:"Tốc độ",vacToast:"Đã hút {c} mảnh: +${n}.",vacNone:"Chưa có vụn để hút.",vacHintTxt:"Nhiều vụn quá - bấm Hút vụn để dọn sạch và kiếm tiền nhé.",bagHintTxt:"Có tiền rồi - mở Balo để mua hoặc nâng cấp máy ép nhé.",boughtToast:"{name} là của anh rồi.",machines:["Máy Ép Gốc","Máy Hỏa Long","Máy Địa Ngục","Máy Thiên Thần"],shortMachines:["Gốc","Hỏa Long","Địa Ngục","Thiên Thần"],fx_base:"Hiệu ứng: Máy xưởng tiêu chuẩn - thép sạch, gân điện xanh, đèn trạng thái. Sức ép ngang mọi máy.",fx_dragon:"Hiệu ứng: Nova lửa - vương miện lửa, than hồng xoáy, nổ vòng lửa. Sức ép ngang mọi máy.",fx_hell:"Hiệu ứng: Thu hồn - xoáy ngũ giác, hồn ma bay lên, nổ tím. Sức ép ngang mọi máy.",fx_angel:"Hiệu ứng: Phán xét hào quang - cột sáng, pha lê bay quanh, nổ vòng hào quang. Sức ép ngang mọi máy.",fineTxt:"Độ mịn",boomToast:"Máy nổ - không đủ áp lực cho {mat}. Máy đang tự hồi lại.",boom_blast:"Máy nổ tung - các bộ phận bay tứ tung!",boom_collapse:"Máy nổ rồi sập hẳn xuống thành đống!",boom_launch:"Máy nổ - bộ phận bay vút lên trời!",fixedToast:"Máy đã hồi lại. Ép tiếp được rồi.",crackToast:"Nó đang nứt ra.",holdBlend:"XAY",holdGrind:"NGHIỀN",machinesLbl:"Máy",typePress:"Ép",typeGrind:"Nghiền",typeBlend:"Xay",bagForType:"Chỉ hiện máy: {type} - các cấp của loại này.",physCrack:"Kiểu nứt",physHard:"Độ cứng",physBounce:"Độ nảy",physMass:"Khối lượng",physNeed:"Cần",physDmg:"Hư hại",hpTxt:"Máu mèo",hpFull:"Đang khỏe nguyên - giữ ép để bào dần nhé.",hpWeak:"Đang nứt rồi - ép tiếp đi, sắp chịu hết nổi.",hpCrit:"Sắp bẹp rồi - ép thêm chút nữa thôi!",hpNone:"Chưa có mèo trên bàn.",hpEach:"{n} mèo - mỗi bé một vòng máu quanh chân trên mặt bàn.",hpMore:"+{n} mèo nữa",hpSlot:"Chỗ trống",comboTxt:"COMBO",cmpTxt:"So sánh",cmpTitle:"So sánh chất liệu",crack_glass:"Tỏa tia + vòng đồng tâm",crack_diamond:"Thẳng theo mặt cleavage",crack_iron:"Lõm dẻo, nứt mỏi mờ",crack_jelly:"Rách cong rộng",crack_brick:"Bậc thang theo mạch vữa",crack_water:"Không nứt - rò slime",crack_lego:"Gãy stud, trắng ứng suất",fxTxt:"Hiệu ứng",photoTxt:"Ảnh",photoTitle:"Chơi bằng ảnh",photoHint:"Chọn hoặc chụp một ảnh. Ảnh được phân tích ngay trên máy của anh - không tải lên đâu, không gọi AI trả phí.",photoPick:"Chọn ảnh",photoJelly:"Mèo thạch ảnh",photoUse:"Dùng gợi ý",photoSugg:"Gần nhất: {cat} chất liệu {mat}.",photoStats:"Màu {c} - sáng {l}% - dáng {s}",shapeRound:"tròn",shapeFlat:"rộng và dẹt",shapeTall:"cao",stackFull:"Full - máy chứa tối đa {n} mèo. Ép vỡ một mèo hoặc hút vụn trước đã.",stackToast:"{n} mèo trên bàn - thả vào là va chạm, xếp chồng như vật lý thật.",queueToast:"Còn {n} mèo trong hàng chờ - chạy máy thêm lần nữa.",libNote:"Thư viện: 24 đồ vật quen thuộc từ các bộ Kenney, Quaternius và KayKit - CC0, không cần đăng nhập - được gợi ý và dựng bản jelly ngay trong trang; không nhúng file model nên trang vẫn nhẹ. Poly Haven (CC0, chỉ bản 1K) là nguồn tiếp theo; Sketchfab đang chờ xác minh tài khoản.",photoOnToast:"Mèo thạch ảnh đã lên bàn.",
 verdicts:["Bẹp.","Xẹp lép.","Xì ga."],stat:"Bỏ cuộc ở {bar} bar và {pct}% chiều cao.",
 poppedToast:"{name} bẹp ở {bar} bar.",newCatToast:"{name} đã lên bàn ép. Bé chưa nghi ngờ gì.",grabToast:"Đã nắm. Nó giãn ra. Nó không tha thứ đâu.",resetToast:"Mèo mới, chiều cao nguyên vẹn, không nhớ gì về máy ép.",holdHint:"Mới vào? Giữ nút đỏ để ép thử nhé."},
 es:{subtitle:"Investigación del prensado de gatos de gelatina",count:"Gatos aplastados",ready:"Listo",pressing:"Prensando",playmode:"Modo juego",sound:"Sonido",reset:"Reiniciar",hold:"MANTÉN",raise:"Subir",pressure:"Presión",mochiSub:"fresa, redondo",puddingSub:"caramelo, plano",sodaSub:"menta, alto, con gas",texLabel:"Superficie",tex_glass:"Vidrio",tex_iron:"Hierro",tex_diamond:"Diamante",tex_jelly:"Gelatina",tex_brick:"Ladrillo",tex_water:"Bola de slime",tex_lego:"Ladrillo de juguete",sizeLabel:"Tamaño",splitToast:"Se partió en trozos más pequeños.",cloneToast:"{name} reventó en {n} miniclones a {bar} bar.",
-playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Base","Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Base","Dragón","Infierno","Ángel"],fx_base:"Efecto: Estándar de fábrica - acero limpio, venas de energía cian, luces de estado. Misma potencia que todas.",fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",boom_blast:"¡La prensa explotó en pedazos por todas partes!",boom_collapse:"¡La prensa explotó y se desplomó por completo!",boom_launch:"¡La prensa explotó - piezas lanzadas al cielo!",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",hpTxt:"PV del gato",hpFull:"Salud completa: mantén para desgastarlo.",hpWeak:"Se está agrietando: sigue, ya cede.",hpCrit:"Casi revienta: ¡un empujón más!",hpNone:"No hay gato en la base.",hpEach:"{n} gatos: un anillo de PV en la base, a los pies de cada gato.",hpMore:"+{n} gatos más",hpSlot:"Vacío",comboTxt:"COMBO",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: {n} gatos es lo máximo que cabe. Revienta un gato o aspira antes.",stackToast:"{n} gatos en la prensa: caen, chocan y se apilan con física real.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
+playCaption:"",playSub:"",machLabel:"Máquina",densLabel:"Densidad",genCat:"Gen gato",bagTxt:"Mochila",moneyTxt:"Dinero",vacTxt:"Aspirar",vacLbl:"Migas aspiradas",useTxt:"Usar",buyTxt:"Comprar",activeTxt:"En uso",powerTxt:"Potencia",speedTxt:"Velocidad",vacToast:"{c} trozos aspirados: +${n}.",vacNone:"Aún no hay nada que aspirar.",vacHintTxt:"Muchos trozos - toca Aspirar para limpiar y ganar dinero.",bagHintTxt:"Dinero ganado - abre la Mochila para comprar o mejorar una prensa.",boughtToast:"{name} ya es tuyo.",machines:["Prensa Base","Prensa Dragón de Fuego","Prensa Infernal","Prensa Ángel"],shortMachines:["Base","Dragón","Infierno","Ángel"],fx_base:"Efecto: Estándar de fábrica - acero limpio, venas de energía cian, luces de estado. Misma potencia que todas.",fx_dragon:"Efecto: Nova de brasas - corona de llamas, brasas en espiral, anillo de fuego. Misma potencia que todas.",fx_hell:"Efecto: Cosecha de almas - vórtice de pentagrama, espíritus ascendentes, explosión violeta. Misma potencia que todas.",fx_angel:"Efecto: Juicio del halo - pilares de luz, cristales orbitales, anillo de halo. Misma potencia que todas.",fineTxt:"Fino",boomToast:"La prensa explotó: presión insuficiente para {mat}. Se está reparando.",boom_blast:"¡La prensa explotó en pedazos por todas partes!",boom_collapse:"¡La prensa explotó y se desplomó por completo!",boom_launch:"¡La prensa explotó - piezas lanzadas al cielo!",fixedToast:"Prensa reparada. Lista de nuevo.",crackToast:"Se está agrietando.",holdBlend:"LICUAR",holdGrind:"TRITURAR",machinesLbl:"Máquinas",typePress:"Prensa",typeGrind:"Molino",typeBlend:"Licuadora",bagForType:"Solo máquinas: {type} - niveles de este tipo.",physCrack:"Grieta",physHard:"Dureza",physBounce:"Rebote",physMass:"Masa",physNeed:"Necesita",physDmg:"Daño",hpTxt:"PV del gato",hpFull:"Salud completa: mantén para desgastarlo.",hpWeak:"Se está agrietando: sigue, ya cede.",hpCrit:"Casi revienta: ¡un empujón más!",hpNone:"No hay gato en la base.",hpEach:"{n} gatos: un anillo de PV en la base, a los pies de cada gato.",hpMore:"+{n} gatos más",hpSlot:"Vacío",comboTxt:"COMBO",cmpTxt:"Comparar",cmpTitle:"Materiales de un vistazo",crack_glass:"Radial + anillos",crack_diamond:"Facetas rectas de exfoliación",crack_iron:"Abolladura dúctil, fatiga",crack_jelly:"Desgarros curvos anchos",crack_brick:"Escalones por las juntas",crack_water:"Sin grietas: pierde slime",crack_lego:"Rotura de stud, blanqueo",fxTxt:"FX",photoTxt:"Foto",photoTitle:"Jugar con foto",photoHint:"Elige o toma una foto. Se analiza en tu dispositivo: no se sube nada ni se llama a ninguna IA de pago.",photoPick:"Elegir foto",photoJelly:"Gato foto gelatina",photoUse:"Usar sugerencia",photoSugg:"Más parecido: {cat} en {mat}.",photoStats:"Color {c} - luz {l}% - forma {s}",shapeRound:"redonda",shapeFlat:"ancha y plana",shapeTall:"alta",stackFull:"Full: {n} gatos es lo máximo que cabe. Revienta un gato o aspira antes.",stackToast:"{n} gatos en la prensa: caen, chocan y se apilan con física real.",queueToast:"Quedan {n} gatos en cola: ejecuta la máquina otra vez.",libNote:"Biblioteca: 24 objetos cotidianos de las familias Kenney, Quaternius y KayKit - CC0, sin registro - sugeridos y creados como gelatina en la página; no se incrustan modelos, así la página sigue ligera. Poly Haven (CC0, solo 1K) sigue; Sketchfab espera verificación de cuenta.",photoOnToast:"El gato de foto ya está en la base.",
 verdicts:["Pawp.","Aplastado.","Burbujeó."],stat:"Se rindió a {bar} bar y al {pct}% de su altura.",
 poppedToast:"{name} reventó a {bar} bar.",newCatToast:"{name} está en la base. No sospecha nada.",grabToast:"Agarrado. Se estira. No perdona nada.",resetToast:"Gato nuevo, altura completa, sin recuerdos de la prensa.",holdHint:"¿Nuevo por aquí? Mantén el botón rojo para prensar."},
 zh:{subtitle:"果冻猫压制研究",count:"已压猫数",ready:"就绪",pressing:"正在压",playmode:"游玩模式",sound:"声音",reset:"重置",hold:"按住",raise:"升起",pressure:"压力",mochiSub:"草莓, 圆",puddingSub:"焦糖, 扁",sodaSub:"薄荷, 高, 带气泡",texLabel:"表面",tex_glass:"玻璃",tex_iron:"铁",tex_diamond:"钻石",tex_jelly:"果冻",tex_brick:"砖块",tex_water:"史莱姆球",tex_lego:"玩具积木",sizeLabel:"大小",splitToast:"它裂成了更小的碎块。",cloneToast:"{name} 在 {bar} bar 时爆成了 {n} 只迷你分身猫。",
-playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",boughtToast:"{name} 归你了。",machines:["基础压机","火龙压机","地狱压机","天使压机"],shortMachines:["基础","火龙","地狱","天使"],fx_base:"效果:工厂标准 - 干净钢材、青色能量脉络、状态灯。与所有压机同等力量。",fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",boom_blast:"压机炸开了 - 零件四处飞散!",boom_collapse:"压机爆炸后整个塌了下来!",boom_launch:"压机炸了 - 零件飞上天!",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",hpTxt:"猫的血量",hpFull:"满血状态 - 按住压机慢慢磨。",hpWeak:"正在开裂 - 继续压, 它快撑不住了。",hpCrit:"快爆了 - 再压一下!",hpNone:"台上还没有猫。",hpEach:"{n} 只猫 - 每只脚边一个平贴台面的血量环。",hpMore:"还有 {n} 只猫",hpSlot:"空位",comboTxt:"连击",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - 压机最多放 {n} 只猫。先压爆一只猫或吸走碎屑。",stackToast:"台上有 {n} 只猫:掉落、碰撞、像真实物理一样堆叠。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
+playCaption:"",playSub:"",machLabel:"机器",densLabel:"密度",genCat:"生成猫",bagTxt:"背包",moneyTxt:"金钱",vacTxt:"吸走碎屑",vacLbl:"已吸碎屑",useTxt:"使用",buyTxt:"购买",activeTxt:"使用中",powerTxt:"压力",speedTxt:"速度",vacToast:"吸走 {c} 块碎屑: +${n}。",vacNone:"还没有碎屑可吸。",vacHintTxt:"碎屑太多了 - 点吸走碎屑清理并赚钱。",bagHintTxt:"赚到钱了 - 打开背包购买或升级压机。",boughtToast:"{name} 归你了。",machines:["基础压机","火龙压机","地狱压机","天使压机"],shortMachines:["基础","火龙","地狱","天使"],fx_base:"效果:工厂标准 - 干净钢材、青色能量脉络、状态灯。与所有压机同等力量。",fx_dragon:"效果:余烬新星 - 火焰冠、余烬螺旋、火环爆发。与所有压机同等力量。",fx_hell:"效果:灵魂收割 - 五芒星漩流、升腾幽火、紫色爆发。与所有压机同等力量。",fx_angel:"效果:光环审判 - 光柱、环绕水晶、光环爆发。与所有压机同等力量。",fineTxt:"细度",boomToast:"机器炸了 - 对 {mat} 压力不足。正在自动修复。",boom_blast:"压机炸开了 - 零件四处飞散!",boom_collapse:"压机爆炸后整个塌了下来!",boom_launch:"压机炸了 - 零件飞上天!",fixedToast:"机器已修复。可以继续压。",crackToast:"它正在开裂。",holdBlend:"搅拌",holdGrind:"粉碎",machinesLbl:"机器",typePress:"压机",typeGrind:"研磨",typeBlend:"搅拌机",bagForType:"仅显示: {type} - 该类型的等级。",physCrack:"裂纹",physHard:"硬度",physBounce:"弹跳",physMass:"质量",physNeed:"需要",physDmg:"损伤",hpTxt:"猫的血量",hpFull:"满血状态 - 按住压机慢慢磨。",hpWeak:"正在开裂 - 继续压, 它快撑不住了。",hpCrit:"快爆了 - 再压一下!",hpNone:"台上还没有猫。",hpEach:"{n} 只猫 - 每只脚边一个平贴台面的血量环。",hpMore:"还有 {n} 只猫",hpSlot:"空位",comboTxt:"连击",cmpTxt:"对比",cmpTitle:"材质对比一览",crack_glass:"放射 + 同心环裂纹",crack_diamond:"直线解理面",crack_iron:"塑性凹陷, 疲劳纹",crack_jelly:"宽弧形撕裂",crack_brick:"沿灰缝阶梯裂",crack_water:"不裂 - 漏史莱姆",crack_lego:"凸点断裂, 应力发白",fxTxt:"特效",photoTxt:"照片",photoTitle:"照片玩法",photoHint:"选择或拍摄一张照片。分析在本机完成 - 不上传, 不调用付费 AI。",photoPick:"选择照片",photoJelly:"照片果冻猫",photoUse:"使用建议",photoSugg:"最接近: {cat}, 材质 {mat}。",photoStats:"颜色 {c} - 亮度 {l}% - 形状 {s}",shapeRound:"圆",shapeFlat:"宽而扁",shapeTall:"高",stackFull:"Full - 压机最多放 {n} 只猫。先压爆一只猫或吸走碎屑。",stackToast:"台上有 {n} 只猫:掉落、碰撞、像真实物理一样堆叠。",queueToast:"还有 {n} 只猫在排队 - 再运行一次机器。",libNote:"库: 24 件日常物品, 来自 Kenney、Quaternius 和 KayKit 系列 - CC0, 无需登录 - 在页面内匹配为果冻版本; 不嵌入模型文件, 页面保持轻量。Poly Haven(CC0, 仅 1K)为下一来源; Sketchfab 等待账户验证。",photoOnToast:"照片果冻猫已上台。",
 verdicts:["啪叽。","压扁了。","滋滋冒泡。"],stat:"在 {bar} bar 和 {pct}% 高度时放弃了。",
 poppedToast:"{name} 在 {bar} bar 时爆开了。",newCatToast:"{name} 已经上台了。它什么都没怀疑。",grabToast:"抓住了。它在拉伸。它什么都不原谅。",resetToast:"新猫, 完整高度, 完全不记得压机。",holdHint:"新来的? 按住红色按钮试着压一下。"}
 };
@@ -3831,12 +3878,18 @@ function makeHeroCat(type,texKind,sizeF){
      cat's stiffness and damping by +-15%, so no two cats - not even
      two Mochis in a row - press or break quite the same way */
   var heroSeed=(Math.random()*2147483646)|0;
-  var crackGrp=buildCrackGroup(texKind,FORMS[type],type,heroSeed);
+  /* a crack-group failure must NEVER orphan the cat again (see the
+     ORPHAN BUG note in buildCrackGroup): if building the crack web
+     ever throws for some future form, the cat still joins the
+     physics list whole, just without a crack web */
+  var crackGrp;
+  try{ crackGrp=buildCrackGroup(texKind,FORMS[type],type,heroSeed); }
+  catch(cgErr){ crackGrp=new THREE.Group(); crackGrp.userData.branches=[]; crackGrp.userData.voroCells=[]; crackGrp.visible=false; }
   if(mesh.userData.bodyG) mesh.userData.bodyG.add(crackGrp);
   var jrng=mulberry32(heroSeed^0x51ab);
   var bfp=formPhys(type);
   var heroFp={stiff:bfp.stiff*(0.85+jrng()*0.3),damp:bfp.damp*(0.85+jrng()*0.3),volKeep:bfp.volKeep,spread:bfp.spread,wobbleAmp:bfp.wobbleAmp,fric:bfp.fric,bounce:bfp.bounce,bend:bfp.bend,fragN:bfp.fragN,fragBounce:bfp.fragBounce,mass:bfp.mass,comp:bfp.comp};
-  return {mesh:mesh,inner:mesh.userData.inner,mat:mesh.userData.mat,form:FORMS[type],type:type,texKind:texKind,sizeF:sizeF,wob:0,wobV:0,shake:0,vx:0,vz:0,vy:0,held:false,tiltX:0,tiltZ:0,crack:crackGrp,dustAt:0,leakAt:0,ejAt:0,puddleFeed:0,fp:heroFp,seed:heroSeed,lean:jrng()*Math.PI*2,voro:(crackGrp.userData.voroCells||[]),workP:0,face:mesh.userData.face||null,expr:0,drop:0,dropV:0,baseY:BED_Y,cellIdx:0,gridF:1,hopY:0,hopV:0,tvx:0,tvz:0,rax:0,raz:0,kickAt:0,spinF:0.5+Math.random()*0.9,pSq:0,pSqV:0,pRaw:0,pContact:false,pEngaged:false,pDmg:0,pCrack:0,hpShown:1,lastCrumb:0,burstAt:0.54+Math.random()*0.12,isBomb:!!(FORMS[type]&&FORMS[type].objKind==='bomb')};
+  return {mesh:mesh,inner:mesh.userData.inner,mat:mesh.userData.mat,form:FORMS[type],type:type,texKind:texKind,sizeF:sizeF,wob:0,wobV:0,shake:0,vx:0,vz:0,vy:0,held:false,tiltX:0,tiltZ:0,crack:crackGrp,dustAt:0,leakAt:0,ejAt:0,puddleFeed:0,fp:heroFp,seed:heroSeed,lean:jrng()*Math.PI*2,voro:(crackGrp.userData.voroCells||[]),workP:0,face:mesh.userData.face||null,expr:0,drop:0,dropV:0,baseY:BED_Y,cellIdx:0,gridF:1,hopY:0,hopV:0,tvx:0,tvz:0,rax:0,raz:0,kickAt:0,spinF:0.5+Math.random()*0.9,pSq:0,pSqV:0,pRaw:0,pContact:false,pEngaged:false,pDmg:0,pCrack:0,hpShown:1,lastCrumb:0,burstAt:0.54+Math.random()*0.12,impSq:0,impSqV:0,isBomb:!!(FORMS[type]&&FORMS[type].objKind==='bomb')};
 }
 /* (stackRestHeight is gone on purpose: one shared tallest-cat
    height driving every cat's squash WAS the early-press bug.) */
@@ -3994,7 +4047,28 @@ function stackCat(type){
      many cats are already up, so cats added in quick succession do
      not all spawn at the exact same height and interpenetrate on
      the way down - each still lands with full collision + stacking */
-  h.mesh.position.set(Math.cos(ang)*rad,BED_Y+2.6+Math.random()*0.5+(heroes.length%3)*0.3,-0.1+Math.sin(ang)*rad);
+  /* SPAWN SAFETY (user report, 2026-11-05): the drop-in used to
+     leave from a fixed height over the disc centre no matter where
+     the platen was - Gen a cat while the press is held down and it
+     fell straight THROUGH the lowered disc (and the ram) on its
+     way to the bed, and cats have ended up sitting ON TOP of the
+     disc with the column through them. The spawn point is now
+     chosen against the CURRENT face: if this cat's crown fits
+     under the face with falling room, it drops in under the disc
+     as before, crown starting just below the face; if the face is
+     too low to fit it at all, it drops in BESIDE the disc on the
+     open bed instead and slides in later. Either way its fall
+     never crosses the disc or the column. */
+  var spawnH=catRestH(h), faceNow=platenBottom();
+  var spawnY=BED_Y+2.6+Math.random()*0.5+(heroes.length%3)*0.3;
+  if(faceNow-spawnH<BED_Y+0.30){
+    rad=PLATEN_R+0.50; /* beside the disc: clear of the rim and the ram */
+    spawnY=BED_Y+1.1+Math.random()*0.3;
+  } else {
+    spawnY=Math.min(spawnY,faceNow-spawnH-0.12);
+    spawnY=Math.max(spawnY,BED_Y+0.35);
+  }
+  h.mesh.position.set(Math.cos(ang)*rad,spawnY,-0.1+Math.sin(ang)*rad);
   h.vy=0; h.baseY=BED_Y;
   heroes.push(h); hero=h;
   currentType=type; currentTex=h.texKind;
@@ -4030,9 +4104,45 @@ function layoutStack(dt,time){
       hh.vy=(hh.vy||0)+26*dt;
       y-=hh.vy*dt;
       if(y<=sup){
+        var impact=hh.vy;
         y=sup;
-        if(hh.vy>3.2){ hh.wobV+=Math.min(6,hh.vy*0.8); plop(Math.min(2,hh.vy*0.35)); }
-        hh.vy=0;
+        if(impact>3.2){ hh.wobV+=Math.min(6,impact*0.8); plop(Math.min(2,impact*0.35)); }
+        /* IMPACT SOFTNESS (user, 2026-11-07): EVERY body - rigid
+           ones included - now answers a landing with a real impact
+           squash impulse (impSq, integrated and drawn in animate):
+           soft bodies dip deep and ring, rigid bodies dip a little
+           and thud, and a hard landing kicks up a small puff of the
+           body's own material dust. Before this, a rigid cat's
+           landing had NO visual answer at all (its wobble is
+           shader-only and rigid materials zero it), so drops and
+           collisions read as stiff and dead. */
+        if(impact>1.5){
+          var softF=physFor(hh.texKind).jiggle>0?1:0.5;
+          hh.impSqV=Math.min(10,(hh.impSqV||0)+impact*0.95*softF);
+          if(impact>2.6 && time>(hh.dustAt||0)){
+            hh.dustAt=time+0.22;
+            spawnDust(2,hh.mesh.position.x+(Math.random()-0.5)*0.9,sup+0.16,hh.mesh.position.z+(Math.random()-0.5)*0.9,hh.texKind,hh.form.color,0.85);
+          }
+        }
+        /* SOFT LANDING BOUNCE (user, 2026-11-05): a soft liquid
+           body - jelly or water - must not land dead. It rebounds
+           ONCE or twice with a small fraction of its landing speed
+           (each cat form's own bounce number, heavily damped),
+           wobbles, and settles: a gel hop of a few centimetres,
+           never a rubber-ball bounce, and never hard enough to
+           leave the bed or reach the platen face above it. Rigid
+           bodies (glass, iron, diamond, brick, lego) keep the old
+           dead thud - restitution 0. The hop is also suppressed
+           when the face is right overhead, so a bounce can never
+           push a crown into the disc. */
+        var restB=physFor(hh.texKind).jiggle>0? Math.min(0.30,0.10+((hh.fp&&hh.fp.bounce)||0.3)*0.35) : 0.09; /* rigid bodies keep only a whisper of a hop - a few millimetres, never a bounce off the bed (user, 2026-11-07: landings felt dead-stiff) */
+        var bv=impact*restB;
+        if(bv>0 && impact>2.3 && bv>0.65 && catUnderDisc(hh) && sup+curCatH(hh)+bv*bv/52>platenBottom()-0.02) bv=0; /* face too close overhead: settle instead */
+        if(bv>0.65){
+          hh.vy=-Math.min(3.0,bv); /* negative vy is upward in this integrator: a short gravity arc, a smaller second landing, then rest */
+          y=sup+0.012;
+          hh.wobV+=Math.min(4,impact*0.45);
+        } else hh.vy=0;
       }
     } else { y=sup; hh.vy=0; /* ride the support: if the cat below squashes, this one sinks with it */ }
     hh.baseY=y;
@@ -4052,6 +4162,12 @@ function layoutStack(dt,time){
     if(!a.held){ a.mesh.position.x-=ux*push*(2*bM/tot)*0.8; a.mesh.position.z-=uz*push*(2*bM/tot)*0.8; }
     if(!b.held){ b.mesh.position.x+=ux*push*(2*aM/tot)*0.8; b.mesh.position.z+=uz*push*(2*aM/tot)*0.8; }
     a.wobV+=0.22; b.wobV+=0.22; /* a gentle nudge only: this fires every frame while two cats merely touch in a crowd, and the old 0.8 pump built up a squash-looking wobble in exactly the middle cats */
+    /* COLLISION SOFTNESS (user, 2026-11-07): a real shove also
+       pumps each body's impact squash, scaled by how deep the
+       overlap actually was - a bump reads as a soft bump (a brief
+       dip and ring, rigid bodies included), a mere touch in a
+       crowd (push near zero) reads as nothing */
+    if(push>0.015){ var ipump=Math.min(2.4,push*7.5); a.impSqV=Math.min(9,(a.impSqV||0)+ipump); b.impSqV=Math.min(9,(b.impSqV||0)+ipump); }
   }
   /* REST CLEARANCE: while the press sits at rest (not held), a cat
      whose crown still pokes above the resting face - too tall even
@@ -4084,6 +4200,56 @@ function layoutStack(dt,time){
     var maxD=3.55;
     if(bd>maxD){ hh.mesh.position.x=cxp/bd*maxD; hh.mesh.position.z=-0.1+czp/bd*maxD; }
   }
+  /* PRESS SOLIDITY: the disc and the ram are solid for cats too -
+     the final word every frame, for every cat, held or not */
+  for(i=0;i<heroes.length;i++) collidePressCat(heroes[i],dt);
+}
+/* ---------- PRESS SOLIDITY FOR CATS ----------
+   Pieces and droplets have collided with the platen all along
+   (collidePlaten); cats never did. Every earlier cat fix covered
+   only the path somebody had already seen - rest lift, spawn
+   height, the contact clamp - so a cat could still arrive inside
+   the press hardware by any other route (riding a stack while the
+   platen moved, dragged with one finger while the other held the
+   press, falling from a burst pile) and STAY there: the 2026-11-05
+   phone photo shows a white Chii lying ON TOP of the lowered disc
+   with the silver ram straight through its body. This pass is the
+   guarantee, checked every frame for every cat: no cat's body may
+   intersect the ram, and no cat may sit on the wrong (top) side
+   of the disc. Resolution is always a radial slide OUT - a cat is
+   never lifted onto the disc, never pushed up, and an under-disc
+   cat is left to the press solver's squash clamp, which owns its
+   crown. Cats are only ever pressed from underneath the face. */
+function collidePressCat(hh,dt){
+  var base=hh.baseY||BED_Y;
+  var top=base+curCatH(hh);
+  var pb=platenBottom(), pt=platenTopY();
+  if(top<=pb) return; /* wholly below the face: the solver owns this cat */
+  var px=hh.mesh.position.x, pz=hh.mesh.position.z+0.1;
+  var dist=Math.hypot(px,pz);
+  var ux=dist>0.05? px/dist:1, uz=dist>0.05? pz/dist:0;
+  /* RAM: the central column (radius 0.52) spans from the platen
+     top up to the cylinder housing at y 6.80. Any body poking
+     above the platen top near the axis is pushed radially clear
+     of the column - the column never passes through a cat. */
+  if(top>pt && base<6.80 && dist<0.52+catCrownR(hh)+0.04){
+    var rp=0.52+catCrownR(hh)+0.04-dist;
+    hh.mesh.position.x+=ux*rp; hh.mesh.position.z+=uz*rp;
+    px=hh.mesh.position.x; pz=hh.mesh.position.z+0.1; dist=Math.hypot(px,pz);
+    ux=dist>0.05? px/dist:1; uz=dist>0.05? pz/dist:0;
+  }
+  /* DISC, WRONG SIDE: a cat whose base sits at or above the face
+     plane while its crown circle overlaps the disc is on top of
+     the press plate - it is slid radially off the rim while
+     gravity keeps pulling it down, so it drops onto the bed
+     beside the disc instead of resting up there. An under-disc
+     cat (base below the face) is never slid: it belongs to the
+     press solver. */
+  if(base>=pb-0.02 && dist<PLATEN_R+catCrownR(hh)*0.55){
+    var targetD=Math.min(PLATEN_R+catCrownR(hh)*0.55,3.55);
+    var step=Math.min(targetD-dist,(3.4+Math.abs(hh.vy||0)*0.8)*dt);
+    if(step>0){ hh.mesh.position.x+=ux*step; hh.mesh.position.z+=uz*step; }
+  }
 }
 function clearPieces(){
   pieces.forEach(function(p){ scene.remove(p.mesh); p.mat.dispose(); });
@@ -4098,8 +4264,31 @@ function clearPieces(){
    pieceValue() has already priced each one by material, size and
    density. Gel droplets get sucked up too, for free. */
 var vacFx=[], vacuuming=false, vacPending=null;
+/* ---------- Timed hint bubbles (user, 2026-11-07) ----------
+   1) When the loose mess piles up (same 12-piece threshold as the
+   trash-bin arrow), a bubble by the Vacuum button suggests using
+   the vacuum - for about 4 seconds, once per mess episode (it
+   re-arms only after the mess is mostly gone, so it never nags).
+   2) The moment a vacuum finishes and the money lands, a bubble
+   up by the Backpack button points out that a press can be
+   bought or upgraded there - again for a few seconds only. */
+var vacHintArmed=true;
+function showHintBubble(el,btn,ms){
+  if(!el) return;
+  el.hidden=false;
+  if(btn) btn.classList.add('pulse');
+  if(el._ht) clearTimeout(el._ht);
+  el._ht=setTimeout(function(){ el.hidden=true; if(btn) btn.classList.remove('pulse'); el._ht=null; },ms);
+}
+function hideHintBubble(el,btn){
+  if(!el) return;
+  el.hidden=true;
+  if(btn) btn.classList.remove('pulse');
+  if(el._ht){ clearTimeout(el._ht); el._ht=null; }
+}
 function startVacuum(){
   if(vacuuming) return;
+  hideHintBubble($('vacHint'),$('vacBtn')); vacHintArmed=false; /* the nudge did its job - it stays retired until the next mess episode */
   /* the vacuum takes loose pieces and droplets ONLY - a standing
      stack of cats is never sucked up, it stays exactly as it was */
   if(!pieces.length&&!droplets.length){ toast(t('vacNone')); return; }
@@ -4123,6 +4312,9 @@ function updateVacuum(dt){
       vacuuming=false; money+=vacPending.total; vacuumedCount+=vacPending.count; vacuumedEarned+=vacPending.total;
       toast(t('vacToast').replace('{c}',vacPending.count).replace('{n}',vacPending.total));
       vacPending=null; updateBagUI(); renderBag();
+      /* vacuum done and paid: point at the Backpack for a few
+         seconds - that money buys or upgrades a press there */
+      showHintBubble($('bagHint'),$('bagBtn'),4500);
     }
     return;
   }
@@ -4933,6 +5125,8 @@ function applyLang(){
   renderMachBar();
   $('genBtn').textContent=t('genCat');
   $('vacBtn').textContent=t('vacTxt');
+  if($('vacHint')) $('vacHint').textContent=t('vacHintTxt');
+  if($('bagHint')) $('bagHint').textContent=t('bagHintTxt');
   $('bagTitle').textContent=t('bagTxt'); $('bagMoneyLbl').textContent=t('moneyTxt');
   updateBagUI(); renderBag();
   if($('physHardLbl')) $('physHardLbl').textContent=t('physHard');
@@ -5436,7 +5630,7 @@ function animate(){
       if(bd>maxR){
         hero.mesh.position.x=bx/bd*maxR; hero.mesh.position.z=-0.1+bz/bd*maxR;
         var nx2=bx/bd, nz2=bz/bd, dot2=hero.vx*nx2+hero.vz*nz2;
-        if(dot2>0){ hero.vx-=(1+fp.bounce)*dot2*nx2; hero.vz-=(1+fp.bounce)*dot2*nz2; if(dot2>1.2){ hero.wobV+=3; plop(dot2); } }
+        if(dot2>0){ hero.vx-=(1+fp.bounce)*dot2*nx2; hero.vz-=(1+fp.bounce)*dot2*nz2; if(dot2>1.2){ hero.wobV+=3; hero.impSqV=Math.min(9,(hero.impSqV||0)+Math.min(3.5,dot2*1.1)); plop(dot2); } }
       }
     }
     if(!hero.held){ hero.tiltX+=(0-hero.tiltX)*Math.min(1,dt*6); hero.tiltZ+=(0-hero.tiltZ)*Math.min(1,dt*6); }
@@ -5564,6 +5758,45 @@ function animate(){
         h.inner.rotation.z+=Math.cos(h.lean||0)*bendA;
         h.inner.rotation.x+=Math.sin(h.lean||0)*bendA*0.7;
       }
+      /* IMPACT SOFTNESS RENDER (user, 2026-11-07): the impSq
+         spring (pumped by landings in layoutStack and by cat-vs-cat
+         shoves) is drawn HERE as a scale overlay on EVERY cat -
+         a landing or a bump dips the body and rings it back with a
+         little overshoot wobble, and a body falling fast stretches
+         slightly on the way down (classic squash-and-stretch). It
+         is deliberately separate from the press solver: pSq stays
+         exactly what the platen geometry says, an untouched cat
+         still never reads as pressed, and rigid cats - whose
+         shader jiggle is zero by design - finally get a physical
+         answer to impacts too (at half amplitude: a thud, not a
+         jelly ring). The crown clamp right below still has the
+         last word, so an impact dip can never push a crown
+         through the face. */
+      h.impSqV=(h.impSqV||0)+(-150*(h.impSq||0)-11*(h.impSqV||0))*dt;
+      h.impSq=Math.max(-0.35,Math.min(1,(h.impSq||0)+(h.impSqV||0)*dt));
+      if(Math.abs(h.impSq)>0.004 || Math.abs(h.impSqV||0)>0.05 || (!h.held && (h.vy||0)>2.5)){
+        var impAmp=hphys.jiggle>0?1:0.55;
+        var impY=1-0.30*h.impSq*impAmp, impX=1+0.20*h.impSq*impAmp;
+        if(!h.held && (h.vy||0)>2.5){ var fst=Math.min(0.13,((h.vy||0)-2.5)*0.016)*(hphys.jiggle>0?1:0.5); impY*=1+fst; impX*=1-fst*0.5; }
+        h.inner.scale.y*=impY; h.inner.scale.x*=impX; h.inner.scale.z*=impX;
+      }
+      /* UNIVERSAL CROWN CLAMP: the contact clamp above only runs
+         for a cat the solver counts as touched - but a HELD cat
+         (dragged with one finger while another finger works the
+         press), an idle-wobble overshoot, or any path that leaves
+         a crown poking past the face would still RENDER through
+         the disc (user photo, 2026-11-05). So every cat under the
+         disc - touched or not, held or not - gets its drawn
+         height capped at the face here, the last word before this
+         cat is drawn. It only ever shrinks the drawing; pressure
+         and damage still accrue solely from real contact below. */
+      if(catUnderDisc(h)){
+        var uTop=(h.baseY||BED_Y)+curCatH(h);
+        if(uTop>pbNow+0.01){
+          var uF=(pbNow-(h.baseY||BED_Y))/Math.max(0.05,curCatH(h));
+          h.inner.scale.y*=Math.max(0.08,Math.min(1,uF));
+        }
+      }
       /* ---- pressure, cracks, damage: ONLY from this cat's contact ---- */
       if(ct && pressingNow){
         anyContact=true; loadCat=h;
@@ -5678,6 +5911,24 @@ function animate(){
         if(!bh2.pContact) continue;
         var bReq=reqPressureFor(bh2)*(1-0.45*(bh2.pDmg||0));
         if((bh2.pDmg||0)>=1){ toBurst.push(bh2); continue; }
+        /* BOMB DETONATION (user report, 2026-11-07 - "the bomb gets
+           pierced and never explodes, check ALL the special items'
+           physics"): a bomb is NOT a lump of iron to be fatigue-
+           cracked like a cat. The old path ran it through iron's
+           full burst gate - penetration past the whole fracture
+           depth AND pressure past 82% of iron's 383 bar AND the
+           rendered-squash gate - so any shortfall (rim overlap
+           scaling pRaw down, a taller neighbour holding the platen
+           floor up, a lower machine slider) left the platen sitting
+           ON the bomb forever while it never went off. A squeezed
+           bomb DETONATES: genuine contact plus the face biting in
+           past ~40% of the iron fracture depth at a modest squeeze
+           (never more than 140 bar), or fatigue past halfway, sets
+           it off - bypassing the machine-cap gate below on purpose,
+           because a bomb does not politely wait for a strong enough
+           press. burstCats then chain-bursts the whole bed, as
+           designed. */
+        if(bh2.isBomb && ((bh2.pRaw>=0.028 && pressure>=Math.min(bReq*0.35,140)) || (bh2.pDmg||0)>=0.5)){ toBurst.push(bh2); continue; }
         if(bReq>machineCap()) continue;
         /* jelly bursts on RENDERED squash OR on raw penetration:
            a low-volume-keeping body (the poop, volKeep 0.78) has its
@@ -5689,7 +5940,7 @@ function animate(){
            depth (catMaxPen), so penetration reaching the threshold
            IS the body driven to its designed breaking point. */
         if(bh2.texKind==='jelly'){ if((bh2.pSq>=(bh2.burstAt||burstAt) || bh2.pRaw>=(bh2.burstAt||burstAt)) && pressure>=bReq*0.55) toBurst.push(bh2); }
-        else if(bh2.pRaw>=physFor(bh2.texKind).burstRaw && bh2.pSq>=physEff(bh2.texKind).heroMax*0.82 && pressure>=bReq*0.82) toBurst.push(bh2);
+        else if(bh2.pRaw>=physFor(bh2.texKind).burstRaw && bh2.pSq>=physEff(bh2.texKind).heroMax*((bh2.form&&bh2.form.objKind)?0.62:0.82) && pressure>=bReq*((bh2.form&&bh2.form.objKind)?0.70:0.82)) toBurst.push(bh2); /* rare objects (the mini press above all) get a gentler squash/pressure gate than cats: their drawn squash is hard-clamped tighter, and the old cat gate could leave a special visibly flattened under the face yet never counted as broken (user, 2026-11-07) */
       }
       if(toBurst.length) burstCats(toBurst);
     }
@@ -5974,6 +6225,13 @@ function animate(){
   if(time>hudAt){
     hudAt=time+0.2;
     updateHpUI();
+    /* vacuum nudge upkeep (5x per second is plenty): a big loose
+       mess arms the Vacuum hint bubble for ~4s, once per episode */
+    var looseNow=pieces.length+droplets.length;
+    if(looseNow>=12 && !vacuuming && vacHintArmed && !vacFx.length){
+      vacHintArmed=false;
+      showHintBubble($('vacHint'),$('vacBtn'),4000);
+    } else if(looseNow<4 && !vacuuming) vacHintArmed=true;
   }
   updateHpFloats();
   governQuality(dt);
